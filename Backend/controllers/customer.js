@@ -3,12 +3,12 @@ const { logActivity } = require('../services/activityLogger.js');
 
 
 exports.createCustomer = async (req, res) => {
-  const { full_name, phone, address, gender, customer_photo_url, aadhaar_number, pan_number } = req.body;
+  const { full_name, phone_number, address, gender, customer_photo_url, aadhaar_number, pan_number } = req.body;
 
   try {
     const newCustomer = new Customer({
       full_name,
-      phone,
+      phone_number,
       address,
       gender,
       customer_photo_url,

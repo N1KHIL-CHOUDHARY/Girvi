@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createCustomer } from '../services/api';
+import { createAccount} from '../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
@@ -9,7 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 // Define the initial state for the form
 const initialState = {
   full_name: '',
-  phone: '',
+  phone_number: '',
   gender: 'Male',
   line1: '',
   city: '',
@@ -34,7 +34,7 @@ export default function NewCustomer() {
 
     const payload = {
       full_name: formData.full_name,
-      phone_number: formData.phone, // Match backend model
+      phone_number: formData.phone_number, 
       gender: formData.gender,
       address: {
         line1: formData.line1,
@@ -48,7 +48,7 @@ export default function NewCustomer() {
 
     try {
       
-      await createCustomer(payload);
+      await createAccount(payload);
       toast.success('Customer created successfully!');
       setFormData(initialState); // Reset the form
     } catch (error) {
@@ -75,8 +75,8 @@ export default function NewCustomer() {
               <Input id="full_name" name="full_name" placeholder="Jane Smith" type="text" value={formData.full_name} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer className="w-full">
-              <Label htmlFor="phone">Phone Number </Label>
-              <Input id="phone" name="phone" placeholder="9876543210" type="tel" value={formData.phone} onChange={handleChange} required />
+              <Label htmlFor="phone_number">Phone Number </Label>
+              <Input id="phone_number" name="phone_number" placeholder="9876543210" type="number" value={formData.phone} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 

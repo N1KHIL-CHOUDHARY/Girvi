@@ -41,7 +41,7 @@ const AppLayout = () => {
     { label: 'Customers', href: '/app/accounts', icon: <IconUsers className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
     { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
     { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'New Pawn Ticket', href: '/app/pawns/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
+    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
   ];
   
   const employeeLink = { label: 'Employees', href: '/app/employees', icon: <IconUserCog size={18} /> };

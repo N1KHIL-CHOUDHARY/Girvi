@@ -34,11 +34,14 @@ export default function Signup() {
       email: formData.email,
       password: formData.password,
     };
-
     try {
-      await signup(payload);
-      toast.success('Signup successful! Welcome.');
-      navigate('/app/dashboard');
+      const result = await signup(payload);
+      if (result.success) {
+        toast.success('Signup successful! Welcome.');
+        navigate('/app/dashboard');
+      } else {
+        toast.error(result.message || 'Signup failed');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Signup failed');
     } finally {

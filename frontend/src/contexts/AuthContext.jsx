@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, signup as apiSignup, getMyProfile } from '../services/api';
+// Import the correct getProfile function
+import { login as apiLogin, signup as apiSignup, getProfile, setAuthToken } from '../services/api'; 
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [loading, setLoading] = useState(true); // Loading on app start
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // This effect runs when the app first loads
@@ -16,13 +17,15 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         setToken(storedToken);
+        setAuthToken(storedToken); 
         try {
-          // Verify token by fetching user profile
-          const res = await getMyProfile(); 
-          setUser(res.data.user); // Set the user from the /app/me route
+       
+          const res = await getProfile(); 
+          setUser(res.data.user); 
         } catch (error) {
-          // Token is invalid or expired
+      
           localStorage.removeItem('token');
+          setAuthToken(null);
           setToken(null);
           setUser(null);
         }
@@ -32,26 +35,40 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  const handleAuthResponse = (res) => {
-    const { token, user } = res.data;
-    localStorage.setItem('token', token);
-    setToken(token);
-    setUser(user);
-    return res;
+  const handleAuthResponse = (result) => {
+    
+    if (result.token) { 
+      localStorage.setItem('token', result.token);
+      setAuthToken(result.token); 
+      setToken(result.token);
+      setUser(result.user);
+      return { success: true };
+    } else {
+      return { success: false, message: result.message };
+    }
   };
 
   const login = async (credentials) => {
-    const res = await apiLogin(credentials);
-    return handleAuthResponse(res);
+    try {
+      const result = await apiLogin(credentials);
+      return handleAuthResponse(result.data);
+    } catch(error){
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
   };
 
   const signup = async (userData) => {
-    const res = await apiSignup(userData);
-    return handleAuthResponse(res);
+    try {
+      const result = await apiSignup(userData);
+      return handleAuthResponse(result.data); 
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    setAuthToken(null); 
     setToken(null);
     setUser(null);
   };
@@ -60,7 +77,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
-    isAuthenticated: !!token, // True if token is not null
+    isAuthenticated: !!token,
     login,
     signup,
     logout,

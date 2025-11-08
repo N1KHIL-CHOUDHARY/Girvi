@@ -14,7 +14,7 @@ const loginSchema = Joi.object({
 
 const customerSchema = Joi.object({
   full_name: Joi.string().min(3).max(100).required(),
-  phone: Joi.string().min(10).max(15).required(),
+  phone_number: Joi.string().min(10).max(15).required(),
   gender: Joi.string().valid('Male', 'Female', 'Other').optional(),
   address: Joi.object({
     line1: Joi.string().optional().allow(''),

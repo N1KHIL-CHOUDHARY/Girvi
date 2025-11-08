@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPawnTicket, getCustomers } from '../services/api';
+import { createPawnTicket, getAccounts } from '../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
@@ -28,7 +28,7 @@ export default function NewPawn() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await getCustomers();
+        const res = await getAccounts();
         if (Array.isArray(res.data)) { // Use res.data directly
           setCustomers(res.data);
         } else if (Array.isArray(res.data.customers)) { // Fallback for {count, customers}
@@ -119,22 +119,22 @@ export default function NewPawn() {
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="ticket_number">Ticket Number *</Label>
+              <Label htmlFor="ticket_number">Ticket Number</Label>
               <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" value={formData.ticket_number} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="loan_amount">Loan Amount (₹) *</Label>
+              <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
               <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" value={formData.loan_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="interest_rate">Interest Rate (%) *</Label>
+              <Label htmlFor="interest_rate">Interest Rate (%)</Label>
               <Input id="interest_rate" name="interest_rate" placeholder="3" type="number" value={formData.interest_rate} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="adv_amount">Advance Amount (₹) *</Label>
+              <Label htmlFor="adv_amount">Advance Amount (₹)</Label>
               <Input id="adv_amount" name="adv_amount" placeholder="150" type="number" value={formData.adv_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
@@ -146,13 +146,13 @@ export default function NewPawn() {
           </h3>
 
           <LabelInputContainer className="mb-4">
-            <Label htmlFor="item_name">Item Name *</Label>
+            <Label htmlFor="item_name">Item Name</Label>
             <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="item_weight">Weight (grams) *</Label>
+              <Label htmlFor="item_weight">Weight (grams)</Label>
               <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>

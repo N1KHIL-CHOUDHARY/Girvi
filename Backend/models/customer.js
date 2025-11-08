@@ -13,7 +13,7 @@ const customerSchema = new Schema({
     required: true,
     trim: true,
   },
-  phone: {
+  phone_number: {
     type: String,
     required: true,
     // We will add encryption here later

@@ -28,9 +28,15 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(formData);
-      toast.success('Login successful!');
-      navigate(from, { replace: true });
+      // Use the result from the login function
+      const result = await login(formData); 
+      if (result.success) {
+        toast.success('Login successful!');
+        navigate(from, { replace: true });
+      } else {
+        console.log(result.message);
+        toast.error(result.message || 'Login failed');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
