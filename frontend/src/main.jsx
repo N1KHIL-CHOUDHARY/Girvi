@@ -17,10 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             position="top-right"
             toastOptions={{
               duration: 4000,
-              style: {
-                background: '#374151', 
-                color: '#f9fafb',
-              },
+              className: 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-lg rounded-lg',
             }}
           />
         </ThemeProvider>

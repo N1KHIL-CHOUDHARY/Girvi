@@ -12,8 +12,7 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // THIS IS THE "INCEPTION SETTING":
-    // 1. Check localStorage first
+    
     const saved = localStorage.getItem('theme')
     if (saved) {
       return saved === 'dark'
