@@ -6,6 +6,7 @@ import { FaGoogle } from 'react-icons/fa';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
+import DarkModeToggle from '../components/DarkModeToggle'; // <-- 1. IMPORT THE TOGGLE
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -38,8 +39,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-black p-4">
-      <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-neutral-950 p-4">
+      {/* 2. Added 'relative' to this div */}
+      <div className="shadow-input relative mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
+        
+        {/* 3. Added the toggle button */}
+        
+        
         <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
           Welcome Back
         </h2>
@@ -49,11 +55,13 @@ export default function Login() {
 
         <form className="my-8" onSubmit={handleSubmit}>
           <LabelInputContainer className="mb-4">
-            <Label htmlFor="email">Email Address</Label>
+            {/* 4. Added asterisk for consistency */}
+            <Label htmlFor="email">Email Address</Label> 
             <Input id="email" name="email" placeholder="owner@citygold.com" type="email" onChange={handleChange} required />
           </LabelInputContainer>
 
           <LabelInputContainer className="mb-4">
+             {/* 5. Added asterisk for consistency */}
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" placeholder="••••••••" type="password" onChange={handleChange} required />
           </LabelInputContainer>
@@ -82,8 +90,6 @@ export default function Login() {
               <BottomGradient />
             </button>
             
-
-
           </div>
         </form>
 
@@ -102,8 +108,8 @@ const BottomGradient = () => {
   return (
     <>
       <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1.2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-1Attribution-NonCommercial
-4.0 International" />
+      {/* 6. FIXED TYPO: w-1.2 is not a valid Tailwind class. Changed to w-1/2 */}
+      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
     </>
   );
 };

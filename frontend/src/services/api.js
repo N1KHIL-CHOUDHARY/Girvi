@@ -1,17 +1,13 @@
 import axios from 'axios';
 
-// 1. Set the base URL of your backend
 const API_URL = 'http://localhost:5000/api/v1';
 
-// 2. Create an "instance" of axios
 const api = axios.create({
   baseURL: API_URL,
 });
 
-// 3. Use an "interceptor" to automatically add the JWT token to every request
 api.interceptors.request.use(
   (config) => {
-    // Get the token from localStorage
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -24,8 +20,8 @@ api.interceptors.request.use(
 );
 
 // --- Auth Service ---
-export const signup = (data) => api.post('/auth/signup', data); // { shop_name, full_name, email, password }
-export const login = (data) => api.post('/auth/login', data); // { email, password }
+export const signup = (data) => api.post('/auth/signup', data); 
+export const login = (data) => api.post('/auth/login', data);
 export const getMyProfile = () => api.get('/app/me');
 
 // --- Customer Service ---
@@ -61,8 +57,7 @@ export const createRole = (data) => api.post('/app/roles', data);
 export const updateRole = (id, data) => api.put(`/app/roles/${id}`, data);
 export const deleteRole = (id) => api.delete(`/app/roles/${id}`);
 
-// --- File Upload Service ---
-// This one is special: it needs a 'Content-Type': 'multipart/form-data' header
+
 export const uploadImage = (formData) => {
   return api.post('/app/uploads/image', formData, {
     headers: {
