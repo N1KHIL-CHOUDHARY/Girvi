@@ -34,18 +34,36 @@ export const login = (data) => api.post('/auth/login', data);
 export const getProfile = () => api.get('/app/me'); // Corrected from /auth/me
 
 // --- Customer (Account) Routes ---
-export const getAccounts = () => api.get('/app/customers');
+export const getAccounts = (page = 1, search = "") => {
+  return api.get('/app/customers', {
+    params: {
+      page,
+      search,
+      limit: 10
+    }
+  });
+};
+
 export const getAccountById = (id) => api.get(`/app/customers/${id}`);
 export const createAccount = (data) => api.post('/app/customers', data);
 export const updateAccount = (id, data) => api.put(`/app/customers/${id}`);
 export const deleteAccount = (id) => api.delete(`/app/customers/${id}`);
 
 // --- Pawn Ticket Routes ---
-export const getPawnTickets = (status = '') => {
-  const params = status ? { status } : {};
-  return api.get('/app/pawns', { params });
+export const getPawnTickets = (page = 1, search = "") => {
+  return api.get('/app/pawns', {
+    params: {
+      page,
+      search,
+      limit: 10
+    }
+  });
 };
-export const getPawnTicketById = (id) => api.get(`/app/pawns/${id}`);
+
+export const getPawnTicketsByAccountId = (accountId) => {
+  // This now matches your new backend route
+  return api.get(`/app/customers/${accountId}/pawns`); 
+};
 export const createPawnTicket = (data) => api.post('/app/pawns', data);
 export const updatePawnTicket = (id, data) => api.put(`/app/pawns/${id}`);
 export const deletePawnTicket = (id) => api.delete(`/app/pawns/${id}`);

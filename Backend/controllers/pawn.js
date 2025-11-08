@@ -42,24 +42,72 @@ exports.createPawnTicket = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get all pawn tickets for the logged-in user's shop
- * @route   GET /api/v1/app/pawns
- */
 exports.getPawnTickets = async (req, res) => {
   try {
-    // We ONLY find tickets that match the user's 'shopId'
-    const tickets = await PawnTicket.find({ shop_id: req.user.shopId })
-      .populate('customer_id', 'full_name phone') // Get customer's name and phone
-      .sort({ pawned_date: -1 }); // Show newest first
+    // 1. Get query params, with defaults
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const searchQuery = req.query.search || '';
+
+    // 2. Calculate the number of documents to skip
+    const skip = (page - 1) * limit;
+
+    // 3. Create a query object
+    const query = {
+      shop_id: req.user.shopId,
+    };
+    if (searchQuery) {
+     e
+      query.$or = [
+        { ticket_number: { $regex: searchQuery, $options: 'i' } },
+        { 'items.name': { $regex: searchQuery, $options: 'i' } }
+      ];
+    }
+
+    
+    const totalPawnTickets = await PawnTicket.countDocuments(query);
+
+    const tickets = await PawnTicket.find(query)
+      .populate('customer_id', 'full_name phone') 
+      .sort({ pawned_date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      totalPawnTickets,
+      totalPages: Math.ceil(totalPawnTickets / limit),
+      currentPage: page,
+      tickets, // Changed from 'customers'
+    });
+
+  } catch (error) {
+    console.error('GET PAWN TICKETS ERROR:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+exports.getPawnTicketsForCustomer = async (req, res) => {
+  try {
+    // 1. Get the customerId from the URL parameters
+    const { id } = req.params;
+
+    // 2. Find all tickets that match the customer_id AND the user's shop_id (for security)
+    const tickets = await PawnTicket.find({
+      shop_id: req.user.shopId,
+      customer_id: id
+    })
+    .populate('customer_id', 'full_name') // We don't need this, but it's good practice
+    .sort({ pawned_date: -1 });
 
     res.status(200).json({
       count: tickets.length,
       tickets,
     });
 
-  } catch (error) {
-    console.error('GET PAWN TICKETS ERROR:', error);
+  } catch (error)
+ {
+    console.error('GET PAWN TICKETS FOR CUSTOMER ERROR:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

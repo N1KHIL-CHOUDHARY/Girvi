@@ -12,6 +12,8 @@ import Dashboard from './pages/Dashboard';
 import Landingpage from './pages/LandingPage';
 import NewCustomer from './pages/NewCustomer';
 import NewPawn from './pages/NewPawn';
+import AllCustomers from './pages/AllCustomer';
+import AllPawns from './pages/AllPawn';
 
 // Import Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -28,6 +30,7 @@ import {
   IconUserCog,
   IconLogout,
 } from '@tabler/icons-react';
+import CustomerDetail from './pages/CustomerDetail';
 
 // --- This is the new AppLayout, based on your SidebarDemo ---
 const AppLayout = () => {
@@ -38,7 +41,7 @@ const AppLayout = () => {
   // These are your app's actual navigation links
   const links = [
     { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'Customers', href: '/app/accounts', icon: <IconUsers className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
+    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
     { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
     { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
     { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
@@ -87,7 +90,7 @@ const AppLayout = () => {
       </Sidebar>
       
       {/* Main Content Area: Replaces the dummy <Dashboard /> */}
-      <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-900 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-950 overflow-y-auto">
         <Outlet />
       </main>
       
@@ -145,9 +148,9 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="customer/add" element={<NewCustomer />} />
         <Route path="pawn/add" element={<NewPawn />} />
-        
-        
-       
+        <Route path='customers' element={<AllCustomers/>}/>
+        <Route path='pawns' element={<AllPawns/>}/>
+        <Route path='customer/:id' element={<CustomerDetail/>}/>;
 
       </Route>
       
