@@ -1,107 +1,102 @@
-// PawnTicket schema
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 const { encrypt, decrypt } = require('../services/encryption.js');
 
-
-const itemSchema = new Schema({
+// --- Item Schema ---
+// Only encrypt the 'name' and 'description'
+const itemSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    set: encrypt,
+    get: decrypt
   },
   type: {
     type: String,
-    default: 'gold',
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    default: 'gold'
   },
   weight_grams: {
     type: Number,
-    required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    required: true
+    // REMOVED ENCRYPTION
   },
   purity: {
-    type: Number, // e.g., 22 (for 22-carat)
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    type: Number
+    // REMOVED ENCRYPTION
   },
   description: {
     type: String,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    set: encrypt,
+    get: decrypt
   },
   item_photo_url: {
-    type: String,
-  },
-}, { _id: false }); // _id: false means items don't get their own ObjectId
+    type: String
+  }
+}, { _id: false, toJSON: { getters: true }, toObject: { getters: true } }); // Added getters
 
-const pawnTicketSchema = new Schema({
+
+// --- PawnTicket Schema ---
+// We only encrypt the 'ticket_number'
+const pawnTicketSchema = new mongoose.Schema({
   shop_id: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Shop',
     required: true,
     index: true,
   },
   customer_id: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer',
     required: true,
     index: true,
   },
   created_by_user_id: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
   ticket_number: {
     type: String,
     required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
-    // We will need to add logic to make this unique *per shop*
+    set: encrypt, // Encrypt the ticket number
+    get: decrypt
   },
   loan_amount: {
     type: Number,
-    required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    required: true
+    // REMOVED ENCRYPTION
   },
   interest_rate: {
-    type: Number, // Monthly simple interest rate
-    required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    type: Number, 
+    required: true
+    // REMOVED ENCRYPTION
   },
   adv_amount: {
-    type: Number, // 1st month's interest paid in advance
-    required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    type: Number,
+    required: true
+    // REMOVED ENCRYPTION
   },
   pawned_date: {
     type: Date,
     required: true,
-    default: Date.now,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    default: Date.now
+    // REMOVED ENCRYPTION
   },
   status: {
     type: String,
     required: true,
     enum: ['active', 'settled', 'defaulted'],
-    default: 'active',
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    default: 'active'
+    // REMOVED ENCRYPTION
   },
   settled_date: {
     type: Date,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
   },
-  items: [itemSchema],
+  items: [itemSchema], 
 }, {
-  timestamps: true
+  timestamps: true,
+  // IMPORTANT: Tell Mongoose to apply 'getters' when converting to JSON
+  toJSON: { getters: true },
+  toObject: { getters: true }
 });
 
 module.exports = mongoose.model('PawnTicket', pawnTicketSchema);
