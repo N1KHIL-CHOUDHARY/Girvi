@@ -5,8 +5,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-// --- 1. Import animation components ---
-import { motion, AnimatePresence } from 'motion/react';
+// --- FIX 1: Import from 'framer-motion', not 'motion/react' ---
+import { motion, AnimatePresence } from 'framer-motion'; 
 import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled} from '@tabler/icons-react';
 import { IconEye,IconTrashFilled,IconEdit,IconPlus } from '@tabler/icons-react';
 
@@ -38,7 +38,6 @@ export default function AllCustomers() {
     const fetchAccounts = async () => {
       setLoading(true);
       try {
-        // We add a small delay to make the animation visible
         await new Promise(resolve => setTimeout(resolve, 300)); 
         
         const res = await getAccounts(page, search);
@@ -88,7 +87,7 @@ export default function AllCustomers() {
 
   return (
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      {/* --- HEADER (No change) --- */}
+      {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
           Customers
@@ -102,8 +101,9 @@ export default function AllCustomers() {
             className="w-full md:w-64"
           />
           <Link
-            to="/app/accounts/add"
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-m font-medium whitespace-nowrap"
+            to="/app/customer/add"
+            // --- FIX 2: Added missing text color and fixed rounded-m ---
+            className="flex items-center justify-center gap-2 h-11 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800"
           >
             <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
             <span>New Customer</span>
@@ -111,10 +111,9 @@ export default function AllCustomers() {
         </div>
       </div>
 
-      {/* --- 2. WRAP THE DYNAMIC CONTENT IN AnimatePresence --- */}
+      {/* --- DYNAMIC CONTENT WRAPPER --- */}
       <AnimatePresence mode="wait">
         {loading ? (
-          // --- SKELETON LOADER (with exit animation) ---
           <motion.div
             key="loader"
             initial={{ opacity: 1 }}
@@ -124,7 +123,6 @@ export default function AllCustomers() {
             <TableSkeleton />
           </motion.div>
         ) : (
-          // --- DATA TABLE / EMPTY MESSAGE (with entry animation) ---
           <motion.div
             key="data"
             initial={{ opacity: 0 }}
@@ -137,7 +135,7 @@ export default function AllCustomers() {
             ) : (
               <div className="shadow-input rounded-2xl bg-white dark:bg-black">
                 <Table>
-                  <TableCaption>
+                  <TableCaption className="pb-4">
                     {`Showing ${accounts.length} of ${totalCustomers} customers.`}
                   </TableCaption>
                   <TableHeader>
@@ -146,7 +144,8 @@ export default function AllCustomers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Address</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      {/* --- FIX 3: Centered Actions column --- */}
+                      <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -169,26 +168,30 @@ export default function AllCustomers() {
                           {account.address?.city || 'N/A'}
                           {account.address?.pincode && `, ${account.address.pincode}`}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                        {/* --- FIX 4: Centered cell and links --- */}
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
                             <Link
+                              // --- FIX 5: Use backticks `` for template literals ---
                               to={`/app/customer/${account._id}`}
-                              className="flex items-center justify-center gap-1 px-3 py-1.5 text-white text-xs rounded-md"
+                              // --- FIX 6: Removed text-white, added hover ---
+                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
-                              <IconEye className="text-neutral-800 dark:text-neutral-200"/>
+                              <IconEye className="text-indigo-500 w-5 h-5"/>
                             </Link>
                             <Link
-                              to={`/app/customer/update/${account._id}`}
-                              className="flex items-center justify-center gap-1 px-3 py-1.5 text-white text-xs rounded-md"
+                              // --- FIX 7: Use backticks `` for template literals ---
+                              to={`/app/accounts/update/${account._id}`}
+                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
-                              <IconEdit className="text-neutral-800 dark:text-neutral-200"/>
+                              <IconEdit className="text-blue-500 w-5 h-5"/>
                             </Link>
                             {user?.role === 'owner' && (
                               <button
                                 onClick={() => handleDelete(account._id)}
-                                className="flex items-center justify-center gap-1 px-3 py-1.5 text-white text-xs rounded-md hover:cursor-p"
+                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                               >
-                                <IconTrashFilled className="text-neutral-800 dark:text-neutral-200"/>
+                                <IconTrashFilled className="text-red-500 w-5 h-5"/>
                               </button>
                             )}
                           </div>
@@ -204,6 +207,7 @@ export default function AllCustomers() {
       </AnimatePresence>
 
       
+      {/* --- PAGINATION --- */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <button
@@ -211,7 +215,8 @@ export default function AllCustomers() {
             disabled={page === 1}
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
-            <IconCircleArrowLeftFilled className="text-neutral-800 dark:text-neutral-200 h-10 w-10"/>
+            {/* --- FIX 8: Added logic to dim button when disabled --- */}
+            <IconCircleArrowLeftFilled className={`h-10 w-10 ${page === 1 ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'}`}/>
           </button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">
             Page {page} of {totalPages}
@@ -221,7 +226,7 @@ export default function AllCustomers() {
             disabled={page === totalPages}
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
-            <IconCircleArrowRightFilled className="text-neutral-800 dark:text-neutral-200 h-10 w-10"/>
+            <IconCircleArrowRightFilled className={`h-10 w-10 ${page === totalPages ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'}`}/>
           </button>
         </div>
       )}

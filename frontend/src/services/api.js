@@ -48,6 +48,7 @@ export const getAccountById = (id) => api.get(`/app/customers/${id}`);
 export const createAccount = (data) => api.post('/app/customers', data);
 export const updateAccount = (id, data) => api.put(`/app/customers/${id}`);
 export const deleteAccount = (id) => api.delete(`/app/customers/${id}`);
+export const getAccountStats = (id) => api.get(`/app/customers/${id}/`);
 
 // --- Pawn Ticket Routes ---
 export const getPawnTickets = (page = 1, search = "") => {

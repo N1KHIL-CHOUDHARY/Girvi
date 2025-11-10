@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const { encrypt, decrypt } = require('../services/encryption.js');
 
 const customerSchema = new Schema({
   shop_id: {
@@ -16,27 +17,34 @@ const customerSchema = new Schema({
   phone_number: {
     type: String,
     required: true,
-    // We will add encryption here later
+    set: encrypt, // 2. Encrypt on save
+    get: decrypt  // 3. Decrypt on find
   },
   address: {
-    line1: { type: String },
+    line1: { 
+      type: String,
+      set: encrypt, // 2. Encrypt on save
+      get: decrypt  // 3. Decrypt on find
+    },
     city: { type: String, trim: true },
-    pincode: { type: String, trim: true }, // For area-wise analytics
+    pincode: { type: String, trim: true }, 
   },
   gender: {
     type: String,
-    enum: ['Male', 'Female', 'Other'], // For gender analytics
+    enum: ['Male', 'Female', 'Other'],
   },
   customer_photo_url: {
-    type: String, // URL from S3/Cloudinary
+    type: String,
   },
   aadhaar_number: {
     type: String,
-    // We will add encryption here later
+    set: encrypt, // 2. Encrypt on save
+    get: decrypt  // 3. Decrypt on find
   },
   pan_number: {
     type: String,
-    // We will add encryption here later
+    set: encrypt, // 2. Encrypt on save
+    get: decrypt  // 3. Decrypt on find
   },
   created_by_user_id: {
     type: Schema.Types.ObjectId,
@@ -44,7 +52,10 @@ const customerSchema = new Schema({
     required: true,
   },
 }, {
-  timestamps: true
+  timestamps: true,
+  // 4. IMPORTANT: Tell Mongoose to apply 'getters' when converting to JSON
+  toJSON: { getters: true },
+  toObject: { getters: true }
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

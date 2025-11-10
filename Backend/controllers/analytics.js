@@ -4,10 +4,7 @@ const PawnTicket = require('../models/pawnTicket.js');
 const Activity = require('../models/activity.js');
 const mongoose = require('mongoose');
 
-/**
- * @desc    Get all dashboard stats in one call
- * @route   GET /api/v1/app/dashboard
- */
+
 exports.getDashboardStats = async (req, res) => {
   try {
     const { shopId } = req.user;
@@ -50,7 +47,7 @@ exports.getDashboardStats = async (req, res) => {
       { $project: { _id: 0, pincode: '$_id', count: 1 } }
     ]);
 
-    // --- 4. Top 5 Customers (by total loan amount) ---
+
     const topCustomersPromise = PawnTicket.aggregate([
       { $match: { shop_id: shopObjectId } },
       { $group: { _id: '$customer_id', total_loan: { $sum: '$loan_amount' } } },
@@ -68,7 +65,6 @@ exports.getDashboardStats = async (req, res) => {
       { $project: { _id: 1, full_name: '$customer_details.full_name', total_loan: 1 } }
     ]);
 
-    // --- 5. Recent Activity ---
     const recentActivityPromise = Activity.find({ shop_id: shopId })
       .populate('created_by_user_id', 'full_name') // Get user's name
       .sort({ createdAt: -1 })
@@ -93,6 +89,67 @@ exports.getDashboardStats = async (req, res) => {
 
   } catch (error) {
     console.error('GET DASHBOARD STATS ERROR:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// ... (keep your existing 'getDashboardStats' function)
+
+/**
+ * @desc    Get all stats for a single customer
+ * @route   GET /api/v1/app/customers/:id/stats
+ */
+exports.getCustomerStats = async (req, res) => {
+  try {
+    const { shopId } = req.user;
+    const customerId = new mongoose.Types.ObjectId(req.params.id);
+
+    // 1. Key Stats for this customer
+    const stats = await PawnTicket.aggregate([
+      {
+        $match: {
+          shop_id: new mongoose.Types.ObjectId(shopId),
+          customer_id: customerId
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total_loan_value: { $sum: '$loan_amount' },
+          total_active_loan: {
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, '$loan_amount', 0] }
+          },
+          total_tickets: { $sum: 1 },
+          active_tickets: {
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    // 2. Get payment history (total interest vs. principal)
+    const payments = await Payment.aggregate([
+       {
+        $match: {
+          shop_id: new mongoose.Types.ObjectId(shopId),
+          customer_id: customerId
+        }
+      },
+      {
+        $group: {
+          _id: '$payment_for', // Group by 'interest' or 'principal'
+          total_paid: { $sum: '$amount_paid' }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      stats: stats[0] || { total_loan_value: 0, total_active_loan: 0, total_tickets: 0, active_tickets: 0 },
+      payments: payments
+    });
+
+  } catch (error) {
+    console.error('GET CUSTOMER STATS ERROR:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPawnTickets, updatePawnTicketStatus } from '../services/api';
+import { getPawnTickets, deletePawnTicket } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 // --- 1. Import animation components ---
 import { motion, AnimatePresence } from 'framer-motion';
-// --- 2. Import Tabler Icons ---
-import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled } from '@tabler/icons-react';
-import { IconEye, IconPlus, IconCheck } from '@tabler/icons-react';
+import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled} from '@tabler/icons-react';
+import { IconEye,IconTrashFilled,IconEdit,IconPlus } from '@tabler/icons-react';
 
 import {
   Table,
@@ -21,8 +20,8 @@ import {
   TableRow,
 } from "../components/ui/table";
 import { Input } from "../components/ui/Input";
-import PawnTableSkeleton from "../components/PawnTableSkeleton"; // Use the Pawn Skeleton
-import { cn } from '../lib/utils';
+import PawnTableSkeleton from "../components/PawnTableSkeleton"; // Make sure this component exists
+import { cn } from '../lib/utils'; // Import cn utility
 
 export default function AllPawns() {
   const [pawns, setPawns] = useState([]);
@@ -43,7 +42,6 @@ export default function AllPawns() {
         await new Promise(resolve => setTimeout(resolve, 300)); // For animation
         const res = await getPawnTickets(page, search);
         
-        // Use the correct pagination response
         if (Array.isArray(res.data.tickets)) {
           setPawns(res.data.tickets);
           setTotalPages(res.data.totalPages);
@@ -62,16 +60,14 @@ export default function AllPawns() {
     fetchPawns();
   }, [page, search]);
 
-  const handleSettle = async (id) => {
-    if (window.confirm('Are you sure you want to mark this ticket as settled?')) {
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to permanently delete this ticket?')) {
       try {
-        await updatePawnTicketStatus(id, 'settled'); 
-        toast.success('Ticket marked as settled.');
-        setPawns(pawns.map(p => 
-          p._id === id ? { ...p, status: 'settled' } : p
-        ));
+        await deletePawnTicket(id);
+        setPawns((prev) => prev.filter((p) => p._id !== id));
+        toast.success('Pawn ticket deleted successfully.');
       } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to settle ticket.');
+        toast.error(err.response?.data?.message || 'Failed to delete ticket.');
       }
     }
   };
@@ -118,7 +114,7 @@ export default function AllPawns() {
           />
           <Link
             to="/app/pawns/add"
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200"
+            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
           >
             <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
             <span>New Ticket</span>
@@ -150,7 +146,7 @@ export default function AllPawns() {
             ) : (
               <div className="shadow-input rounded-2xl bg-white dark:bg-black">
                 <Table>
-                  <TableCaption>
+                  <TableCaption className="pb-4">
                     {`Showing ${pawns.length} of ${totalPawnTickets} tickets.`}
                   </TableCaption>
                   <TableHeader>
@@ -160,7 +156,7 @@ export default function AllPawns() {
                       <TableHead>Item(s)</TableHead>
                       <TableHead>Loan Amount</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -189,21 +185,26 @@ export default function AllPawns() {
                             {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
                             <Link
                               to={`/app/pawns/${pawn._id}`}
-                              className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs rounded-md"
+                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
-                              <IconEye className="text-neutral-800 dark:text-neutral-200"/>
+                              <IconEye className="text-indigo-500 w-5 h-5"/>
                             </Link>
-                            {/* Show Settle button if ticket is active */}
-                            {pawn.status === 'active' && (
+                            <Link
+                              to={`/app/pawns/update/${pawn._id}`}
+                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                            >
+                              <IconEdit className="text-blue-500 w-5 h-5"/>
+                            </Link>
+                            {user?.role === 'owner' && (
                               <button
-                                onClick={() => handleSettle(pawn._id)}
-                                className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs rounded-md"
+                                onClick={() => handleDelete(pawn._id)}
+                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                               >
-                                <IconCheck className="text-green-600 dark:text-green-500"/>
+                                <IconTrashFilled className="text-red-500 w-5 h-5"/>
                               </button>
                             )}
                           </div>
@@ -218,7 +219,6 @@ export default function AllPawns() {
         )}
       </AnimatePresence>
 
-      {/* --- PAGINATION CONTROLS --- */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <button

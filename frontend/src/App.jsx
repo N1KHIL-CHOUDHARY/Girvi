@@ -151,6 +151,7 @@ function App() {
         <Route path='customers' element={<AllCustomers/>}/>
         <Route path='pawns' element={<AllPawns/>}/>
         <Route path='customer/:id' element={<CustomerDetail/>}/>;
+        
 
       </Route>
       
