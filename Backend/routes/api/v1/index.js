@@ -16,6 +16,6 @@ router.use('/app', appRoutes);
 router.use('/app/customers', customerRoutes);
 router.use('/app/pawns', pawnRoutes);
 
-router.use('/app', analyticsRoutes);
+router.use('/app/stat', analyticsRoutes);
 
 module.exports = router;

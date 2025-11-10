@@ -57,8 +57,8 @@ export const getPawnTicketById = (id) => api.get(`/app/pawns/${id}`); // <-- ADD
 export const createPawnTicket = (data) => api.post('/app/pawns', data);
 export const updatePawnTicket = (id, data) => api.patch(`/app/pawns/${id}`, data); // <-- FIX: Was .put
 export const deletePawnTicket = (id) => api.delete(`/app/pawns/${id}`);
-export const settlePawnTicket = (id) => { // <-- ADDED
-  return api.patch(`/app/pawns/${id}/settle`);
+export const updatePawnTicketStatus = (id, status) => {
+  return api.patch(`/app/pawns/${id}/settle`, { status }); 
 };
 
 // --- Payment Service ---
@@ -66,7 +66,7 @@ export const createPayment = (data) => api.post('/app/payments', data);
 export const getPaymentsForTicket = (ticketId) => api.get(`/app/payments/ticket/${ticketId}`);
 
 // --- Analytics Route ---
-export const getDashboardStats = () => api.get('/app/dashboard');
+export const getDashboardStats = () => api.get('/app/stat/dashboard');
 
 // --- Employee Routes ---
 export const getEmployees = () => api.get('/app/employees');

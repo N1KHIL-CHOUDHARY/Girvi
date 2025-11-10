@@ -1,13 +1,9 @@
 const Customer = require('../models/customer.js');
 const PawnTicket = require('../models/pawnTicket.js');
 const Activity = require('../models/activity.js');
-const Payment = require('../models/payment.js'); // <-- This is correct
+const Payment = require('../models/payment.js');
 const mongoose = require('mongoose');
 
-/**
- * @desc    Get all dashboard stats in one call
- * @route   GET /api/v1/app/dashboard
- */
 exports.getDashboardStats = async (req, res) => {
   try {
     const { shopId } = req.user;
@@ -15,7 +11,6 @@ exports.getDashboardStats = async (req, res) => {
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
-    // 1. Key Stats
     const statsPromise = PawnTicket.aggregate([
       { $match: { shop_id: shopObjectId } },
       {
@@ -28,14 +23,12 @@ exports.getDashboardStats = async (req, res) => {
       }
     ]);
 
-    // 2. Gender Distribution
     const genderDataPromise = Customer.aggregate([
       { $match: { shop_id: shopObjectId, gender: { $ne: null } } },
       { $group: { _id: '$gender', count: { $sum: 1 } } },
       { $project: { _id: 0, gender: '$_id', count: 1 } }
     ]);
 
-    // 3. Area-wise Data (Top 5 Pincodes)
     const areaDataPromise = Customer.aggregate([
       { $match: { shop_id: shopObjectId, 'address.pincode': { $ne: null, $ne: "" } } },
       { $group: { _id: '$address.pincode', count: { $sum: 1 } } },
@@ -44,7 +37,6 @@ exports.getDashboardStats = async (req, res) => {
       { $project: { _id: 0, pincode: '$_id', count: 1 } }
     ]);
 
-    // 4. Top 5 Customers (by total loan amount)
     const topCustomersPromise = PawnTicket.aggregate([
       { $match: { shop_id: shopObjectId } },
       { $group: { _id: '$customer_id', total_loan: { $sum: '$loan_amount' } } },
@@ -59,13 +51,11 @@ exports.getDashboardStats = async (req, res) => {
       { $project: { _id: 1, full_name: '$customer_details.full_name', total_loan: 1 } }
     ]);
 
-    // 5. Recent Activity
     const recentActivityPromise = Activity.find({ shop_id: shopId })
-      .populate('created_by_user_id', 'full_name') // Get user's name
+      .populate('user_id', 'full_name') // <-- THE FIX IS HERE
       .sort({ createdAt: -1 })
       .limit(5);
 
-    // Run all queries in parallel
     const [stats, genderData, areaData, topCustomers, recentActivity] = await Promise.all([
       statsPromise,
       genderDataPromise,
@@ -88,21 +78,16 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get all stats for a single customer
- * @route   GET /api/v1/app/customers/:id/stats
- */
 exports.getCustomerStats = async (req, res) => {
   try {
     const { shopId } = req.user;
     const customerId = new mongoose.Types.ObjectId(req.params.id);
-    const shopObjectId = new mongoose.Types.ObjectId(shopId); // <-- Create ObjectId for shopId
+    const shopObjectId = new mongoose.Types.ObjectId(shopId);
 
-    // 1. Key Stats for this customer
     const stats = await PawnTicket.aggregate([
       {
         $match: {
-          shop_id: shopObjectId, // Use ObjectId
+          shop_id: shopObjectId,
           customer_id: customerId
         }
       },
@@ -121,17 +106,16 @@ exports.getCustomerStats = async (req, res) => {
       }
     ]);
 
-    // 2. Get payment history (total interest vs. principal)
-    const payments = await Payment.aggregate([ // This line was failing
+    const payments = await Payment.aggregate([
        {
         $match: {
-          shop_id: shopObjectId, // Use ObjectId
+          shop_id: shopObjectId,
           customer_id: customerId
         }
       },
       {
         $group: {
-          _id: '$payment_for', // Group by 'interest' or 'principal'
+          _id: '$payment_for',
           total_paid: { $sum: '$amount_paid' }
         }
       }

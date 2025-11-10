@@ -138,7 +138,7 @@ export default function NewPawn() {
           {/* --- This is the new Customer Search Input --- */}
           <div className="relative" ref={dropdownRef}>
             <LabelInputContainer className="mb-4">
-              <Label htmlFor="customer_search">Search Customer *</Label>
+              <Label htmlFor="customer_search">Search Customer</Label>
               <Input
                 id="customer_search"
                 type="text"
@@ -179,26 +179,26 @@ export default function NewPawn() {
           
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="ticket_number">Ticket Number *</Label>
+              <Label htmlFor="ticket_number">Ticket Number</Label>
               <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" value={formData.ticket_number} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pawned_date">Pawned Date *</Label>
+              <Label htmlFor="pawned_date">Pawned Date</Label>
               <Input id="pawned_date" name="pawned_date" type="date" value={formData.pawned_date} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="loan_amount">Loan Amount (₹) *</Label>
+              <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
               <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" value={formData.loan_amount} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="interest_rate">Interest Rate (%) *</Label>
+              <Label htmlFor="interest_rate">Interest Rate (%)</Label>
               <Input id="interest_rate" name="interest_rate" placeholder="3" type="number" value={formData.interest_rate} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="adv_amount">Advance Amount (₹) *</Label>
+              <Label htmlFor="adv_amount">Advance Amount (₹)</Label>
               <Input id="adv_amount" name="adv_amount" placeholder="150" type="number" value={formData.adv_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
@@ -220,8 +220,8 @@ export default function NewPawn() {
               <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="item_purity">Purity (e.g., 22)</Label>
-              <Input id="item_purity" name="item_purity" placeholder="22" type="number" value={formData.item_purity} onChange={handleChange} />
+              <Label htmlFor="item_purity">Purity</Label>
+              <Input id="item_purity" name="item_purity" placeholder="1" type="number" value={formData.item_purity} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 

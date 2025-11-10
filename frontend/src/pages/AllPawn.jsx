@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPawnTickets, deletePawnTicket } from '../services/api';
+// Import correct API functions
+import { getPawnTickets, deletePawnTicket, updatePawnTicketStatus } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-// --- 1. Import animation components ---
+// --- 1. Import animation from 'framer-motion' ---
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled} from '@tabler/icons-react';
-import { IconEye,IconTrashFilled,IconEdit,IconPlus } from '@tabler/icons-react';
+import { IconEye,IconTrashFilled,IconEdit,IconPlus, IconCheck } from '@tabler/icons-react';
 
 import {
   Table,
@@ -21,6 +22,7 @@ import {
 } from "../components/ui/table";
 import { Input } from "../components/ui/Input";
 import PawnTableSkeleton from "../components/PawnTableSkeleton"; // Make sure this component exists
+import ConfirmationModal from '../components/ConfirmationModal'; // Import the modal
 import { cn } from '../lib/utils'; // Import cn utility
 
 export default function AllPawns() {
@@ -31,6 +33,10 @@ export default function AllPawns() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalPawnTickets, setTotalPawnTickets] = useState(0);
+
+  // --- State for the Settle Modal ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
@@ -58,7 +64,7 @@ export default function AllPawns() {
       }
     };
     fetchPawns();
-  }, [page, search]);
+  }, [page, search]); // Re-fetch when page or search changes
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to permanently delete this ticket?')) {
@@ -71,6 +77,30 @@ export default function AllPawns() {
       }
     }
   };
+
+  // --- Settle Ticket Logic ---
+  const openSettleModal = (id) => {
+    setSelectedTicketId(id);
+    setIsModalOpen(true);
+  };
+  
+  const handleConfirmSettle = async () => {
+    if (!selectedTicketId) return;
+
+    try {
+      // Calls PATCH /app/pawns/:id/settle
+      await updatePawnTicketStatus(selectedTicketId, 'settled'); 
+      toast.success('Ticket marked as settled.');
+      // Update the list locally to show the change
+      setPawns(pawns.map(p => 
+        p._id === selectedTicketId ? { ...p, status: 'settled' } : p
+      ));
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to settle ticket.');
+    }
+    // Modal is closed by the ConfirmationModal component
+  };
+  // -------------------------
   
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -99,6 +129,16 @@ export default function AllPawns() {
 
   return (
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
+      {/* --- RENDER THE MODAL --- */}
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmSettle}
+        title="Settle Pawn Ticket"
+        message="Are you sure this ticket is settled and the loan is closed?"
+        confirmText="Yes, Settle"
+      />
+
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
@@ -194,21 +234,23 @@ export default function AllPawns() {
                               <IconEye className="text-indigo-500 w-5 h-5"/>
                             </Link>
                             <Link
-                              to={`/app/pawns/update/${pawn._id}`}
+                              to={`/app/pawn/update/${pawn._id}`}
                               className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
                               <IconEdit className="text-blue-500 w-5 h-5"/>
-                            </Link>
-
+                             </Link>
+                            
+                            {/* --- SETTLE BUTTON --- */}
                             {pawn.status === 'active' && (
-                                <button
-                                  onClick={() => handleSettle(pawn._id)}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                                  title="Mark as Settled"
-                                >
-                                  <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5"/>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => openSettleModal(pawn._id)}
+                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                title="Mark as Settled"
+                              >
+                                <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5"/>
+                              </button>
+                            )}
+                            
                             {user?.role === 'owner' && (
                               <button
                                 onClick={() => handleDelete(pawn._id)}
@@ -229,6 +271,7 @@ export default function AllPawns() {
         )}
       </AnimatePresence>
 
+      {/* --- PAGINATION --- */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <button
