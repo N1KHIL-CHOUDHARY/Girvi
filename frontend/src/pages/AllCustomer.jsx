@@ -181,7 +181,7 @@ export default function AllCustomers() {
                             </Link>
                             <Link
                               // --- FIX 7: Use backticks `` for template literals ---
-                              to={`/app/accounts/update/${account._id}`}
+                              to={`/app/customer/update/${account._id}`}
                               className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
                               <IconEdit className="text-blue-500 w-5 h-5"/>

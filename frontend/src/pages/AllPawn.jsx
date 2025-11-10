@@ -199,6 +199,16 @@ export default function AllPawns() {
                             >
                               <IconEdit className="text-blue-500 w-5 h-5"/>
                             </Link>
+
+                            {pawn.status === 'active' && (
+                                <button
+                                  onClick={() => handleSettle(pawn._id)}
+                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                  title="Mark as Settled"
+                                >
+                                  <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5"/>
+                                </button>
+                              )}
                             {user?.role === 'owner' && (
                               <button
                                 onClick={() => handleDelete(pawn._id)}

@@ -21,7 +21,6 @@ api.interceptors.request.use(
 
 export const setAuthToken = (token) => {
   if (token) {
-    // We already set this in the interceptor, but localStorage is good.
     localStorage.setItem('token', token);
   } else {
     localStorage.removeItem('token');
@@ -31,46 +30,40 @@ export const setAuthToken = (token) => {
 // --- Auth Routes ---
 export const signup = (data) => api.post('/auth/signup', data);
 export const login = (data) => api.post('/auth/login', data);
-export const getProfile = () => api.get('/app/me'); // Corrected from /auth/me
+export const getProfile = () => api.get('/app/me');
 
 // --- Customer (Account) Routes ---
 export const getAccounts = (page = 1, search = "") => {
   return api.get('/app/customers', {
-    params: {
-      page,
-      search,
-      limit: 10
-    }
+    params: { page, search, limit: 10 }
   });
 };
-
 export const getAccountById = (id) => api.get(`/app/customers/${id}`);
 export const createAccount = (data) => api.post('/app/customers', data);
-export const updateAccount = (id, data) => api.put(`/app/customers/${id}`);
+export const updateAccount = (id, data) => api.patch(`/app/customers/${id}`, data); // <-- FIX: Was .put
 export const deleteAccount = (id) => api.delete(`/app/customers/${id}`);
-export const getAccountStats = (id) => api.get(`/app/customers/${id}/`);
+export const getAccountStats = (id) => api.get(`/app/customers/${id}/stats`); // <-- FIX: Removed trailing slash
 
 // --- Pawn Ticket Routes ---
 export const getPawnTickets = (page = 1, search = "") => {
   return api.get('/app/pawns', {
-    params: {
-      page,
-      search,
-      limit: 10
-    }
+    params: { page, search, limit: 10 }
   });
 };
-
 export const getPawnTicketsByAccountId = (accountId) => {
-  // This now matches your new backend route
   return api.get(`/app/customers/${accountId}/pawns`); 
 };
+export const getPawnTicketById = (id) => api.get(`/app/pawns/${id}`); // <-- ADDED
 export const createPawnTicket = (data) => api.post('/app/pawns', data);
-export const updatePawnTicket = (id, data) => api.put(`/app/pawns/${id}`);
+export const updatePawnTicket = (id, data) => api.patch(`/app/pawns/${id}`, data); // <-- FIX: Was .put
 export const deletePawnTicket = (id) => api.delete(`/app/pawns/${id}`);
-export const updatePawnTicketStatus = (id, status, settled_date = null) => {
-  return api.patch(`/app/pawns/${id}/settle`, { status, settled_date });
+export const settlePawnTicket = (id) => { // <-- ADDED
+  return api.patch(`/app/pawns/${id}/settle`);
 };
+
+// --- Payment Service ---
+export const createPayment = (data) => api.post('/app/payments', data);
+export const getPaymentsForTicket = (ticketId) => api.get(`/app/payments/ticket/${ticketId}`);
 
 // --- Analytics Route ---
 export const getDashboardStats = () => api.get('/app/dashboard');
@@ -78,13 +71,13 @@ export const getDashboardStats = () => api.get('/app/dashboard');
 // --- Employee Routes ---
 export const getEmployees = () => api.get('/app/employees');
 export const createEmployee = (data) => api.post('/app/employees', data);
-export const updateEmployee = (id, data) => api.put(`/app/employees/${id}`);
+export const updateEmployee = (id, data) => api.patch(`/app/employees/${id}`, data); // <-- FIX: Was .put
 export const deleteEmployee = (id) => api.delete(`/app/employees/${id}`);
 
 // --- Role Routes ---
 export const getRoles = () => api.get('/app/roles');
 export const createRole = (data) => api.post('/app/roles', data);
-export const updateRole = (id, data) => api.put(`/app/roles/${id}`);
+export const updateRole = (id, data) => api.patch(`/app/roles/${id}`, data); // <-- FIX: Was .put
 export const deleteRole = (id) => api.delete(`/app/roles/${id}`);
 
 export default api;

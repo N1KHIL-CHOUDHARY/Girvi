@@ -14,6 +14,8 @@ import NewCustomer from './pages/NewCustomer';
 import NewPawn from './pages/NewPawn';
 import AllCustomers from './pages/AllCustomer';
 import AllPawns from './pages/AllPawn';
+import UpdateCustomer from './pages/UpdateCustomer';
+import UpdatePawn from './pages/UpdatePawn';
 
 // Import Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -151,6 +153,8 @@ function App() {
         <Route path='customers' element={<AllCustomers/>}/>
         <Route path='pawns' element={<AllPawns/>}/>
         <Route path='customer/:id' element={<CustomerDetail/>}/>;
+        <Route path="customer/update/:id" element={<UpdateCustomer />} />
+        <Route path="pawn/update/:id" element={<UpdatePawn />} />
         
 
       </Route>

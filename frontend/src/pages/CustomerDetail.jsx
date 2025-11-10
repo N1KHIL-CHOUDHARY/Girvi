@@ -126,7 +126,7 @@ export default function CustomerDetail() {
               </p>
               <div className="mt-4">
                 <Link
-                  to={`/app/accounts/update/${customer._id}`}
+                  to={`/app/customer/update/${customer._id}`}
                   className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
                 >
                   <IconEdit size={16} />

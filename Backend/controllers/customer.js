@@ -1,6 +1,6 @@
 const Customer = require('../models/customer.js');
+const PawnTicket = require('../models/pawnTicket.js'); // 1. Import PawnTicket model
 const { logActivity } = require('../services/activityLogger.js');
-
 
 exports.createCustomer = async (req, res) => {
   const { full_name, phone_number, address, gender, customer_photo_url, aadhaar_number, pan_number } = req.body;
@@ -19,6 +19,15 @@ exports.createCustomer = async (req, res) => {
     });
 
     const savedCustomer = await newCustomer.save();
+
+    // Log this action
+    await logActivity({
+      shopId: req.user.shopId,
+      userId: req.user.userId,
+      type: 'NEW_CUSTOMER',
+      message: `Created new customer: ${savedCustomer.full_name}`,
+      customerId: savedCustomer._id,
+    });
     
     res.status(201).json({
       message: 'Customer created successfully',
@@ -37,22 +46,17 @@ exports.getCustomers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; 
     const searchQuery = req.query.search || '';
 
-  
     const skip = (page - 1) * limit;
 
-    
     const query = {
       shop_id: req.user.shopId,
     };
     if (searchQuery) {
-      
       query.full_name = { $regex: searchQuery, $options: 'i' };
     }
 
-    
     const totalCustomers = await Customer.countDocuments(query);
 
-   
     const customers = await Customer.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -71,12 +75,11 @@ exports.getCustomers = async (req, res) => {
   }
 };
 
-
 exports.getCustomerById = async (req, res) => {
   try {
     const customer = await Customer.findOne({ 
-      _id: req.params.id,       // Find the customer by the ID in the URL
-      shop_id: req.user.shopId  // Ensure they belong to the logged-in user's shop
+      _id: req.params.id,      
+      shop_id: req.user.shopId 
     });
     
     if (!customer) {
@@ -85,6 +88,56 @@ exports.getCustomerById = async (req, res) => {
     res.status(200).json(customer);
   } catch (error) {
     console.error('GET CUSTOMER BY ID ERROR:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+ 
+exports.updateCustomer = async (req, res) => {
+  try {
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { _id: req.params.id, shop_id: req.user.shopId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCustomer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({
+      message: 'Customer updated',
+      customer: updatedCustomer
+    });
+  } catch (error) {
+    console.error('UPDATE CUSTOMER ERROR:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+exports.deleteCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { shopId } = req.user;
+
+    
+    await PawnTicket.deleteMany({ 
+      account_id: id, 
+      shop_id: shopId 
+    });
+    
+    const deletedCustomer = await Customer.findOneAndDelete({ 
+      _id: id, 
+      shop_id: shopId 
+    });
+
+    if (!deletedCustomer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer and all associated tickets deleted' });
+  } catch (error) {
+    console.error('DELETE CUSTOMER ERROR:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
