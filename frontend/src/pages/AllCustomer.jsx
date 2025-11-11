@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // <-- 1. REMOVED useEffect
 import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled, IconEye, IconTrashFilled, IconEdit, IconPlus } from '@tabler/icons-react';
 
-// --- FIX 1: Import from 'framer-motion', not 'motion/react' ---
-import { motion, AnimatePresence } from 'framer-motion'; 
-import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled} from '@tabler/icons-react';
-import { IconEye,IconTrashFilled,IconEdit,IconPlus } from '@tabler/icons-react';
+// --- 2. IMPORT TanStack Query hooks ---
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   Table,
@@ -23,54 +23,46 @@ import { Input } from "../components/ui/Input";
 import TableSkeleton from "../components/TableSkeleton";
 
 export default function AllCustomers() {
-  const [accounts, setAccounts] = useState([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  // --- 3. REMOVED loading, accounts, totalPages, totalCustomers state ---
   
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-
+  const [search, setSearch] = useState('');
+  
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
+  
+  // Get the QueryClient instance
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      setLoading(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 300)); 
-        
-        const res = await getAccounts(page, search);
-        
-        if (Array.isArray(res.data.customers)) {
-          setAccounts(res.data.customers);
-          setTotalPages(res.data.totalPages);
-          setTotalCustomers(res.data.totalCustomers);
-          setPage(res.data.currentPage);
-        } else {
-          toast.error('Could not find customer data.');
-          setAccounts([]);
-        }
+  // --- 4. THIS is your new data fetching hook ---
+  // It replaces your entire useEffect
+  const { data: queryData, isLoading, isError } = useQuery({
+    queryKey: ['customers', page, search], // The unique "ID" for this data
+    queryFn: () => getAccounts(page, search), // The API function to call
+    keepPreviousData: true, // This stops the "flash" during pagination!
+  });
+  
+  // --- 5. Get data from the query ---
+  const accounts = queryData?.data?.customers || [];
+  const totalPages = queryData?.data?.totalPages || 1;
+  const totalCustomers = queryData?.data?.totalCustomers || 0;
 
-      } catch (err) {
-        toast.error('Failed to load accounts: ' + err.message);
-        setAccounts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAccounts();
-  }, [page, search]);
+  // --- 6. THIS is your new delete function ---
+  const deleteMutation = useMutation({
+    mutationFn: deleteAccount, // The API function to call
+    onSuccess: () => {
+      toast.success('Account deleted successfully.');
+      // This tells TanStack Query to refetch the 'customers' list
+      queryClient.invalidateQueries(['customers']); 
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete account.');
+    },
+  });
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
-      try {
-        await deleteAccount(id);
-        setAccounts((prev) => prev.filter((acc) => acc._id !== id));
-        toast.success('Account deleted successfully.');
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to delete account.');
-      }
+    if (window.confirm('Are you sure you want to delete this account?')) {
+      deleteMutation.mutate(id); // Call the mutation
     }
   };
   
@@ -87,7 +79,7 @@ export default function AllCustomers() {
 
   return (
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      {/* --- HEADER --- */}
+      {/* --- HEADER (No change) --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
           Customers
@@ -102,8 +94,7 @@ export default function AllCustomers() {
           />
           <Link
             to="/app/customer/add"
-            // --- FIX 2: Added missing text color and fixed rounded-m ---
-            className="flex items-center justify-center gap-2 h-11 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
           >
             <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
             <span>New Customer</span>
@@ -111,9 +102,9 @@ export default function AllCustomers() {
         </div>
       </div>
 
-      {/* --- DYNAMIC CONTENT WRAPPER --- */}
+      {/* --- 7. WRAPPER (use isLoading now) --- */}
       <AnimatePresence mode="wait">
-        {loading ? (
+        {isLoading ? ( // <-- Use isLoading from useQuery
           <motion.div
             key="loader"
             initial={{ opacity: 1 }}
@@ -128,7 +119,11 @@ export default function AllCustomers() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.5 } }}
           >
-            {accounts.length === 0 ? (
+            {isError ? (
+              <div className="text-center py-10 text-red-500 dark:text-red-400">
+                Failed to load accounts.
+              </div>
+            ) : accounts.length === 0 ? (
               <div className="text-center py-10 text-neutral-500 dark:text-neutral-400">
                 {search ? `No customers found matching "${search}".` : "No customers created yet."}
               </div>
@@ -144,7 +139,6 @@ export default function AllCustomers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Address</TableHead>
-                      {/* --- FIX 3: Centered Actions column --- */}
                       <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -168,19 +162,15 @@ export default function AllCustomers() {
                           {account.address?.city || 'N/A'}
                           {account.address?.pincode && `, ${account.address.pincode}`}
                         </TableCell>
-                        {/* --- FIX 4: Centered cell and links --- */}
                         <TableCell className="text-center">
                           <div className="flex justify-center gap-2">
                             <Link
-                              // --- FIX 5: Use backticks `` for template literals ---
                               to={`/app/customer/${account._id}`}
-                              // --- FIX 6: Removed text-white, added hover ---
                               className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
                               <IconEye className="text-indigo-500 w-5 h-5"/>
                             </Link>
                             <Link
-                              // --- FIX 7: Use backticks `` for template literals ---
                               to={`/app/customer/update/${account._id}`}
                               className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                             >
@@ -190,6 +180,7 @@ export default function AllCustomers() {
                               <button
                                 onClick={() => handleDelete(account._id)}
                                 className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                disabled={deleteMutation.isLoading} // Disable button while deleting
                               >
                                 <IconTrashFilled className="text-red-500 w-5 h-5"/>
                               </button>
@@ -208,14 +199,13 @@ export default function AllCustomers() {
 
       
       {/* --- PAGINATION --- */}
-      {!loading && totalPages > 1 && (
+      {!isLoading && totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => goToPage(page - 1)}
             disabled={page === 1}
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
-            {/* --- FIX 8: Added logic to dim button when disabled --- */}
             <IconCircleArrowLeftFilled className={`h-10 w-10 ${page === 1 ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'}`}/>
           </button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { createAccount} from '../services/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createAccount } from '../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
 // Define the initial state for the form
 const initialState = {
@@ -21,20 +23,40 @@ const initialState = {
 
 export default function NewCustomer() {
   const [formData, setFormData] = useState(initialState);
-  const [loading, setLoading] = useState(false);
   const { isDarkMode } = useTheme();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
+  // ✅ Define the mutation using TanStack Query
+  const mutation = useMutation({
+    mutationFn: async (payload) => {
+      const res = await createAccount(payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Customer created successfully!');
+      // 🔁 Refresh customer list if it exists in cache
+      queryClient.invalidateQueries(['customers']);
+      navigate('/app/customers');
+      setFormData(initialState);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to create customer');
+    },
+  });
+
+  // ✅ Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  // ✅ Handle form submission
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
 
     const payload = {
       full_name: formData.full_name,
-      phone_number: formData.phone_number, 
+      phone_number: formData.phone_number,
       gender: formData.gender,
       address: {
         line1: formData.line1,
@@ -43,21 +65,10 @@ export default function NewCustomer() {
       },
       aadhaar_number: formData.aadhaar_number,
       pan_number: formData.pan_number,
-      customer_photo: formData.customer_photo_url || undefined, // Match backend model
+      customer_photo: formData.customer_photo_url || undefined,
     };
 
-    try {
-      
-      await createAccount(payload);
-      toast.success('Customer created successfully!');
-      navigate('/app/customers');
-      setFormData(initialState);
-
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create customer');
-    } finally {
-      setLoading(false);
-    }
+    mutation.mutate(payload); // 🚀 triggers the POST request
   };
 
   return (
@@ -73,12 +84,29 @@ export default function NewCustomer() {
         <form className="my-8" onSubmit={handleSubmit}>
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">Full Name </Label>
-              <Input id="full_name" name="full_name" placeholder="Jane Smith" type="text" value={formData.full_name} onChange={handleChange} required />
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                name="full_name"
+                placeholder="Jane Smith"
+                type="text"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+              />
             </LabelInputContainer>
+
             <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">Phone Number </Label>
-              <Input id="phone_number" name="phone_number" placeholder="9876543210" type="number" value={formData.phone} onChange={handleChange} required />
+              <Label htmlFor="phone_number">Phone Number</Label>
+              <Input
+                id="phone_number"
+                name="phone_number"
+                placeholder="9876543210"
+                type="number"
+                value={formData.phone_number}
+                onChange={handleChange}
+                required
+              />
             </LabelInputContainer>
           </div>
 
@@ -102,42 +130,84 @@ export default function NewCustomer() {
 
           <LabelInputContainer className="mb-4">
             <Label htmlFor="line1">Address Line</Label>
-            <Input id="line1" name="line1" placeholder="123 Main St" type="text" value={formData.line1} onChange={handleChange} />
+            <Input
+              id="line1"
+              name="line1"
+              placeholder="123 Main St"
+              type="text"
+              value={formData.line1}
+              onChange={handleChange}
+            />
           </LabelInputContainer>
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" placeholder="Chennai" type="text" value={formData.city} onChange={handleChange} />
+              <Input
+                id="city"
+                name="city"
+                placeholder="Chennai"
+                type="text"
+                value={formData.city}
+                onChange={handleChange}
+              />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pincode">Pincode</Label>
-              <Input id="pincode" name="pincode" placeholder="600001" type="text" value={formData.pincode} onChange={handleChange} />
+              <Input
+                id="pincode"
+                name="pincode"
+                placeholder="600001"
+                type="text"
+                value={formData.pincode}
+                onChange={handleChange}
+              />
             </LabelInputContainer>
           </div>
 
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
-              <Input id="aadhaar_number" name="aadhaar_number" placeholder="XXXX XXXX XXXX" type="text" value={formData.aadhaar_number} onChange={handleChange} />
+              <Input
+                id="aadhaar_number"
+                name="aadhaar_number"
+                placeholder="XXXX XXXX XXXX"
+                type="text"
+                value={formData.aadhaar_number}
+                onChange={handleChange}
+              />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pan_number">PAN Number</Label>
-              <Input id="pan_number" name="pan_number" placeholder="ABCDE1234F" type="text" value={formData.pan_number} onChange={handleChange} />
+              <Input
+                id="pan_number"
+                name="pan_number"
+                placeholder="ABCDE1234F"
+                type="text"
+                value={formData.pan_number}
+                onChange={handleChange}
+              />
             </LabelInputContainer>
           </div>
 
           <LabelInputContainer className="mb-8">
             <Label htmlFor="customer_photo_url">Customer Photo URL</Label>
-            <Input id="customer_photo_url" name="customer_photo_url" placeholder="https://... (File upload coming soon)" type="text" value={formData.customer_photo_url} onChange={handleChange} />
+            <Input
+              id="customer_photo_url"
+              name="customer_photo_url"
+              placeholder="https://... (File upload coming soon)"
+              type="text"
+              value={formData.customer_photo_url}
+              onChange={handleChange}
+            />
           </LabelInputContainer>
 
           <button
             className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
             type="submit"
-            disabled={loading}
+            disabled={mutation.isPending}
           >
-            {loading ? 'Saving...' : 'Save Customer'}
+            {mutation.isPending ? 'Saving...' : 'Save Customer'}
             <BottomGradient />
           </button>
         </form>
@@ -146,19 +216,15 @@ export default function NewCustomer() {
   );
 }
 
-const BottomGradient = () => {
-  return (
-    <>
-      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-50S00 group-hover/btn:opacity-100" />
-    </>
-  );
-};
+const BottomGradient = () => (
+  <>
+    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+  </>
+);
 
-const LabelInputContainer = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
-};
+const LabelInputContainer = ({ children, className }) => (
+  <div className={cn('flex flex-col space-y-2 w-full', className)}>
+    {children}
+  </div>
+);

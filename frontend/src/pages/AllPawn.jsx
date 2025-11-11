@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getPawnTickets, deletePawnTicket, updatePawnTicketStatus } from '../services/api';
+import {
+  getPawnTickets,
+  deletePawnTicket,
+  updatePawnTicketStatus,
+} from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   IconCircleArrowLeftFilled,
   IconCircleArrowRightFilled,
-  IconEye,
-  IconTrashFilled,
   IconEdit,
   IconPlus,
   IconCheck,
+  IconTrashFilled,
 } from '@tabler/icons-react';
 import {
   Table,
@@ -22,89 +26,85 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../components/ui/table";
-import { Input } from "../components/ui/Input";
-import PawnTableSkeleton from "../components/PawnTableSkeleton";
+} from '../components/ui/table';
+import { Input } from '../components/ui/Input';
+import PawnTableSkeleton from '../components/PawnTableSkeleton';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { cn } from '../lib/utils';
 
 export default function AllPawns() {
-  const [pawns, setPawns] = useState([]);
+  const { isDarkMode } = useTheme();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // UI states
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalPawnTickets, setTotalPawnTickets] = useState(0);
-
   const [status, setStatus] = useState('active');
-
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
 
-  const { isDarkMode } = useTheme();
-  const { user } = useAuth();
+  // ✅ React Query: Fetch pawn tickets
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ['pawnTickets', { page, search }],
+    queryFn: async () => {
+      await new Promise((r) => setTimeout(r, 300)); // simulate loading delay
+      const res = await getPawnTickets(page, search);
+      return res.data;
+    },
+    keepPreviousData: true,
+    onError: (err) => toast.error(err.message || 'Failed to load pawn tickets'),
+  });
 
-  useEffect(() => {
-    const fetchPawns = async () => {
-      setLoading(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 300)); // for smooth loading animation
-        const res = await getPawnTickets(page, search);
+  const pawns = data?.tickets || [];
+  const totalPages = data?.totalPages || 1;
+  const totalPawnTickets = data?.totalPawnTickets || 0;
 
-        if (Array.isArray(res.data.tickets)) {
-          setPawns(res.data.tickets);
-          setTotalPages(res.data.totalPages);
-          setTotalPawnTickets(res.data.totalPawnTickets);
-          setPage(res.data.currentPage);
-        } else {
-          toast.error('Could not find pawn data.');
-          setPawns([]);
-        }
-      } catch (err) {
-        toast.error('Failed to load pawn tickets: ' + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPawns();
-  }, [page, search]);
+  // ✅ Mutation: Delete ticket
+  const deleteMutation = useMutation({
+    mutationFn: (id) => deletePawnTicket(id),
+    onSuccess: () => {
+      toast.success('Pawn ticket deleted successfully.');
+      queryClient.invalidateQueries(['pawnTickets']);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete ticket.');
+    },
+  });
 
-  // ✅ Reset page when status filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [status]);
+  // ✅ Mutation: Update status
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => updatePawnTicketStatus(id, status),
+    onSuccess: () => {
+      toast.success('Ticket marked as settled.');
+      queryClient.invalidateQueries(['pawnTickets']);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update ticket.');
+    },
+  });
 
-  const handleDelete = async (id) => {
+  // ✅ Handlers
+  const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to permanently delete this ticket?')) {
-      try {
-        await deletePawnTicket(id);
-        setPawns((prev) => prev.filter((p) => p._id !== id));
-        toast.success('Pawn ticket deleted successfully.');
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to delete ticket.');
-      }
+      deleteMutation.mutate(id);
     }
   };
 
-  // --- Settle Ticket Logic ---
   const openSettleModal = (id) => {
     setSelectedTicketId(id);
     setIsModalOpen(true);
   };
 
-  const handleConfirmSettle = async () => {
+  const handleConfirmSettle = () => {
     if (!selectedTicketId) return;
-
-    try {
-      await updatePawnTicketStatus(selectedTicketId, 'settled');
-      toast.success('Ticket marked as settled.');
-      setPawns(pawns.map(p =>
-        p._id === selectedTicketId ? { ...p, status: 'settled' } : p
-      ));
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to settle ticket.');
-    }
+    updateStatusMutation.mutate({ id: selectedTicketId, status: 'settled' });
+    setIsModalOpen(false);
   };
 
   const handleSearch = (e) => {
@@ -113,9 +113,7 @@ export default function AllPawns() {
   };
 
   const goToPage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
+    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
   const statusClass = (status) => {
@@ -131,11 +129,24 @@ export default function AllPawns() {
     }
   };
 
-  // ✅ Filter pawns by selected status
   const filteredPawns =
     status === 'all'
       ? pawns
       : pawns.filter((p) => p.status.toLowerCase() === status.toLowerCase());
+
+  if (isError) {
+    return (
+      <div className="text-center text-red-500 mt-10">
+        Failed to load pawn tickets.{' '}
+        <button
+          className="underline text-blue-500"
+          onClick={() => refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
@@ -149,7 +160,7 @@ export default function AllPawns() {
         confirmText="Yes, Settle"
       />
 
-      {/* --- HEADER SECTION --- */}
+      {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
           Pawn Tickets
@@ -162,22 +173,20 @@ export default function AllPawns() {
             onChange={handleSearch}
             className="w-full md:w-64"
           />
-          <div className="relative">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-700 dark:text-neutral-200 px-3 py-2 rounded-lg pr-8 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="settled">Settled</option>
-            </select>
-          </div>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-sm text-neutral-700 dark:text-neutral-200 px-3 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="settled">Settled</option>
+          </select>
           <Link
             to="/app/pawns/add"
             className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
           >
-            <IconPlus className="text-neutral-800 dark:text-neutral-200" />
+            <IconPlus />
             <span>New Ticket</span>
           </Link>
         </div>
@@ -185,7 +194,7 @@ export default function AllPawns() {
 
       {/* --- MAIN CONTENT --- */}
       <AnimatePresence mode="wait">
-        {loading ? (
+        {isLoading ? (
           <motion.div
             key="loader"
             initial={{ opacity: 1 }}
@@ -196,7 +205,7 @@ export default function AllPawns() {
           </motion.div>
         ) : (
           <motion.div
-            key={status} // ✅ Animate when filter changes
+            key={status}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
@@ -289,7 +298,7 @@ export default function AllPawns() {
       </AnimatePresence>
 
       {/* --- PAGINATION --- */}
-      {!loading && totalPages > 1 && (
+      {!isLoading && totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => goToPage(page - 1)}
@@ -297,9 +306,11 @@ export default function AllPawns() {
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
             <IconCircleArrowLeftFilled
-              className={`h-10 w-10 ${page === 1
-                ? 'text-gray-400 dark:text-neutral-700'
-                : 'text-neutral-800 dark:text-neutral-200'}`}
+              className={`h-10 w-10 ${
+                page === 1
+                  ? 'text-gray-400 dark:text-neutral-700'
+                  : 'text-neutral-800 dark:text-neutral-200'
+              }`}
             />
           </button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -311,9 +322,11 @@ export default function AllPawns() {
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
             <IconCircleArrowRightFilled
-              className={`h-10 w-10 ${page === totalPages
-                ? 'text-gray-400 dark:text-neutral-700'
-                : 'text-neutral-800 dark:text-neutral-200'}`}
+              className={`h-10 w-10 ${
+                page === totalPages
+                  ? 'text-gray-400 dark:text-neutral-700'
+                  : 'text-neutral-800 dark:text-neutral-200'
+              }`}
             />
           </button>
         </div>

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getDashboardStats } from '../services/api'; // Correct import
+import { getDashboardStats } from '../services/api';
 import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
 import DarkModeToggle from '../components/DarkModeToggle';
-import GenderPieChart from '../components/GenderPieChart'; 
-import AreaBarChart from '../components/AreaPieChart'; 
+import GenderPieChart from '../components/GenderPieChart';
+import AreaBarChart from '../components/AreaPieChart';
+import { useQuery } from '@tanstack/react-query';
 
 // A simple component for displaying key stats
 const StatCard = ({ title, value }) => (
@@ -39,26 +40,26 @@ const RecentActivity = ({ activities }) => (
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { isDarkMode } = useTheme(); 
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { isDarkMode } = useTheme();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await getDashboardStats(); // Fetch real data
-        setDashboardData(res.data);
-      } catch (error) {
-        toast.error('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []); // Runs once on page load
+  // ✅ Replace useEffect + local state with useQuery
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: async () => {
+      const res = await getDashboardStats();
+      return res.data;
+    },
+    // Optional: background refresh every 5 minutes while the tab is focused
+    // refetchInterval: 5 * 60 * 1000,
+    onError: () => toast.error('Failed to load dashboard data'),
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-center py-20 text-neutral-500 dark:text-neutral-400">
         Loading Dashboard...
@@ -66,11 +67,20 @@ export default function Dashboard() {
     );
   }
 
-  if (!dashboardData) {
-    return <div>Could not load dashboard data.</div>;
+  if (isError || !dashboardData) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-500 mb-3">Could not load dashboard data.</p>
+        <button
+          onClick={() => refetch()}
+          className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
-  // Destructure the real data from the API
   const { stats, gender_data, area_data, top_customers, recent_activity } = dashboardData;
 
   return (
@@ -87,24 +97,24 @@ export default function Dashboard() {
 
       {/* 1. Key Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard 
-          title="Total Active Loan" 
-          value={`₹${stats.total_loan_active.toLocaleString('en-IN')}`} 
+        <StatCard
+          title="Total Active Loan"
+          value={`₹${(stats?.total_loan_active || 0).toLocaleString('en-IN')}`}
         />
-        <StatCard 
-          title="Loan Given (Last 30 Days)" 
-          value={`₹${stats.monthly_loan_given.toLocaleString('en-IN')}`} 
+        <StatCard
+          title="Loan Given (Last 30 Days)"
+          value={`₹${(stats?.monthly_loan_given || 0).toLocaleString('en-IN')}`}
         />
-        <StatCard 
-          title="Active Pawn Tickets" 
-          value={stats.total_active_tickets} 
+        <StatCard
+          title="Active Pawn Tickets"
+          value={stats?.total_active_tickets ?? 0}
         />
       </div>
 
       {/* 2. Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <GenderPieChart data={gender_data} />
-        <AreaBarChart data={area_data} />
+        <GenderPieChart data={gender_data || []} />
+        <AreaBarChart data={area_data || []} />
       </div>
 
       {/* 3. Lists (Top Customers & Recent Activity) */}
@@ -114,14 +124,14 @@ export default function Dashboard() {
             Top Customers
           </h3>
           <div className="space-y-3">
-            {top_customers.length === 0 ? (
+            {(top_customers || []).length === 0 ? (
               <p className="text-sm text-neutral-500 dark:text-neutral-400">No customer data yet.</p>
             ) : (
               top_customers.map((customer) => (
                 <div key={customer._id} className="flex justify-between items-center text-sm">
                   <p className="text-neutral-800 dark:text-neutral-200">{customer.full_name}</p>
                   <p className="font-medium text-neutral-600 dark:text-neutral-300">
-                    ₹{customer.total_loan.toLocaleString('en-IN')}
+                    ₹{(customer.total_loan || 0).toLocaleString('en-IN')}
                   </p>
                 </div>
               ))
@@ -129,7 +139,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <RecentActivity activities={recent_activity} />
+        <RecentActivity activities={recent_activity || []} />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, updateAccount } from '../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -8,47 +9,70 @@ import { Label } from '../components/ui/Label';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function UpdateCustomer() {
-  const { id } = useParams(); // Get the ID from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(null); // Start as null to show loading
-  const [loading, setLoading] = useState(false);
   const { isDarkMode } = useTheme();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Fetch the existing customer data
-    const fetchCustomer = async () => {
-      try {
-        const res = await getAccountById(id);
-        const data = res.data;
-        // Set the form state with the fetched data
-        setFormData({
-          full_name: data.full_name,
-          phone_number: data.phone_number,
-          gender: data.gender || 'Male',
-          line1: data.address?.line1 || '',
-          city: data.address?.city || '',
-          pincode: data.address?.pincode || '',
-          aadhaar_number: data.aadhaar_number || '',
-          pan_number: data.pan_number || '',
-          customer_photo_url: data.customer_photo_url || '',
-        });
-      } catch (error) {
-        toast.error("Failed to load customer data");
-        navigate('/app/accounts'); // Go back if customer not found
-      }
-    };
-    fetchCustomer();
-  }, [id, navigate]);
+  const [formData, setFormData] = useState(null);
+
+  // ✅ Fetch existing customer using React Query
+  const {
+    data: customerData,
+    isLoading: loadingCustomer,
+    isError,
+  } = useQuery({
+    queryKey: ['customer', id],
+    queryFn: async () => {
+      const res = await getAccountById(id);
+      return res.data;
+    },
+    onError: () => {
+      toast.error('Failed to load customer data');
+      navigate('/app/customers');
+    },
+  });
+
+  // ✅ Mutation for updating customer
+  const updateMutation = useMutation({
+    mutationFn: (payload) => updateAccount(id, payload),
+    onSuccess: () => {
+      toast.success('Customer updated successfully!');
+      // Refresh cached data
+      queryClient.invalidateQueries(['customers']);
+      queryClient.invalidateQueries(['customer', id]);
+      navigate('/app/customers');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update customer');
+    },
+  });
+
+  // Initialize form when data is fetched
+  React.useEffect(() => {
+    if (customerData) {
+      setFormData({
+        full_name: customerData.full_name,
+        phone_number: customerData.phone_number,
+        gender: customerData.gender || 'Male',
+        line1: customerData.address?.line1 || '',
+        city: customerData.address?.city || '',
+        pincode: customerData.address?.pincode || '',
+        aadhaar_number: customerData.aadhaar_number || '',
+        pan_number: customerData.pan_number || '',
+        customer_photo_url: customerData.customer_photo_url || '',
+      });
+    }
+  }, [customerData]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!formData) return;
 
-    // Create the payload from the form state
     const payload = {
       full_name: formData.full_name,
       phone_number: formData.phone_number,
@@ -63,22 +87,24 @@ export default function UpdateCustomer() {
       customer_photo_url: formData.customer_photo_url || undefined,
     };
 
-    try {
-      await updateAccount(id, payload); // Use the updateAccount API
-      toast.success('Customer updated successfully!');
-      navigate('/app/customers'); // Go back to the list
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update customer');
-    } finally {
-      setLoading(false);
-    }
+    updateMutation.mutate(payload);
   };
 
-  // Show loading skeleton while fetching data
-  if (!formData) {
+  if (loadingCustomer || !formData) {
     return (
       <div className="text-center py-20 text-neutral-500 dark:text-neutral-400">
         Loading customer data...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-20 text-red-500">
+        Failed to load customer. <br />
+        <Link to="/app/customers" className="text-blue-500 underline">
+          Go back
+        </Link>
       </div>
     );
   }
@@ -94,17 +120,33 @@ export default function UpdateCustomer() {
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          {/* Name + Phone */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer className="w-full">
               <Label htmlFor="full_name">Full Name *</Label>
-              <Input id="full_name" name="full_name" type="text" value={formData.full_name} onChange={handleChange} required />
+              <Input
+                id="full_name"
+                name="full_name"
+                type="text"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+              />
             </LabelInputContainer>
             <LabelInputContainer className="w-full">
               <Label htmlFor="phone_number">Phone Number *</Label>
-              <Input id="phone_number" name="phone_number" type="tel" value={formData.phone_number} onChange={handleChange} required />
+              <Input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                value={formData.phone_number}
+                onChange={handleChange}
+                required
+              />
             </LabelInputContainer>
           </div>
 
+          {/* Gender */}
           <LabelInputContainer className="mb-4">
             <Label htmlFor="gender">Gender</Label>
             <select
@@ -123,12 +165,19 @@ export default function UpdateCustomer() {
             </select>
           </LabelInputContainer>
 
+          {/* Address */}
           <LabelInputContainer className="mb-4">
             <Label htmlFor="line1">Address Line</Label>
-            <Input id="line1" name="line1" type="text" value={formData.line1} onChange={handleChange} />
+            <Input
+              id="line1"
+              name="line1"
+              type="text"
+              value={formData.line1}
+              onChange={handleChange}
+            />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="city">City</Label>
               <Input id="city" name="city" type="text" value={formData.city} onChange={handleChange} />
@@ -139,7 +188,8 @@ export default function UpdateCustomer() {
             </LabelInputContainer>
           </div>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          {/* Aadhaar + PAN */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
               <Input id="aadhaar_number" name="aadhaar_number" type="text" value={formData.aadhaar_number} onChange={handleChange} />
@@ -150,14 +200,16 @@ export default function UpdateCustomer() {
             </LabelInputContainer>
           </div>
 
+          {/* Photo */}
           <LabelInputContainer className="mb-8">
             <Label htmlFor="customer_photo_url">Customer Photo URL</Label>
             <Input id="customer_photo_url" name="customer_photo_url" type="text" value={formData.customer_photo_url} onChange={handleChange} />
           </LabelInputContainer>
 
+          {/* Buttons */}
           <div className="flex gap-4">
             <Link
-              to="/app/accounts"
+              to="/app/customers"
               className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 text-center leading-10"
             >
               Cancel
@@ -165,9 +217,9 @@ export default function UpdateCustomer() {
             <button
               className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
               type="submit"
-              disabled={loading}
+              disabled={updateMutation.isPending}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
               <BottomGradient />
             </button>
           </div>
@@ -177,7 +229,7 @@ export default function UpdateCustomer() {
   );
 }
 
-// Helper components (copy/pasted from your other pages)
+// Helper Components
 const BottomGradient = () => (
   <>
     <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
@@ -186,7 +238,5 @@ const BottomGradient = () => (
 );
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex flex-col space-y-2 w-full", className)}>
-    {children}
-  </div>
+  <div className={cn('flex flex-col space-y-2 w-full', className)}>{children}</div>
 );

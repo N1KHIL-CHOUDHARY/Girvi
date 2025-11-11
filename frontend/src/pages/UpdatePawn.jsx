@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPawnTicketById, updatePawnTicket } from '../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -10,49 +11,69 @@ import { useTheme } from '../contexts/ThemeContext';
 export default function UpdatePawn() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(null); // Start as null
-  const [loading, setLoading] = useState(false);
-  const [customerName, setCustomerName] = useState(''); // To display customer name
+  const queryClient = useQueryClient();
   const { isDarkMode } = useTheme();
 
-  useEffect(() => {
-    const fetchPawnTicket = async () => {
-      try {
-        const res = await getPawnTicketById(id);
-        const data = res.data;
-        
-        // Set the customer's name for display
-        setCustomerName(data.customer_id?.full_name || 'N/A');
+  const [formData, setFormData] = useState(null);
+  const [customerName, setCustomerName] = useState('');
 
-        // Populate the form with all fields
-        setFormData({
-          customer_id: data.customer_id?._id,
-          ticket_number: data.ticket_number,
-          loan_amount: data.loan_amount,
-          interest_rate: data.interest_rate,
-          adv_amount: data.adv_amount,
-          pawned_date: new Date(data.pawned_date).toISOString().split('T')[0],
-          // Get the *first* item from the items array
-          item_name: data.items[0]?.name || '',
-          item_weight: data.items[0]?.weight_grams || '',
-          item_purity: data.items[0]?.purity || '',
-          item_description: data.items[0]?.description || '',
-        });
-      } catch (error) {
-        toast.error("Failed to load pawn ticket data");
-        navigate('/app/pawns');
-      }
-    };
-    fetchPawnTicket();
-  }, [id, navigate]);
+  // ✅ Fetch pawn ticket using React Query
+  const {
+    data: pawnData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['pawnTicket', id],
+    queryFn: async () => {
+      const res = await getPawnTicketById(id);
+      return res.data;
+    },
+    onError: () => {
+      toast.error('Failed to load pawn ticket data');
+      navigate('/app/pawns');
+    },
+  });
+
+  // Initialize form once data is fetched
+  useEffect(() => {
+    if (pawnData) {
+      setCustomerName(pawnData.customer_id?.full_name || 'N/A');
+      setFormData({
+        customer_id: pawnData.customer_id?._id,
+        ticket_number: pawnData.ticket_number,
+        loan_amount: pawnData.loan_amount,
+        interest_rate: pawnData.interest_rate,
+        adv_amount: pawnData.adv_amount,
+        pawned_date: new Date(pawnData.pawned_date).toISOString().split('T')[0],
+        item_name: pawnData.items[0]?.name || '',
+        item_weight: pawnData.items[0]?.weight_grams || '',
+        item_purity: pawnData.items[0]?.purity || '',
+        item_description: pawnData.items[0]?.description || '',
+      });
+    }
+  }, [pawnData]);
+
+  // ✅ Mutation for updating pawn ticket
+  const updateMutation = useMutation({
+    mutationFn: (payload) => updatePawnTicket(id, payload),
+    onSuccess: () => {
+      toast.success('Pawn ticket updated successfully!');
+      queryClient.invalidateQueries(['pawnTickets']); // refresh pawn list
+      queryClient.invalidateQueries(['pawnTicket', id]); // refresh this ticket
+      navigate('/app/pawns');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update ticket');
+    },
+  });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!formData) return;
 
     const payload = {
       customer_id: formData.customer_id,
@@ -67,25 +88,29 @@ export default function UpdatePawn() {
           weight_grams: parseFloat(formData.item_weight),
           purity: parseFloat(formData.item_purity),
           description: formData.item_description,
-        }
-      ]
+        },
+      ],
     };
 
-    try {
-      await updatePawnTicket(id, payload);
-      toast.success('Pawn ticket updated successfully!');
-      navigate('/app/pawns');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update ticket');
-    } finally {
-      setLoading(false);
-    }
+    updateMutation.mutate(payload);
   };
 
-  if (!formData) {
+  if (isLoading || !formData) {
     return (
       <div className="text-center py-20 text-neutral-500 dark:text-neutral-400">
         Loading ticket data...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-20 text-red-500">
+        Failed to load ticket.
+        <br />
+        <Link to="/app/pawns" className="text-blue-500 underline">
+          Go back
+        </Link>
       </div>
     );
   }
@@ -106,7 +131,8 @@ export default function UpdatePawn() {
             <Input type="text" value={customerName} disabled className="dark:bg-neutral-800" />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          {/* Ticket Info */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="ticket_number">Ticket Number *</Label>
               <Input id="ticket_number" name="ticket_number" type="text" value={formData.ticket_number} onChange={handleChange} required />
@@ -117,7 +143,8 @@ export default function UpdatePawn() {
             </LabelInputContainer>
           </div>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          {/* Loan Info */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="loan_amount">Loan Amount (₹) *</Label>
               <Input id="loan_amount" name="loan_amount" type="number" value={formData.loan_amount} onChange={handleChange} required />
@@ -133,7 +160,8 @@ export default function UpdatePawn() {
           </div>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-          
+
+          {/* Item Info */}
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
             Item Details
           </h3>
@@ -143,7 +171,7 @@ export default function UpdatePawn() {
             <Input id="item_name" name="item_name" type="text" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="item_weight">Weight (grams) *</Label>
               <Input id="item_weight" name="item_weight" type="number" value={formData.item_weight} onChange={handleChange} required />
@@ -159,6 +187,7 @@ export default function UpdatePawn() {
             <Input id="item_description" name="item_description" type="text" value={formData.item_description} onChange={handleChange} />
           </LabelInputContainer>
 
+          {/* Buttons */}
           <div className="flex gap-4">
             <Link
               to="/app/pawns"
@@ -169,9 +198,9 @@ export default function UpdatePawn() {
             <button
               className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-blue-600 to-blue-500 font-medium text-white shadow-lg"
               type="submit"
-              disabled={loading}
+              disabled={updateMutation.isPending}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
               <BottomGradient />
             </button>
           </div>
@@ -181,7 +210,7 @@ export default function UpdatePawn() {
   );
 }
 
-// Helper components (copy/pasted from your other pages)
+// Helper components
 const BottomGradient = () => (
   <>
     <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
@@ -190,7 +219,7 @@ const BottomGradient = () => (
 );
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex flex-col space-y-2 w-full", className)}>
+  <div className={cn('flex flex-col space-y-2 w-full', className)}>
     {children}
   </div>
 );

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccounts, createPawnTicket } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -16,54 +17,54 @@ const initialState = {
   item_weight: '',
   item_purity: '22',
   item_description: '',
-  pawned_date: new Date().toISOString().split('T')[0], // Default to today
+  pawned_date: new Date().toISOString().split('T')[0],
 };
 
 export default function NewPawn() {
   const [formData, setFormData] = useState(initialState);
-  const [loading, setLoading] = useState(false);
-
-  // --- New Search State ---
-  const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
-  // -------------------------
 
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  const queryClient = useQueryClient();
 
-  // --- New Debounced Search Effect ---
-  useEffect(() => {
-    if (customerSearch.trim() === '') {
-      setCustomers([]);
-      setIsDropdownOpen(false);
-      return;
-    }
+  // ✅ Fetch customers (debounced via enabled flag)
+  const {
+    data: customersData,
+    isFetching: loadingCustomers,
+  } = useQuery({
+    queryKey: ['customers', customerSearch],
+    queryFn: async () => {
+      const res = await getAccounts(1, customerSearch);
+      return res.data.customers || [];
+    },
+    enabled: customerSearch.trim().length > 0, // only fetch when search has input
+    staleTime: 1000 * 60, // cache for 1 minute
+    onError: () => toast.error('Failed to search customers'),
+  });
 
-    setLoadingCustomers(true);
-    
-    // Wait 300ms after user stops typing
-    const searchTimeout = setTimeout(async () => {
-      try {
-        // Fetch page 1 with the search term
-        const res = await getAccounts(1, customerSearch);
-        setCustomers(res.data.customers || []);
-        setIsDropdownOpen(true);
-      } catch (error) {
-        toast.error("Failed to search customers");
-      } finally {
-        setLoadingCustomers(false);
-      }
-    }, 300);
+  const customers = customersData || [];
 
-    return () => clearTimeout(searchTimeout);
-  }, [customerSearch]);
-  // ---------------------------------
+  // ✅ Mutation to create pawn ticket
+  const createPawnMutation = useMutation({
+    mutationFn: (payload) => createPawnTicket(payload),
+    onSuccess: () => {
+      toast.success('Pawn ticket created successfully!');
+      queryClient.invalidateQueries(['pawnTickets']); // refresh pawn list
+      setFormData(initialState);
+      setSelectedCustomer(null);
+      setCustomerSearch('');
+      navigate('/app/pawns');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to create pawn ticket');
+    },
+  });
 
-  // Close dropdown when clicking outside
+  // ✅ Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -74,26 +75,35 @@ export default function NewPawn() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // ✅ Debounce: open dropdown after small delay
+  useEffect(() => {
+    if (customerSearch.trim() === '') {
+      setIsDropdownOpen(false);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      if (customers.length > 0) setIsDropdownOpen(true);
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [customerSearch, customers]);
 
+  // ✅ Form handlers
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleSelectCustomer = (customer) => {
     setSelectedCustomer(customer);
     setCustomerSearch(customer.full_name);
     setIsDropdownOpen(false);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedCustomer) {
-      toast.error('Please search and select a customer');
+      toast.error('Please select a customer before creating a ticket');
       return;
     }
-    setLoading(true);
 
     const payload = {
-      customer_id: selectedCustomer._id, // Use the selected customer's ID
+      customer_id: selectedCustomer._id,
       ticket_number: formData.ticket_number,
       loan_amount: parseFloat(formData.loan_amount),
       interest_rate: parseFloat(formData.interest_rate),
@@ -105,22 +115,11 @@ export default function NewPawn() {
           weight_grams: parseFloat(formData.item_weight),
           purity: parseFloat(formData.item_purity),
           description: formData.item_description,
-        }
-      ]
+        },
+      ],
     };
 
-    try {
-      await createPawnTicket(payload);
-      toast.success('Pawn ticket created!');
-      setFormData(initialState); // Reset the form
-      setSelectedCustomer(null);
-      setCustomerSearch('');
-      navigate('/app/pawns'); // Navigate to the pawn list
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create ticket');
-    } finally {
-      setLoading(false);
-    }
+    createPawnMutation.mutate(payload);
   };
 
   return (
@@ -134,8 +133,7 @@ export default function NewPawn() {
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
-          
-          {/* --- This is the new Customer Search Input --- */}
+          {/* 🔍 Customer Search */}
           <div className="relative" ref={dropdownRef}>
             <LabelInputContainer className="mb-4">
               <Label htmlFor="customer_search">Search Customer</Label>
@@ -146,14 +144,15 @@ export default function NewPawn() {
                 value={customerSearch}
                 onChange={(e) => {
                   setCustomerSearch(e.target.value);
-                  setSelectedCustomer(null); // Clear selection if user types
+                  setSelectedCustomer(null);
+                  setIsDropdownOpen(true);
                 }}
                 required
                 autoComplete="off"
               />
             </LabelInputContainer>
 
-            {/* --- Search Results Dropdown --- */}
+            {/* Dropdown Results */}
             {isDropdownOpen && (
               <div className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white dark:bg-neutral-800 shadow-lg border border-neutral-200 dark:border-neutral-700">
                 {loadingCustomers ? (
@@ -175,9 +174,9 @@ export default function NewPawn() {
               </div>
             )}
           </div>
-          {/* ---------------------------------- */}
-          
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+
+          {/* Ticket Info */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="ticket_number">Ticket Number</Label>
               <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" value={formData.ticket_number} onChange={handleChange} required />
@@ -188,7 +187,8 @@ export default function NewPawn() {
             </LabelInputContainer>
           </div>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          {/* Loan Info */}
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
               <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" value={formData.loan_amount} onChange={handleChange} required />
@@ -204,24 +204,23 @@ export default function NewPawn() {
           </div>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-          
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
-            Item Details
-          </h3>
+
+          {/* Item Info */}
+          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">Item Details</h3>
 
           <LabelInputContainer className="mb-4">
             <Label htmlFor="item_name">Item Name *</Label>
             <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="item_weight">Weight (grams) *</Label>
               <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="item_purity">Purity</Label>
-              <Input id="item_purity" name="item_purity" placeholder="1" type="number" value={formData.item_purity} onChange={handleChange} />
+              <Input id="item_purity" name="item_purity" placeholder="22" type="number" value={formData.item_purity} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
@@ -231,11 +230,11 @@ export default function NewPawn() {
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#2727a_inset]"
+            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
             type="submit"
-            disabled={loading}
+            disabled={createPawnMutation.isPending}
           >
-            {loading ? 'Saving...' : 'Save Pawn Ticket'}
+            {createPawnMutation.isPending ? 'Saving...' : 'Save Pawn Ticket'}
             <BottomGradient />
           </button>
         </form>
@@ -244,19 +243,13 @@ export default function NewPawn() {
   );
 }
 
-const BottomGradient = () => {
-  return (
-    <>
-      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-    </>
-  );
-};
+const BottomGradient = () => (
+  <>
+    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+  </>
+);
 
-const LabelInputContainer = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
-};
+const LabelInputContainer = ({ children, className }) => (
+  <div className={cn('flex flex-col space-y-2 w-full', className)}>{children}</div>
+);

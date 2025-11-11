@@ -13,7 +13,6 @@ const activitySchema = new Schema({
     ref: 'User',
     required: true,
   },
-  // We'll link to the specific document for clickable links
   customer_id: {
     type: Schema.Types.ObjectId,
     ref: 'Customer',
@@ -26,19 +25,22 @@ const activitySchema = new Schema({
     type: String,
     required: true,
     enum: [
-      'NEW_CUSTOMER', 
-      'NEW_TICKET', 
-      'NEW_PAYMENT', 
+      'NEW_CUSTOMER',
+      'UPDATED_CUSTOMER', // <-- ADDED
+      'DELETED_CUSTOMER', // <-- ADDED
+      'NEW_TICKET',
+      'UPDATED_TICKET',   // <-- ADDED
       'SETTLED_TICKET',
-      'DELETED_TICKET'
+      'DELETED_TICKET',
+      'NEW_PAYMENT'
     ],
   },
   message: {
-    type: String, // e.g., "John D created a new loan of ₹50,000 for Jane S."
+    type: String,
     required: true,
   }
 }, {
-  timestamps: { createdAt: true, updatedAt: false } // We only care about when it was created
+  timestamps: { createdAt: true, updatedAt: false }
 });
 
 module.exports = mongoose.model('Activity', activitySchema);
