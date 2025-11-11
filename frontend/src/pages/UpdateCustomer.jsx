@@ -66,7 +66,7 @@ export default function UpdateCustomer() {
     try {
       await updateAccount(id, payload); // Use the updateAccount API
       toast.success('Customer updated successfully!');
-      navigate('/app/accounts'); // Go back to the list
+      navigate('/app/customers'); // Go back to the list
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update customer');
     } finally {

@@ -50,7 +50,9 @@ export default function NewCustomer() {
       
       await createAccount(payload);
       toast.success('Customer created successfully!');
-      setFormData(initialState); // Reset the form
+      navigate('/app/customers');
+      setFormData(initialState);
+
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create customer');
     } finally {
