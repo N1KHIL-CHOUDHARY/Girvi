@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/api';
 import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
-import DarkModeToggle from '../components/DarkModeToggle';
 import GenderPieChart from '../components/GenderPieChart';
 import AreaBarChart from '../components/AreaPieChart';
 import { useQuery } from '@tanstack/react-query';
@@ -89,10 +88,7 @@ export default function Dashboard() {
         <h2 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
           Welcome, {user?.full_name}!
         </h2>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-neutral-600 dark:text-neutral-400">Toggle Theme:</span>
-          <DarkModeToggle />
-        </div>
+       
       </div>
 
       {/* 1. Key Stats Cards */}

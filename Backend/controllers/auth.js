@@ -20,37 +20,30 @@ const signup = async (req, res) => {
   const { shop_name, email, password, full_name } = req.body;
 
   try {
-    // 1. Check if user (email) already exists
     const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
       return res.status(400).json({ message: 'Email is already in use' });
     }
 
-    // 2. Create the Shop first
     const newShop = new Shop({
       shop_name,
     });
 
-    // 3. Create the new User (Owner)
     const newUser = new User({
       shop_id: newShop._id,
       email: email.toLowerCase(),
-      password, // Password will be hashed by the Mongoose hook
+      password,
       full_name,
       role: 'owner',
     });
 
-    // 4. Link the Shop back to the User
     newShop.owner_id = newUser._id;
 
-    // 5. Save both to the database
     await newShop.save();
     await newUser.save();
 
-    // 6. Generate a token
     const token = generateToken(newUser);
 
-    // 7. Send the successful response
     res.status(201).json({
       message: 'Shop created successfully',
       token,
@@ -69,24 +62,16 @@ const signup = async (req, res) => {
   }
 };
 
-/**
- * @desc    Authenticate a User (Owner or Worker)
- * @route   POST /api/v1/auth/login
- */
 const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // 1. Find the user by email
     const user = await User.findOne({ email: email.toLowerCase() });
 
-    // 2. Check if user exists AND if password matches
     if (user && (await user.comparePassword(password))) {
       
-      // 3. Generate a token
       const token = generateToken(user);
 
-      // 4. Send the successful response
       res.status(200).json({
         message: 'Login successful',
         token,
@@ -107,4 +92,29 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login };
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const { userId } = req.user;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Incorrect current password' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('CHANGE PASSWORD ERROR:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { signup, login, changePassword };

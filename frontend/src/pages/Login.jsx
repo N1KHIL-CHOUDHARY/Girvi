@@ -6,7 +6,6 @@ import { FaGoogle } from 'react-icons/fa';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import DarkModeToggle from '../components/DarkModeToggle'; // <-- 1. IMPORT THE TOGGLE
 
 export default function Login() {
   const [formData, setFormData] = useState({

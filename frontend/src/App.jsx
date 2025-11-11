@@ -5,7 +5,6 @@ import { useTheme } from './contexts/ThemeContext';
 import { cn } from './lib/utils';
 import { motion } from 'framer-motion';
 
-
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +15,8 @@ import AllCustomers from './pages/AllCustomer';
 import AllPawns from './pages/AllPawn';
 import UpdateCustomer from './pages/UpdateCustomer';
 import UpdatePawn from './pages/UpdatePawn';
+import Settings from './pages/Setting';
+import CustomerDetail from './pages/CustomerDetail';
 
 // Import Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -31,8 +32,8 @@ import {
   IconPlus,
   IconUserCog,
   IconLogout,
+  IconSettings, // IMPORT SETTINGS ICON
 } from '@tabler/icons-react';
-import CustomerDetail from './pages/CustomerDetail';
 
 // --- This is the new AppLayout, based on your SidebarDemo ---
 const AppLayout = () => {
@@ -51,6 +52,12 @@ const AppLayout = () => {
   
   const employeeLink = { label: 'Employees', href: '/app/employees', icon: <IconUserCog size={18} /> };
   
+  const settingsLink = { // NEW LINK
+    label: "Settings",
+    href: "/app/settings",
+    icon: <IconSettings size={18} />,
+  };
+
   const logoutLink = {
     label: "Logout",
     href: "/login",
@@ -82,6 +89,7 @@ const AppLayout = () => {
           
           {/* Bottom Section: Theme, Profile, & Logout */}
           <div>
+            <SidebarLink link={settingsLink} /> {/* ADDED SETTINGS LINK */}
             
             {/* We add the onClick handler to the SidebarLink for logout */}
             <div onClick={logout}>
@@ -155,6 +163,7 @@ function App() {
         <Route path='customer/:id' element={<CustomerDetail/>}/>;
         <Route path="customer/update/:id" element={<UpdateCustomer />} />
         <Route path="pawn/update/:id" element={<UpdatePawn />} />
+        <Route path="settings" element={<Settings />} /> {/* ADDED ROUTE */}
         
 
       </Route>

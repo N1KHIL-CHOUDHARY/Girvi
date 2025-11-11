@@ -12,6 +12,11 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(6).required(),
+});
+
 const customerSchema = Joi.object({
   full_name: Joi.string().min(3).max(100).required(),
   phone_number: Joi.string().min(10).max(15).required(),
@@ -48,6 +53,7 @@ const pawnTicketSchema = Joi.object({
 module.exports = {
   signupSchema,
   loginSchema,
+  changePasswordSchema,
   customerSchema,
   pawnTicketSchema,
 };
