@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAccounts, createPawnTicket } from '../services/api';
+import { getAccounts, createPawnTicket } from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext.jsx';
 import toast from 'react-hot-toast';
-import { cn } from '../lib/utils';
-import { Input } from '../components/ui/Input';
-import { Label } from '../components/ui/Label';
+import { cn } from '../lib/utils.js';
+import { Input } from '../components/ui/Input.jsx';
+import { Label } from '../components/ui/Label.jsx';
 
 const initialState = {
   ticket_number: '',
@@ -31,7 +31,6 @@ export default function NewPawn() {
   const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
 
-  // ✅ Fetch customers (debounced via enabled flag)
   const {
     data: customersData,
     isFetching: loadingCustomers,
@@ -41,19 +40,18 @@ export default function NewPawn() {
       const res = await getAccounts(1, customerSearch);
       return res.data.customers || [];
     },
-    enabled: customerSearch.trim().length > 0, // only fetch when search has input
-    staleTime: 1000 * 60, // cache for 1 minute
+    enabled: customerSearch.trim().length > 0,
+    staleTime: 1000 * 60,
     onError: () => toast.error('Failed to search customers'),
   });
 
   const customers = customersData || [];
 
-  // ✅ Mutation to create pawn ticket
   const createPawnMutation = useMutation({
     mutationFn: (payload) => createPawnTicket(payload),
     onSuccess: () => {
       toast.success('Pawn ticket created successfully!');
-      queryClient.invalidateQueries(['pawnTickets']); // refresh pawn list
+      queryClient.invalidateQueries(['pawnTickets']);
       setFormData(initialState);
       setSelectedCustomer(null);
       setCustomerSearch('');
@@ -64,7 +62,6 @@ export default function NewPawn() {
     },
   });
 
-  // ✅ Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -75,7 +72,6 @@ export default function NewPawn() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ✅ Debounce: open dropdown after small delay
   useEffect(() => {
     if (customerSearch.trim() === '') {
       setIsDropdownOpen(false);
@@ -87,8 +83,27 @@ export default function NewPawn() {
     return () => clearTimeout(timeout);
   }, [customerSearch, customers]);
 
-  // ✅ Form handlers
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData(prev => {
+      const newFormData = { ...prev, [name]: value };
+
+      if (name === 'loan_amount' || name === 'interest_rate') {
+        const loan = parseFloat(name === 'loan_amount' ? value : newFormData.loan_amount);
+        const rate = parseFloat(name === 'interest_rate' ? value : newFormData.interest_rate);
+
+        if (loan > 0 && rate > 0) {
+          const advance = (loan * rate) / 100;
+          newFormData.adv_amount = Math.round(advance).toString();
+        } else {
+          newFormData.adv_amount = '';
+        }
+      }
+      return newFormData;
+    });
+  };
+
   const handleSelectCustomer = (customer) => {
     setSelectedCustomer(customer);
     setCustomerSearch(customer.full_name);
@@ -133,7 +148,6 @@ export default function NewPawn() {
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
-          {/* 🔍 Customer Search */}
           <div className="relative" ref={dropdownRef}>
             <LabelInputContainer className="mb-4">
               <Label htmlFor="customer_search">Search Customer</Label>
@@ -152,7 +166,6 @@ export default function NewPawn() {
               />
             </LabelInputContainer>
 
-            {/* Dropdown Results */}
             {isDropdownOpen && (
               <div className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white dark:bg-neutral-800 shadow-lg border border-neutral-200 dark:border-neutral-700">
                 {loadingCustomers ? (
@@ -175,7 +188,6 @@ export default function NewPawn() {
             )}
           </div>
 
-          {/* Ticket Info */}
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="ticket_number">Ticket Number</Label>
@@ -187,7 +199,6 @@ export default function NewPawn() {
             </LabelInputContainer>
           </div>
 
-          {/* Loan Info */}
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
@@ -205,7 +216,6 @@ export default function NewPawn() {
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
 
-          {/* Item Info */}
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">Item Details</h3>
 
           <LabelInputContainer className="mb-4">
