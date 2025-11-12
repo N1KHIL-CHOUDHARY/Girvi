@@ -46,9 +46,15 @@ export const deleteAccount = (id) => api.delete(`/app/customers/${id}`);
 export const getAccountStats = (id) => api.get(`/app/customers/${id}/stats`);
 
 // --- Pawn Ticket Routes ---
-export const getPawnTickets = (page = 1, search = "") => {
+// --- Pawn Ticket Routes ---
+export const getPawnTickets = (page = 1, search = "", status = "active") => { // <-- 1. Add status
   return api.get('/app/pawns', {
-    params: { page, search, limit: 10 }
+    params: {
+      page,
+      search,
+      status, // <-- 2. Send status to backend
+      limit: 10
+    }
   });
 };
 export const getPawnTicketsByAccountId = (accountId) => {
@@ -70,6 +76,14 @@ export const getDashboardStats = () => api.get('/app/stat/dashboard');
 export const getShopDetails = () => api.get('/app/shop'); // NEW
 export const updateShopDetails = (data) => api.patch('/app/shop', data); // NEW
 
+// --- Upload ---
+export const uploadFile = (file) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post('/app/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 export const getEmployees = () => api.get('/app/employees');
 export const createEmployee = (data) => api.post('/app/employees', data);
 export const updateEmployee = (id, data) => api.patch(`/app/employees/${id}`, data);

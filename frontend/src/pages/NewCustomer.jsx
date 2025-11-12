@@ -7,6 +7,7 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import FileUpload from '../components/FileUpload';
 
 // Define the initial state for the form
 const initialState = {
@@ -191,14 +192,10 @@ export default function NewCustomer() {
           </div>
 
           <LabelInputContainer className="mb-8">
-            <Label htmlFor="customer_photo_url">Customer Photo URL</Label>
-            <Input
-              id="customer_photo_url"
-              name="customer_photo_url"
-              placeholder="https://... (File upload coming soon)"
-              type="text"
+            <FileUpload
               value={formData.customer_photo_url}
-              onChange={handleChange}
+              onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
+              label="Customer Photo"
             />
           </LabelInputContainer>
 

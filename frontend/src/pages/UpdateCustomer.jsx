@@ -7,6 +7,7 @@ import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { useTheme } from '../contexts/ThemeContext';
+import FileUpload from '../components/FileUpload';
 
 export default function UpdateCustomer() {
   const { id } = useParams();
@@ -202,8 +203,11 @@ export default function UpdateCustomer() {
 
           {/* Photo */}
           <LabelInputContainer className="mb-8">
-            <Label htmlFor="customer_photo_url">Customer Photo URL</Label>
-            <Input id="customer_photo_url" name="customer_photo_url" type="text" value={formData.customer_photo_url} onChange={handleChange} />
+            <FileUpload
+              value={formData.customer_photo_url}
+              onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
+              label="Customer Photo"
+            />
           </LabelInputContainer>
 
           {/* Buttons */}

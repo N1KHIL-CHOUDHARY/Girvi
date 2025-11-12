@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { usePermission } from '../hooks/usePermission';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconCircleArrowLeftFilled, IconCircleArrowRightFilled, IconEye, IconTrashFilled, IconEdit, IconPlus } from '@tabler/icons-react';
@@ -30,6 +31,7 @@ export default function AllCustomers() {
   
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
+  const { hasPermission } = usePermission();
   
   // Get the QueryClient instance
   const queryClient = useQueryClient();
@@ -92,13 +94,15 @@ export default function AllCustomers() {
             onChange={handleSearch}
             className="w-full md:w-64"
           />
-          <Link
-            to="/app/customer/add"
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
-          >
-            <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
-            <span>New Customer</span>
-          </Link>
+          {hasPermission('can_create_customers') && (
+            <Link
+              to="/app/customer/add"
+              className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
+            >
+              <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
+              <span>New Customer</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -170,13 +174,15 @@ export default function AllCustomers() {
                             >
                               <IconEye className="text-indigo-500 w-5 h-5"/>
                             </Link>
-                            <Link
-                              to={`/app/customer/update/${account._id}`}
-                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                            >
-                              <IconEdit className="text-blue-500 w-5 h-5"/>
-                            </Link>
-                            {user?.role === 'owner' && (
+                            {hasPermission('can_edit_customers') && (
+                              <Link
+                                to={`/app/customer/update/${account._id}`}
+                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                              >
+                                <IconEdit className="text-blue-500 w-5 h-5"/>
+                              </Link>
+                            )}
+                            {hasPermission('can_delete_customers') && (
                               <button
                                 onClick={() => handleDelete(account._id)}
                                 className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"

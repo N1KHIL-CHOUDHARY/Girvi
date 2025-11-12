@@ -62,24 +62,29 @@ exports.createPawnTicket = async (req, res) => {
   }
 };
 
-
 exports.getPawnTickets = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const searchQuery = req.query.search || '';
+    const status = req.query.status || 'active'; // <-- 1. GET THE STATUS
     const skip = (page - 1) * limit;
 
     const query = {
       shop_id: req.user.shopId,
     };
     if (searchQuery) {
-      // (The 'e' was a syntax error, this is the correct syntax)
       query.$or = [
         { ticket_number: { $regex: searchQuery, $options: 'i' } },
         { 'items.name': { $regex: searchQuery, $options: 'i' } }
       ];
     }
+    
+    // --- 2. ADD STATUS TO THE QUERY ---
+    if (status !== 'all') {
+      query.status = status;
+    }
+    // ---------------------------------
 
     const totalPawnTickets = await PawnTicket.countDocuments(query);
 

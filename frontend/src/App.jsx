@@ -5,23 +5,25 @@ import { useTheme } from './contexts/ThemeContext';
 import { cn } from './lib/utils';
 import { motion } from 'framer-motion';
 
+// --- Page Imports (Corrected file names) ---
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Landingpage from './pages/LandingPage';
 import NewCustomer from './pages/NewCustomer';
 import NewPawn from './pages/NewPawn';
-import AllCustomers from './pages/AllCustomer';
-import AllPawns from './pages/AllPawn';
+import AllCustomers from './pages/AllCustomer'; // Corrected import
+import AllPawns from './pages/AllPawn';     // Corrected import
 import UpdateCustomer from './pages/UpdateCustomer';
 import UpdatePawn from './pages/UpdatePawn';
 import Settings from './pages/Setting';
 import CustomerDetail from './pages/CustomerDetail';
+import Employees from './pages/Employee';
+import Roles from './pages/Roles';
 
-// Import Components
 import ProtectedRoute from './components/ProtectedRoute';
-
 import { Sidebar, SidebarBody, SidebarLink } from './components/sidebar';
+import CommandPalette from './components/CommandPalette';
 
 // Import Icons for our links
 import {
@@ -32,36 +34,41 @@ import {
   IconPlus,
   IconUserCog,
   IconLogout,
-  IconSettings, // IMPORT SETTINGS ICON
+  IconSettings,
+  IconShieldLock // <-- 1. IMPORTED MISSING ICON
 } from '@tabler/icons-react';
 
-// --- This is the new AppLayout, based on your SidebarDemo ---
+// --- AppLayout Component ---
 const AppLayout = () => {
   const { user, logout } = useAuth();
   const { isDarkMode } = useTheme();
   const [open, setOpen] = useState(false); // Manages sidebar open/close
 
-  // These are your app's actual navigation links
+  // --- 2. FIX: All links now match the routes ---
   const links = [
-    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
-    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" /> },
+    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0" /> },
+    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0" /> },
+    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0" /> },
+    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0" /> },
+    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0" /> },
   ];
   
-  const employeeLink = { label: 'Employees', href: '/app/employees', icon: <IconUserCog size={18} /> };
+  // --- 3. Added Admin links (like we discussed) ---
+  const adminLinks = [
+    { label: 'Employees', href: '/app/employees', icon: <IconUserCog className="h-5 w-5 shrink-0" /> },
+    { label: 'Roles', href: '/app/roles', icon: <IconShieldLock className="h-5 w-5 shrink-0" /> }
+  ];
   
-  const settingsLink = { // NEW LINK
+  const settingsLink = {
     label: "Settings",
     href: "/app/settings",
-    icon: <IconSettings size={18} />,
+    icon: <IconSettings className="h-5 w-5 shrink-0" />,
   };
 
   const logoutLink = {
     label: "Logout",
     href: "/login",
-    icon: <IconLogout size={18} />,
+    icon: <IconLogout className="h-5 w-5 shrink-0" />,
   };
 
   return (
@@ -81,17 +88,38 @@ const AppLayout = () => {
               {links.map((link, idx) => (
                 <SidebarLink key={idx} link={link} />
               ))}
+              
+              {/* --- 4. Conditionally render admin links --- */}
               {user?.role === 'owner' && (
-                <SidebarLink link={employeeLink} />
+                <>
+                  <div className="my-2 h-[1px] w-full bg-neutral-200 dark:bg-neutral-800" />
+                  <motion.span
+                    animate={{ display: open ? "inline-block" : "none", opacity: open ? 1 : 0 }}
+                    className="px-3 text-xs font-semibold uppercase text-neutral-500"
+                  >
+                    Admin
+                  </motion.span>
+                  {adminLinks.map((link, idx) => (
+                    <SidebarLink key={idx} link={link} />
+                  ))}
+                </>
               )}
             </div>
           </div>
           
           {/* Bottom Section: Theme, Profile, & Logout */}
           <div>
-            <SidebarLink link={settingsLink} /> {/* ADDED SETTINGS LINK */}
+            <div className="flex items-center justify-between py-2 px-3">
+              <motion.span
+                animate={{ display: open ? "inline-block" : "none", opacity: open ? 1 : 0 }}
+                className="text-sm font-medium text-neutral-700 dark:text-neutral-400 whitespace-pre"
+              >
+                Theme
+              </motion.span>
+              
+            </div>
+            <SidebarLink link={settingsLink} />
             
-            {/* We add the onClick handler to the SidebarLink for logout */}
             <div onClick={logout}>
               <SidebarLink link={logoutLink} />
             </div>
@@ -99,7 +127,7 @@ const AppLayout = () => {
         </SidebarBody>
       </Sidebar>
       
-      {/* Main Content Area: Replaces the dummy <Dashboard /> */}
+      {/* Main Content Area */}
       <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-950 overflow-y-auto">
         <Outlet />
       </main>
@@ -108,7 +136,7 @@ const AppLayout = () => {
   );
 };
 
-// --- Logo Components from your demo ---
+// --- Logo Components (Full code) ---
 export const Logo = () => {
   return (
     <div
@@ -139,36 +167,39 @@ export const LogoIcon = () => {
 // --- Your Main App Router ---
 function App() {
   return (
-    <Routes>
+    <> ``
       
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/" element={<Landingpage/>} />
+      <CommandPalette />
+      
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/" element={<Landingpage/>} />
 
-      
-      <Route
-        path="/app"
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="accounts" element={<AllCustomers />} />
+          <Route path="pawns" element={<AllPawns />} />
+          <Route path="accounts/add" element={<NewCustomer />} />
+          <Route path="pawns/add" element={<NewPawn />} />
+          <Route path="accounts/:id" element={<CustomerDetail />} />
+          <Route path="accounts/update/:id" element={<UpdateCustomer />} />
+          <Route path="pawns/update/:id" element={<UpdatePawn />} />
+          <Route path="settings" element={<Settings />} /> 
+          <Route path="employees" element={<Employees />} />
+          <Route path="roles" element={<Roles />} />
+        </Route>
         
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="customer/add" element={<NewCustomer />} />
-        <Route path="pawn/add" element={<NewPawn />} />
-        <Route path='customers' element={<AllCustomers/>}/>
-        <Route path='pawns' element={<AllPawns/>}/>
-        <Route path='customer/:id' element={<CustomerDetail/>}/>;
-        <Route path="customer/update/:id" element={<UpdateCustomer />} />
-        <Route path="pawn/update/:id" element={<UpdatePawn />} />
-        <Route path="settings" element={<Settings />} /> {/* ADDED ROUTE */}
-        
-
-      </Route>
-      
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </> 
   );
 }
 

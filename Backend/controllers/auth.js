@@ -1,5 +1,11 @@
 const Shop = require('../models/shop');
 const User = require('../models/user');
+const Role = require('../models/role');
+const {
+  DEFAULT_ROLE_PERMISSIONS,
+  normalizeRoleName,
+  ensureRoleForUser,
+} = require('../utils/roleHelpers');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -16,17 +22,21 @@ const generateToken = (user) => {
   );
 };
 
-const signup = async (req, res) => {
+exports.signup = async (req, res) => {
   const { shop_name, email, password, full_name } = req.body;
-
   try {
     const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
       return res.status(400).json({ message: 'Email is already in use' });
     }
 
-    const newShop = new Shop({
-      shop_name,
+    const newShop = new Shop({ shop_name });
+    
+    const ownerRole = new Role({
+      shop_id: newShop._id,
+      name: normalizeRoleName('owner'),
+      is_owner_role: true,
+      permissions: DEFAULT_ROLE_PERMISSIONS.owner,
     });
 
     const newUser = new User({
@@ -35,56 +45,67 @@ const signup = async (req, res) => {
       password,
       full_name,
       role: 'owner',
+      role_id: ownerRole._id,
     });
 
     newShop.owner_id = newUser._id;
 
     await newShop.save();
+    await ownerRole.save();
     await newUser.save();
 
-    const token = generateToken(newUser);
+    const token = generateToken(newUser, ownerRole);
 
     res.status(201).json({
-      message: 'Shop created successfully',
+      success: true, // <-- Make sure your frontend checks for this
       token,
+      // --- THIS IS THE FIX ---
+      // Send back the full user object with permissions
       user: {
         id: newUser._id,
-        email: newUser.email,
-        full_name: newUser.full_name,
+        shopId: newUser.shop_id,
         role: newUser.role,
-        shopId: newShop._id,
-      },
+        full_name: newUser.full_name,
+        email: newUser.email,
+        permissions: ownerRole.permissions // <-- ADDED THIS
+      }
+      // ----------------------
     });
-
   } catch (error) {
     console.error('SIGNUP ERROR:', error);
     res.status(500).json({ message: 'Server error during signup' });
   }
 };
 
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (user && (await user.comparePassword(password))) {
-      
-      const token = generateToken(user);
+      const role = await ensureRoleForUser(user);
+      if (!role) {
+        return res.status(403).json({ success: false, message: 'User role not found.' });
+      }
+
+      const token = generateToken(user, role);
 
       res.status(200).json({
-        message: 'Login successful',
+        success: true, // <-- Make sure your frontend checks for this
         token,
+        
         user: {
           id: user._id,
-          email: user.email,
-          full_name: user.full_name,
-          role: user.role,
           shopId: user.shop_id,
-        },
+          role: user.role,
+          full_name: user.full_name,
+          email: user.email,
+          permissions: role.permissions // <-- ADDED THIS
+        }
+        // ----------------------
       });
     } else {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
   } catch (error) {
     console.error('LOGIN ERROR:', error);
@@ -92,7 +113,7 @@ const login = async (req, res) => {
   }
 };
 
-const changePassword = async (req, res) => {
+exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const { userId } = req.user;
 
@@ -116,5 +137,3 @@ const changePassword = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-module.exports = { signup, login, changePassword };

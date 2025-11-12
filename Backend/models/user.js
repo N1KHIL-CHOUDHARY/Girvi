@@ -10,6 +10,10 @@ const userSchema = new Schema({
     ref: 'Shop',
     required: true,
   },
+  role_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Role',
+  },
   email: {
     type: String,
     required: true,
