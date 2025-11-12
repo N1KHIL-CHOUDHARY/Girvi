@@ -123,7 +123,7 @@ export default function UpdateCustomer() {
           {/* Name + Phone */}
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="full_name">Full Name</Label>
               <Input
                 id="full_name"
                 name="full_name"
@@ -134,7 +134,7 @@ export default function UpdateCustomer() {
               />
             </LabelInputContainer>
             <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">Phone Number *</Label>
+              <Label htmlFor="phone_number">Phone Number</Label>
               <Input
                 id="phone_number"
                 name="phone_number"

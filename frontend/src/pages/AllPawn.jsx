@@ -183,7 +183,7 @@ export default function AllPawns() {
             <option value="settled">Settled</option>
           </select>
           <Link
-            to="/app/pawns/add"
+            to="/app/pawn/add"
             className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
           >
             <IconPlus />

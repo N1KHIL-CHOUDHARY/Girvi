@@ -1,5 +1,6 @@
 const Customer = require('../models/customer.js');
 const PawnTicket = require('../models/pawnTicket.js');
+const Payment = require('../models/payment.js');
 const { logActivity } = require('../services/activityLogger.js');
 
 exports.createCustomer = async (req, res) => {
