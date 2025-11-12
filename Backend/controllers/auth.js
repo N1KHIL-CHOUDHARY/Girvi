@@ -6,6 +6,7 @@ const {
   normalizeRoleName,
   ensureRoleForUser,
 } = require('../utils/roleHelpers');
+const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -110,6 +111,63 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error('LOGIN ERROR:', error);
     res.status(500).json({ message: 'Server error during login' });
+  }
+};
+
+exports.googleAuth = async (req, res) => {
+  const { idToken } = req.body || {};
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return res.status(500).json({ message: 'Google auth not configured' });
+  }
+
+  if (!idToken) {
+    return res.status(400).json({ message: 'Missing Google ID token' });
+  }
+
+  try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload?.email?.toLowerCase();
+    const fullName = payload?.name || payload?.given_name || '';
+
+    if (!email) {
+      return res.status(400).json({ message: 'Google token did not contain an email' });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'No account associated with this Google email' });
+    }
+
+    const role = await ensureRoleForUser(user);
+    if (!role) {
+      return res.status(403).json({ success: false, message: 'User role not found.' });
+    }
+
+    const token = generateToken(user, role);
+
+    return res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        shopId: user.shop_id,
+        role: user.role,
+        full_name: user.full_name || fullName,
+        email: user.email,
+        permissions: role.permissions
+      }
+    });
+  } catch (error) {
+    console.error('GOOGLE AUTH ERROR:', error);
+    return res.status(401).json({ message: 'Invalid Google token' });
   }
 };
 
