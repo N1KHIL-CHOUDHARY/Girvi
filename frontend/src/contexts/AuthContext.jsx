@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 // Import the correct getProfile function
-import { login as apiLogin, signup as apiSignup, getProfile, setAuthToken } from '../services/api'; 
+import { login as apiLogin, signup as apiSignup, loginWithGoogle as apiGoogleLogin, getProfile, setAuthToken } from '../services/api'; 
 
 const AuthContext = createContext(null);
 
@@ -57,6 +57,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (idToken) => {
+    try {
+      const result = await apiGoogleLogin(idToken);
+      return handleAuthResponse(result.data);
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  };
+
   const signup = async (userData) => {
     try {
       const result = await apiSignup(userData);
@@ -79,6 +88,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!token,
     login,
+    loginWithGoogle,
     signup,
     logout,
   };

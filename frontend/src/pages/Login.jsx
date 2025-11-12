@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -13,7 +13,9 @@ export default function Login() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleSdkPromiseRef = useRef(null);
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +42,131 @@ export default function Login() {
       toast.error(error.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const ensureGoogleSdk = () => {
+    if (window.google?.accounts?.id) {
+      return Promise.resolve();
+    }
+
+    if (!googleSdkPromiseRef.current) {
+      googleSdkPromiseRef.current = new Promise((resolve, reject) => {
+        if (window.google?.accounts?.id) {
+          resolve();
+          return;
+        }
+
+        const existingScript = document.getElementById('google-client-script');
+        const handleLoad = () => {
+          if (window.google?.accounts?.id) {
+            resolve();
+          } else {
+            reject(new Error('Google SDK unavailable after load'));
+          }
+        };
+        const handleError = () => reject(new Error('Failed to load Google SDK'));
+
+        if (existingScript) {
+          existingScript.addEventListener('load', handleLoad, { once: true });
+          existingScript.addEventListener('error', handleError, { once: true });
+        } else {
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true;
+          script.defer = true;
+          script.id = 'google-client-script';
+          script.addEventListener('load', handleLoad, { once: true });
+          script.addEventListener('error', handleError, { once: true });
+          document.body.appendChild(script);
+        }
+
+        setTimeout(() => {
+          if (window.google?.accounts?.id) {
+            resolve();
+          }
+        }, 500);
+      });
+    }
+
+    return googleSdkPromiseRef.current;
+  };
+
+  const getGoogleCredential = (clientId) =>
+    new Promise((resolve, reject) => {
+      const google = window.google;
+      if (!google?.accounts?.id) {
+        reject(new Error('Google SDK unavailable'));
+        return;
+      }
+
+      let handled = false;
+
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => {
+          handled = true;
+          google.accounts.id.cancel();
+
+          if (response?.credential) {
+            resolve(response.credential);
+          } else {
+            reject(new Error('No Google credential returned'));
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      google.accounts.id.prompt((notification) => {
+        if (handled) return;
+
+        const describeReason = () => {
+          if (notification.isNotDisplayed && notification.isNotDisplayed()) {
+            return notification.getNotDisplayedReason?.();
+          }
+          if (notification.isSkippedMoment && notification.isSkippedMoment()) {
+            return notification.getSkippedReason?.();
+          }
+          if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+            return notification.getDismissedReason?.();
+          }
+          return undefined;
+        };
+
+        const reason = describeReason();
+        reject(new Error(reason || 'Google sign-in was cancelled'));
+      });
+    });
+
+  const handleGoogleLogin = async () => {
+    if (googleLoading || loading) {
+      return;
+    }
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast.error('Google client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID.');
+      return;
+    }
+
+    setGoogleLoading(true);
+
+    try {
+      await ensureGoogleSdk();
+      const credential = await getGoogleCredential(clientId);
+      const result = await loginWithGoogle(credential);
+
+      if (result.success) {
+        toast.success('Logged in with Google!');
+        navigate(from, { replace: true });
+      } else {
+        toast.error(result.message || 'Google login failed');
+      }
+    } catch (error) {
+      toast.error(error?.message || 'Google login failed');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -86,11 +213,12 @@ export default function Login() {
             <button
               className="group/btn shadow-input relative flex h-10 w-full items-center justify-center space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
               type="button"
-              onClick={() => toast.error('Google Sign-in not implemented yet.')}
+              onClick={handleGoogleLogin}
+              disabled={googleLoading || loading}
             >
               <FaGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                Log in with Google
+                {googleLoading ? 'Connecting to Google...' : 'Log in with Google'}
               </span>
               <BottomGradient />
             </button>

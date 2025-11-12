@@ -56,7 +56,7 @@ export default function CommandPalette() {
                 <IconHome className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </CommandItem>
-              <CommandItem onSelect={() => runCommand('/app/accounts')}>
+              <CommandItem onSelect={() => runCommand('/app/customers')}>
                 <IconUsers className="mr-2 h-4 w-4" />
                 <span>All Customers</span>
               </CommandItem>
@@ -67,11 +67,11 @@ export default function CommandPalette() {
             </CommandGroup>
             
             <CommandGroup heading="Actions">
-              <CommandItem onSelect={() => runCommand('/app/accounts/add')}>
+              <CommandItem onSelect={() => runCommand('/app/customer/add')}>
                 <IconUserPlus className="mr-2 h-4 w-4" />
                 <span>New Customer</span>
               </CommandItem>
-              <CommandItem onSelect={() => runCommand('/app/pawns/add')}>
+              <CommandItem onSelect={() => runCommand('/app/pawn/add')}>
                 <IconPlus className="mr-2 h-4 w-4" />
                 <span>New Pawn Ticket</span>
               </CommandItem>

@@ -270,7 +270,7 @@ export default function AllPawns() {
           </div>
           {hasPermission('can_create_tickets') && (
             <Link
-              to="/app/pawns/add" // <-- 6. FIX: Use 'pawns' (plural)
+              to="/app/pawn/add"
               className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
               <IconPlus className="text-neutral-800 dark:text-neutral-200" />

@@ -30,6 +30,7 @@ export const setAuthToken = (token) => {
 // --- Auth Routes ---
 export const signup = (data) => api.post('/auth/signup', data);
 export const login = (data) => api.post('/auth/login', data);
+export const loginWithGoogle = (idToken) => api.post('/auth/google', { idToken });
 export const getProfile = () => api.get('/app/me');
 export const changePassword = (data) => api.post('/auth/change-password', data); // NEW
 

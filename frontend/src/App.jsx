@@ -185,13 +185,13 @@ function App() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="accounts" element={<AllCustomers />} />
+          <Route path="customers" element={<AllCustomers />} />
           <Route path="pawns" element={<AllPawns />} />
-          <Route path="accounts/add" element={<NewCustomer />} />
-          <Route path="pawns/add" element={<NewPawn />} />
-          <Route path="accounts/:id" element={<CustomerDetail />} />
-          <Route path="accounts/update/:id" element={<UpdateCustomer />} />
-          <Route path="pawns/update/:id" element={<UpdatePawn />} />
+          <Route path="customer/add" element={<NewCustomer />} />
+          <Route path="pawn/add" element={<NewPawn />} />
+          <Route path="customer/:id" element={<CustomerDetail />} />
+          <Route path="customer/update/:id" element={<UpdateCustomer />} />
+          <Route path="pawn/update/:id" element={<UpdatePawn />} />
           <Route path="settings" element={<Settings />} /> 
           <Route path="employees" element={<Employees />} />
           <Route path="roles" element={<Roles />} />
