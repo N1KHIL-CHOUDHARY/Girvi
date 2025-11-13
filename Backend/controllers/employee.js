@@ -4,11 +4,13 @@ const {
   DEFAULT_ROLE_PERMISSIONS,
   normalizeRoleName,
 } = require('../utils/roleHelpers');
+const asyncHandler = require('../utils/asyncHandler');
+const { sendSuccess } = require('../utils/response');
+const ApiError = require('../utils/ApiError');
 
-const ensureShopContext = (req, res) => {
+const getShopId = (req) => {
   if (!req.user || !req.user.shopId) {
-    res.status(400).json({ message: 'Shop context missing from request' });
-    return null;
+    throw new ApiError(400, 'Shop context missing.');
   }
   return req.user.shopId;
 };
@@ -26,137 +28,132 @@ const getOrCreateWorkerRole = async (shopId) => {
   return role;
 };
 
-exports.listEmployees = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) return;
+exports.listEmployees = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
 
-  try {
-    const employees = await User.find({ shop_id: shopId, role: 'worker' })
-      .select('_id full_name email role role_id shop_id createdAt updatedAt');
-    res.status(200).json(employees);
-  } catch (error) {
-    console.error('LIST EMPLOYEES ERROR:', error);
-    res.status(500).json({ message: 'Failed to fetch employees' });
-  }
-};
+  const employees = await User.find({ shop_id: shopId, role: 'worker' }).select(
+    '_id full_name email role role_id shop_id createdAt updatedAt'
+  );
 
-exports.createEmployee = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) return;
+  return sendSuccess(res, {
+    message: 'Employees fetched successfully.',
+    data: employees,
+  });
+});
 
+exports.createEmployee = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { full_name, email, password, roleId } = req.body || {};
-  if (!full_name || !email || !password) {
-    return res.status(400).json({ message: 'full_name, email and password are required' });
+
+  const issues = [];
+  if (!full_name) issues.push('full_name is required.');
+  if (!email) issues.push('email is required.');
+  if (!password) issues.push('password is required.');
+
+  if (issues.length) {
+    throw new ApiError(400, 'Validation failed.', issues);
   }
 
-  try {
-    const existing = await User.findOne({ shop_id: shopId, email: email.toLowerCase() });
-    if (existing) {
-      return res.status(409).json({ message: 'Email already in use' });
+  const existing = await User.findOne({ shop_id: shopId, email: email.toLowerCase() });
+  if (existing) {
+    throw new ApiError(409, 'Unable to create employee. Email already in use.');
+  }
+
+  let roleDoc;
+  if (roleId) {
+    roleDoc = await Role.findOne({ _id: roleId, shop_id: shopId });
+    if (!roleDoc) {
+      throw new ApiError(400, 'Invalid role for this shop.');
     }
+  } else {
+    roleDoc = await getOrCreateWorkerRole(shopId);
+  }
 
-    let roleDoc = null;
-    if (roleId) {
-      roleDoc = await Role.findOne({ _id: roleId, shop_id: shopId });
-      if (!roleDoc) {
-        return res.status(400).json({ message: 'Invalid role for this shop' });
-      }
-    } else {
-      roleDoc = await getOrCreateWorkerRole(shopId);
-    }
+  const user = await User.create({
+    shop_id: shopId,
+    full_name,
+    email: email.toLowerCase(),
+    password,
+    role: roleDoc && roleDoc.is_owner_role ? 'owner' : 'worker',
+    role_id: roleDoc ? roleDoc._id : undefined,
+  });
 
-    const user = await User.create({
-      shop_id: shopId,
-      full_name,
-      email: email.toLowerCase(),
-      password,
-      role: roleDoc && roleDoc.is_owner_role ? 'owner' : 'worker',
-      role_id: roleDoc ? roleDoc._id : undefined,
-    });
-
-    res.status(201).json({
+  return sendSuccess(res, {
+    status: 201,
+    message: 'Employee created successfully.',
+    data: {
       id: user._id,
       full_name: user.full_name,
       email: user.email,
       role: user.role,
       role_id: user.role_id,
-    });
-  } catch (error) {
-    console.error('CREATE EMPLOYEE ERROR:', error);
-    res.status(500).json({ message: 'Failed to create employee' });
-  }
-};
+    },
+  });
+});
 
-exports.updateEmployee = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) return;
-
+exports.updateEmployee = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { employeeId } = req.params;
   const { full_name, email, password, roleId } = req.body || {};
 
   if (!employeeId) {
-    return res.status(400).json({ message: 'Employee identifier is required' });
+    throw new ApiError(400, 'Employee identifier is required.');
   }
 
-  try {
-    const user = await User.findOne({ _id: employeeId, shop_id: shopId });
-    if (!user) {
-      return res.status(404).json({ message: 'Employee not found' });
+  const user = await User.findOne({ _id: employeeId, shop_id: shopId });
+  if (!user) {
+    throw new ApiError(404, 'Employee not found.');
+  }
+  if (user.role === 'owner') {
+    throw new ApiError(400, 'Owner cannot be modified via employee APIs.');
+  }
+
+  if (full_name) user.full_name = full_name;
+  if (email) user.email = email.toLowerCase();
+  if (password) user.password = password;
+
+  if (roleId) {
+    const roleDoc = await Role.findOne({ _id: roleId, shop_id: shopId });
+    if (!roleDoc) {
+      throw new ApiError(400, 'Invalid role for this shop.');
     }
-    if (user.role === 'owner') {
-      return res.status(400).json({ message: 'Owner cannot be modified via employee APIs' });
-    }
+    user.role_id = roleDoc._id;
+    user.role = roleDoc.is_owner_role ? 'owner' : 'worker';
+  }
 
-    if (full_name) user.full_name = full_name;
-    if (email) user.email = email.toLowerCase();
-    if (password) user.password = password;
+  await user.save();
 
-    if (roleId) {
-      const roleDoc = await Role.findOne({ _id: roleId, shop_id: shopId });
-      if (!roleDoc) {
-        return res.status(400).json({ message: 'Invalid role for this shop' });
-      }
-      user.role_id = roleDoc._id;
-      user.role = roleDoc.is_owner_role ? 'owner' : 'worker';
-    }
-
-    await user.save();
-
-    res.status(200).json({
+  return sendSuccess(res, {
+    message: 'Employee updated successfully.',
+    data: {
       id: user._id,
       full_name: user.full_name,
       email: user.email,
       role: user.role,
       role_id: user.role_id,
-    });
-  } catch (error) {
-    console.error('UPDATE EMPLOYEE ERROR:', error);
-    res.status(500).json({ message: 'Failed to update employee' });
-  }
-};
+    },
+  });
+});
 
-exports.deleteEmployee = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) return;
-
+exports.deleteEmployee = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { employeeId } = req.params;
+
   if (!employeeId) {
-    return res.status(400).json({ message: 'Employee identifier is required' });
+    throw new ApiError(400, 'Employee identifier is required.');
   }
 
-  try {
-    const user = await User.findOne({ _id: employeeId, shop_id: shopId });
-    if (!user) {
-      return res.status(404).json({ message: 'Employee not found' });
-    }
-    if (user.role === 'owner') {
-      return res.status(400).json({ message: 'Owner cannot be deleted' });
-    }
-
-    await user.deleteOne();
-    res.status(200).json({ message: 'Employee deleted successfully' });
-  } catch (error) {
-    console.error('DELETE EMPLOYEE ERROR:', error);
-    res.status(500).json({ message: 'Failed to delete employee' });
+  const user = await User.findOne({ _id: employeeId, shop_id: shopId });
+  if (!user) {
+    throw new ApiError(404, 'Employee not found.');
   }
-};
+  if (user.role === 'owner') {
+    throw new ApiError(400, 'Owner cannot be deleted.');
+  }
+
+  await user.deleteOne();
+
+  return sendSuccess(res, {
+    message: 'Employee deleted successfully.',
+  });
+});

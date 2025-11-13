@@ -5,6 +5,8 @@ dotenv.config();
 const cors = require('cors');
 const connectDB = require('./config/db');
 const v1ApiRoutes = require('./routes/api/v1/index');
+const errorHandler = require('./middlewares/errorHandler');
+const { sendError } = require('./utils/response');
 
 
 const app = express();
@@ -20,6 +22,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/v1', v1ApiRoutes);
+
+app.use((req, res) => {
+  return sendError(res, { status: 404, message: 'Route not found.' });
+});
+
+app.use(errorHandler);
 
 app.get('/', (req, res) => {
   res.send('PawnManager API is running...');

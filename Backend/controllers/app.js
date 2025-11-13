@@ -1,12 +1,14 @@
-const User = require('../models/user.js');
+const asyncHandler = require('../utils/asyncHandler');
+const { sendSuccess } = require('../utils/response');
+const ApiError = require('../utils/ApiError');
 
-exports.getMe = async (req, res) => {
+exports.getMe = asyncHandler(async (req, res) => {
   if (!req.user) {
-    return res.status(404).json({ message: 'User not found' });
+    throw new ApiError(404, 'User not found.');
   }
-  
-  res.status(200).json({
-    message: "User profile fetched successfully",
-    user: req.user 
+
+  return sendSuccess(res, {
+    message: 'User profile fetched successfully.',
+    data: req.user,
   });
-};
+});

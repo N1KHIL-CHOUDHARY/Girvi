@@ -4,180 +4,160 @@ const {
   DEFAULT_ROLE_PERMISSIONS,
   normalizeRoleName,
 } = require('../utils/roleHelpers');
+const asyncHandler = require('../utils/asyncHandler');
+const { sendSuccess } = require('../utils/response');
+const ApiError = require('../utils/ApiError');
 
-const ensureShopContext = (req, res) => {
+const getShopId = (req) => {
   if (!req.user || !req.user.shopId) {
-    res.status(400).json({ message: 'Shop context missing from request' });
-    return null;
+    throw new ApiError(400, 'Shop context missing.');
   }
-
   return req.user.shopId;
 };
 
-exports.getRoles = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) {
-    return;
-  }
+exports.getRoles = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
 
-  try {
-    const roles = await Role.find({ shop_id: shopId }).sort({
-      is_owner_role: -1,
-      createdAt: 1,
-    });
+  const roles = await Role.find({ shop_id: shopId }).sort({
+    is_owner_role: -1,
+    createdAt: 1,
+  });
 
-    res.status(200).json(roles);
-  } catch (error) {
-    console.error('GET ROLES ERROR:', error);
-    res.status(500).json({ message: 'Failed to fetch roles' });
-  }
-};
+  return sendSuccess(res, {
+    message: 'Roles fetched successfully.',
+    data: roles,
+  });
+});
 
-exports.createRole = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) {
-    return;
-  }
-
+exports.createRole = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { name, permissions = {} } = req.body || {};
 
+  const issues = [];
   if (!name) {
-    return res.status(400).json({ message: 'Role name is required' });
+    issues.push('Role name is required.');
   }
 
-  const normalizedName = normalizeRoleName(name.trim());
+  const normalizedName = name ? normalizeRoleName(name.trim()) : null;
 
-  if (!normalizedName) {
-    return res.status(400).json({ message: 'Role name is invalid' });
+  if (name && !normalizedName) {
+    issues.push('Role name is invalid.');
+  }
+
+  if (issues.length) {
+    throw new ApiError(400, 'Validation failed.', issues);
   }
 
   if (normalizedName.toLowerCase() === 'owner') {
-    return res.status(400).json({ message: 'Owner role already exists' });
+    throw new ApiError(400, 'Owner role already exists.');
   }
 
-  try {
-    const existingRole = await Role.findOne({
-      shop_id: shopId,
-      name: normalizedName,
-    });
+  const existingRole = await Role.findOne({
+    shop_id: shopId,
+    name: normalizedName,
+  });
 
-    if (existingRole) {
-      return res.status(409).json({ message: 'Role name already in use' });
-    }
-
-    const role = await Role.create({
-      shop_id: shopId,
-      name: normalizedName,
-      is_owner_role: false,
-      permissions: {
-        ...DEFAULT_ROLE_PERMISSIONS.worker,
-        ...permissions,
-      },
-    });
-
-    res.status(201).json(role);
-  } catch (error) {
-    console.error('CREATE ROLE ERROR:', error);
-    res.status(500).json({ message: 'Failed to create role' });
-  }
-};
-
-exports.updateRole = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) {
-    return;
+  if (existingRole) {
+    throw new ApiError(409, 'Role name already in use.');
   }
 
+  const role = await Role.create({
+    shop_id: shopId,
+    name: normalizedName,
+    is_owner_role: false,
+    permissions: {
+      ...DEFAULT_ROLE_PERMISSIONS.worker,
+      ...permissions,
+    },
+  });
+
+  return sendSuccess(res, {
+    status: 201,
+    message: 'Role created successfully.',
+    data: role,
+  });
+});
+
+exports.updateRole = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { roleId } = req.params;
   const { name, permissions } = req.body || {};
 
   if (!roleId) {
-    return res.status(400).json({ message: 'Role identifier is required' });
+    throw new ApiError(400, 'Role identifier is required.');
   }
 
-  try {
-    const role = await Role.findOne({ _id: roleId, shop_id: shopId });
+  const role = await Role.findOne({ _id: roleId, shop_id: shopId });
 
-    if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
-    }
-
-    if (role.is_owner_role) {
-      return res.status(400).json({ message: 'Owner role cannot be updated' });
-    }
-
-    if (name) {
-      const normalizedName = normalizeRoleName(name.trim());
-      if (!normalizedName) {
-        return res.status(400).json({ message: 'Role name is invalid' });
-      }
-
-      const duplicate = await Role.findOne({
-        _id: { $ne: roleId },
-        shop_id: shopId,
-        name: normalizedName,
-      });
-
-      if (duplicate) {
-        return res.status(409).json({ message: 'Role name already in use' });
-      }
-
-      role.name = normalizedName;
-    }
-
-    if (permissions && typeof permissions === 'object') {
-      role.permissions = {
-        ...DEFAULT_ROLE_PERMISSIONS.worker,
-        ...permissions,
-      };
-    }
-
-    await role.save();
-
-    res.status(200).json(role);
-  } catch (error) {
-    console.error('UPDATE ROLE ERROR:', error);
-    res.status(500).json({ message: 'Failed to update role' });
-  }
-};
-
-exports.deleteRole = async (req, res) => {
-  const shopId = ensureShopContext(req, res);
-  if (!shopId) {
-    return;
+  if (!role) {
+    throw new ApiError(404, 'Role not found.');
   }
 
+  if (role.is_owner_role) {
+    throw new ApiError(400, 'Owner role cannot be updated.');
+  }
+
+  if (name) {
+    const normalizedName = normalizeRoleName(name.trim());
+    if (!normalizedName) {
+      throw new ApiError(400, 'Role name is invalid.');
+    }
+
+    const duplicate = await Role.findOne({
+      _id: { $ne: roleId },
+      shop_id: shopId,
+      name: normalizedName,
+    });
+
+    if (duplicate) {
+      throw new ApiError(409, 'Role name already in use.');
+    }
+
+    role.name = normalizedName;
+  }
+
+  if (permissions && typeof permissions === 'object') {
+    role.permissions = {
+      ...DEFAULT_ROLE_PERMISSIONS.worker,
+      ...permissions,
+    };
+  }
+
+  await role.save();
+
+  return sendSuccess(res, {
+    message: 'Role updated successfully.',
+    data: role,
+  });
+});
+
+exports.deleteRole = asyncHandler(async (req, res) => {
+  const shopId = getShopId(req);
   const { roleId } = req.params;
 
   if (!roleId) {
-    return res.status(400).json({ message: 'Role identifier is required' });
+    throw new ApiError(400, 'Role identifier is required.');
   }
 
-  try {
-    const role = await Role.findOne({ _id: roleId, shop_id: shopId });
+  const role = await Role.findOne({ _id: roleId, shop_id: shopId });
 
-    if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
-    }
-
-    if (role.is_owner_role) {
-      return res.status(400).json({ message: 'Owner role cannot be deleted' });
-    }
-
-    const usersUsingRole = await User.countDocuments({ role_id: roleId });
-
-    if (usersUsingRole > 0) {
-      return res
-        .status(409)
-        .json({ message: 'Role is assigned to users and cannot be deleted' });
-    }
-
-    await role.deleteOne();
-
-    res.status(200).json({ message: 'Role deleted successfully' });
-  } catch (error) {
-    console.error('DELETE ROLE ERROR:', error);
-    res.status(500).json({ message: 'Failed to delete role' });
+  if (!role) {
+    throw new ApiError(404, 'Role not found.');
   }
-};
 
+  if (role.is_owner_role) {
+    throw new ApiError(400, 'Owner role cannot be deleted.');
+  }
+
+  const usersUsingRole = await User.countDocuments({ role_id: roleId });
+
+  if (usersUsingRole > 0) {
+    throw new ApiError(409, 'Role is assigned to users and cannot be deleted.');
+  }
+
+  await role.deleteOne();
+
+  return sendSuccess(res, {
+    message: 'Role deleted successfully.',
+  });
+});

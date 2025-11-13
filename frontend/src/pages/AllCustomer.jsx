@@ -36,25 +36,20 @@ export default function AllCustomers() {
   // Get the QueryClient instance
   const queryClient = useQueryClient();
 
-  // --- 4. THIS is your new data fetching hook ---
-  // It replaces your entire useEffect
   const { data: queryData, isLoading, isError } = useQuery({
-    queryKey: ['customers', page, search], // The unique "ID" for this data
-    queryFn: () => getAccounts(page, search), // The API function to call
-    keepPreviousData: true, // This stops the "flash" during pagination!
+    queryKey: ['customers', page, search],
+    queryFn: () => getAccounts(page, search), 
+    keepPreviousData: true, 
   });
   
-  // --- 5. Get data from the query ---
   const accounts = queryData?.data?.customers || [];
   const totalPages = queryData?.data?.totalPages || 1;
   const totalCustomers = queryData?.data?.totalCustomers || 0;
 
-  // --- 6. THIS is your new delete function ---
   const deleteMutation = useMutation({
-    mutationFn: deleteAccount, // The API function to call
+    mutationFn: deleteAccount,
     onSuccess: () => {
       toast.success('Account deleted successfully.');
-      // This tells TanStack Query to refetch the 'customers' list
       queryClient.invalidateQueries(['customers']); 
     },
     onError: (err) => {
@@ -64,7 +59,7 @@ export default function AllCustomers() {
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this account?')) {
-      deleteMutation.mutate(id); // Call the mutation
+      deleteMutation.mutate(id); 
     }
   };
   
