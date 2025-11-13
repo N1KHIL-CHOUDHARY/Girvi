@@ -19,9 +19,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
-app.use('/uploads', express.static('uploads'));
-
 app.use('/api/v1', v1ApiRoutes);
 
 app.get('/', (req, res) => {
