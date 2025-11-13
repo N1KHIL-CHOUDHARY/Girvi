@@ -28,9 +28,9 @@ const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
 
   const options = [
-    { name: 'Light', value: 'light', icon: <IconSun size={16} /> },
-    { name: 'Dark', value: 'dark', icon: <IconMoon size={16} /> },
-    { name: 'System', value: 'system', icon: <IconDeviceDesktop size={16} /> },
+    { name: 'Light', value: 'light', icon: <IconSun size={16} className="text-black dark:text-white" /> },
+    { name: 'Dark', value: 'dark', icon: <IconMoon size={16} className="text-black dark:text-white" /> },
+    { name: 'System', value: 'system', icon: <IconDeviceDesktop size={16} className="text-black dark:text-white" /> },
   ];
 
   return (
@@ -141,7 +141,7 @@ export default function Settings() {
       <SettingsCard
         title="Preferences"
         description="Manage your theme and app preferences."
-        icon={<IconSettings size={24} />}
+        icon={<IconSettings size={24} className="text-black dark:text-white" />}
       >
         <ThemeToggle />
         <LabelInputContainer>
@@ -160,7 +160,7 @@ export default function Settings() {
       <SettingsCard
         title="Security"
         description="Manage your account security."
-        icon={<IconLock size={24} />}
+        icon={<IconLock size={24} className="text-black dark:text-white" />}
       >
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <LabelInputContainer>
@@ -211,7 +211,7 @@ export default function Settings() {
         <SettingsCard
           title="Shop"
           description="Manage your shop's details."
-          icon={<IconBuildingStore size={24} />}
+          icon={<IconBuildingStore size={24} className="text-black dark:text-white" />}
         >
           <form onSubmit={handleShopSave} className="space-y-4">
             <LabelInputContainer>

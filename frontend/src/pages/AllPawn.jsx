@@ -273,7 +273,7 @@ export default function AllPawns() {
               to="/app/pawn/add"
               className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
-              <IconPlus className="text-neutral-800 dark:text-neutral-200" />
+              <IconPlus className="text-neutral-800 dark:text-neutral-200 text-black dark:text-white" />
               <span>New Ticket</span>
             </Link>
           )}
@@ -393,7 +393,7 @@ export default function AllPawns() {
                                 className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                                 title="Mark as Settled"
                               >
-                                <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5" />
+                                <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5 text-black dark:text-white" />
                               </button>
                             )}
 
@@ -431,7 +431,7 @@ export default function AllPawns() {
                 page === 1
                   ? 'text-gray-400 dark:text-neutral-700'
                   : 'text-neutral-800 dark:text-neutral-200'
-              }`}
+              } text-black dark:text-white`}
             />
           </button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -447,7 +447,7 @@ export default function AllPawns() {
                 page === totalPages
                   ? 'text-gray-400 dark:text-neutral-700'
                   : 'text-neutral-800 dark:text-neutral-200'
-              }`}
+              } text-black dark:text-white`}
             />
           </button>
         </div>

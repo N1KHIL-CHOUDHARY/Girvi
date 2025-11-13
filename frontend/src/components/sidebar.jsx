@@ -94,7 +94,7 @@ export const MobileSidebar = ({
         {...props}>
         <div className="flex justify-end z-20 w-full">
           <IconMenu2
-            className="text-neutral-800 dark:text-neutral-200"
+            className="text-neutral-800 dark:text-neutral-200 text-black dark:text-white"
             onClick={() => setOpen(!open)} />
         </div>
         <AnimatePresence>
@@ -114,7 +114,7 @@ export const MobileSidebar = ({
               <div
                 className="absolute right-10 top-10 z-50 text-neutral-800 dark:text-neutral-200"
                 onClick={() => setOpen(!open)}>
-                <IconX />
+                <IconX className="text-black dark:text-white" />
               </div>
               {children}
             </motion.div>

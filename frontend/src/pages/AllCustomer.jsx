@@ -99,7 +99,7 @@ export default function AllCustomers() {
               to="/app/customer/add"
               className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
-              <IconPlus className="text-neutral-800 dark:text-neutral-200"/>
+              <IconPlus className="text-neutral-800 dark:text-neutral-200 text-black dark:text-white"/>
               <span>New Customer</span>
             </Link>
           )}
@@ -212,7 +212,7 @@ export default function AllCustomers() {
             disabled={page === 1}
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
-            <IconCircleArrowLeftFilled className={`h-10 w-10 ${page === 1 ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'}`}/>
+            <IconCircleArrowLeftFilled className={`h-10 w-10 ${page === 1 ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'} text-black dark:text-white`}/>
           </button>
           <span className="text-sm text-neutral-600 dark:text-neutral-400">
             Page {page} of {totalPages}
@@ -222,7 +222,7 @@ export default function AllCustomers() {
             disabled={page === totalPages}
             className="px-4 py-2 rounded-md disabled:opacity-50"
           >
-            <IconCircleArrowRightFilled className={`h-10 w-10 ${page === totalPages ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'}`}/>
+            <IconCircleArrowRightFilled className={`h-10 w-10 ${page === totalPages ? 'text-gray-400 dark:text-neutral-700' : 'text-neutral-800 dark:text-neutral-200'} text-black dark:text-white`}/>
           </button>
         </div>
       )}

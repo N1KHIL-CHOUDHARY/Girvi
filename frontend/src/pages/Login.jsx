@@ -171,9 +171,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-neutral-950 p-4">
+    <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-neutral-950">
       {/* 2. Added 'relative' to this div */}
-      <div className="shadow-input relative mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
+      <div className="shadow-input relative  w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
         
         {/* 3. Added the toggle button */}
         

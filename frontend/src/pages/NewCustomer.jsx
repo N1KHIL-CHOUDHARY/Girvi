@@ -66,7 +66,7 @@ export default function NewCustomer() {
       },
       aadhaar_number: formData.aadhaar_number,
       pan_number: formData.pan_number,
-      customer_photo: formData.customer_photo_url || undefined,
+      customer_photo_url: formData.customer_photo_url || undefined,
     };
 
     mutation.mutate(payload); // 🚀 triggers the POST request

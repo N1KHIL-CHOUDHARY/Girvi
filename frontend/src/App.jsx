@@ -25,7 +25,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Sidebar, SidebarBody, SidebarLink } from './components/sidebar';
 import CommandPalette from './components/CommandPalette';
 
-// Import Icons for our links
 import {
   IconHome,
   IconUsers,
@@ -35,40 +34,39 @@ import {
   IconUserCog,
   IconLogout,
   IconSettings,
-  IconShieldLock // <-- 1. IMPORTED MISSING ICON
+  IconShieldLock 
 } from '@tabler/icons-react';
 
 // --- AppLayout Component ---
 const AppLayout = () => {
   const { user, logout } = useAuth();
   const { isDarkMode } = useTheme();
-  const [open, setOpen] = useState(false); // Manages sidebar open/close
+  const [open, setOpen] = useState(false); 
 
-  // --- 2. FIX: All links now match the routes ---
   const links = [
-    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0" /> },
-    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0" /> },
-    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0" /> },
-    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0" /> },
-    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0" /> },
+    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
   ];
   
   // --- 3. Added Admin links (like we discussed) ---
   const adminLinks = [
-    { label: 'Employees', href: '/app/employees', icon: <IconUserCog className="h-5 w-5 shrink-0" /> },
-    { label: 'Roles', href: '/app/roles', icon: <IconShieldLock className="h-5 w-5 shrink-0" /> }
+    { label: 'Employees', href: '/app/employees', icon: <IconUserCog className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Roles', href: '/app/roles', icon: <IconShieldLock className="h-5 w-5 shrink-0 text-black dark:text-white" /> }
   ];
   
   const settingsLink = {
     label: "Settings",
     href: "/app/settings",
-    icon: <IconSettings className="h-5 w-5 shrink-0" />,
+    icon: <IconSettings className="h-5 w-5 shrink-0 text-black dark:text-white" />,
   };
 
   const logoutLink = {
     label: "Logout",
     href: "/login",
-    icon: <IconLogout className="h-5 w-5 shrink-0" />,
+    icon: <IconLogout className="h-5 w-5 shrink-0 text-black dark:text-white" />,
   };
 
   return (
@@ -167,7 +165,7 @@ export const LogoIcon = () => {
 // --- Your Main App Router ---
 function App() {
   return (
-    <> ``
+    <>
       
       <CommandPalette />
       

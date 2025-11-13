@@ -17,7 +17,7 @@ Command.displayName = CommandPrimitive.displayName;
 
 const CommandInput = React.forwardRef(({ className, ...props }, ref) => (
   <div className="flex items-center border-b border-neutral-200 dark:border-neutral-700 px-3">
-    <IconSearch className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    <IconSearch className="mr-2 h-4 w-4 shrink-0 opacity-50 text-black dark:text-white" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(

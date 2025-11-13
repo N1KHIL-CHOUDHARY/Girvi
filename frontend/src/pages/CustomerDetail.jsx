@@ -122,7 +122,7 @@ export default function CustomerDetail() {
                   to={`/app/customer/update/${customer._id}`}
                   className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
                 >
-                  <IconEdit size={16} />
+                  <IconEdit size={16} className="text-black dark:text-white" />
                   <span>Edit Customer</span>
                 </Link>
               </div>
@@ -149,7 +149,7 @@ export default function CustomerDetail() {
             to="/app/pawn/add"
             className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
           >
-            <IconPlus />
+            <IconPlus className="text-black dark:text-white" />
             <span>New Ticket</span>
           </Link>
         </div>
