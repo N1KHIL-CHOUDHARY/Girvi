@@ -155,5 +155,8 @@ exports.deleteEmployee = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Employee deleted successfully.',
+    data: {
+      employeeId,
+    },
   });
 });

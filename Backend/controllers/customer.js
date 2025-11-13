@@ -66,10 +66,15 @@ exports.getCustomers = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Customers fetched successfully.',
-    data: customers,
+    data: {
+      customers,
+      totalCustomers,
+      totalPages: Math.ceil(totalCustomers / limit),
+      currentPage: page,
+    },
     meta: {
       page,
-      totalPages: Math.ceil(totalCustomers / limit) || 1,
+      totalPages: Math.ceil(totalCustomers / limit),
       totalItems: totalCustomers,
     },
   });
@@ -149,6 +154,8 @@ exports.deleteCustomer = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Customer deleted successfully.',
-    data: deletedCustomer,
+    data: {
+      customerId: deletedCustomer._id,
+    },
   });
 });

@@ -19,6 +19,36 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => {
+    const payload = response?.data;
+    if (payload && typeof payload === 'object' && Object.prototype.hasOwnProperty.call(payload, 'success')) {
+      response.success = payload.success;
+      response.message = payload.message;
+      response.meta = payload.meta;
+      response.error = payload.error;
+      response.data = payload.data;
+    }
+    return response;
+  },
+  (error) => {
+    const payload = error.response?.data;
+    if (payload && typeof payload === 'object') {
+      if (payload.message) {
+        error.message = payload.message;
+      }
+      if (error.response) {
+        error.response.success = payload.success;
+        error.response.message = payload.message;
+        error.response.meta = payload.meta;
+        error.response.error = payload.error;
+        error.response.data = payload.data;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const setAuthToken = (token) => {
   if (token) {
     localStorage.setItem('token', token);

@@ -94,10 +94,15 @@ exports.getPawnTickets = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Pawn tickets fetched successfully.',
-    data: tickets,
+    data: {
+      tickets,
+      totalPawnTickets,
+      totalPages: Math.ceil(totalPawnTickets / limit),
+      currentPage: page,
+    },
     meta: {
       page,
-      totalPages: Math.ceil(totalPawnTickets / limit) || 1,
+      totalPages: Math.ceil(totalPawnTickets / limit),
       totalItems: totalPawnTickets,
     },
   });
@@ -164,6 +169,9 @@ exports.deletePawnTicket = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Pawn ticket deleted successfully.',
+    data: {
+      ticketId: deletedTicket._id,
+    },
   });
 });
 
@@ -207,7 +215,9 @@ exports.getPawnTicketsForCustomer = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Customer pawn tickets fetched successfully.',
-    data: tickets,
+    data: {
+      tickets,
+    },
     meta: {
       totalItems: tickets.length,
     },

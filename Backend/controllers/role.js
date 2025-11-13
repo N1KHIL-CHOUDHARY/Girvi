@@ -159,5 +159,8 @@ exports.deleteRole = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'Role deleted successfully.',
+    data: {
+      roleId,
+    },
   });
 });

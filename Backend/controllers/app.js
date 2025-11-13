@@ -9,6 +9,8 @@ exports.getMe = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: 'User profile fetched successfully.',
-    data: req.user,
+    data: {
+      user: req.user,
+    },
   });
 });
