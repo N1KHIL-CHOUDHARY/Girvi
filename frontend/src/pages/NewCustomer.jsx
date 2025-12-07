@@ -36,13 +36,19 @@ export default function NewCustomer() {
     },
     onSuccess: () => {
       toast.success('Customer created successfully!');
-      // 🔁 Refresh customer list if it exists in cache
+    
       queryClient.invalidateQueries(['customers']);
       navigate('/app/customers');
       setFormData(initialState);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to create customer');
+      const message = 
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        'Failed to create customer';
+        
+    
+      toast.error(message.replace(/"/g, ''));
     },
   });
 

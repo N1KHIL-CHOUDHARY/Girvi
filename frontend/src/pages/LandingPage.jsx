@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, PlayCircle, Users, BarChart3, Cloud, Bell, Moon, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
@@ -18,9 +19,9 @@ export default function LandingPage() {
               <a href="#demo" className="hover:text-indigo-500 transition">Demo</a>
               <a href="#faq" className="hover:text-indigo-500 transition">FAQ</a>
             </div>
-            <button className="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-sm font-semibold hover:scale-105 transition">
+            <Link to="/signup" className="px-6 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-sm font-semibold hover:scale-105 transition">
               Get Started
-            </button>
+            </Link>
           </div>
         </nav>
 

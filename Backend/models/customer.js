@@ -17,14 +17,10 @@ const customerSchema = new Schema({
   phone_number: {
     type: String,
     required: true,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
   },
   address: {
     line1: { 
       type: String,
-      set: encrypt, // 2. Encrypt on save
-      get: decrypt  // 3. Decrypt on find
     },
     city: { type: String, trim: true },
     pincode: { type: String, trim: true }, 
@@ -38,13 +34,13 @@ const customerSchema = new Schema({
   },
   aadhaar_number: {
     type: String,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    set: encrypt, 
+    get: decrypt 
   },
   pan_number: {
     type: String,
-    set: encrypt, // 2. Encrypt on save
-    get: decrypt  // 3. Decrypt on find
+    set: encrypt, 
+    get: decrypt 
   },
   created_by_user_id: {
     type: Schema.Types.ObjectId,
@@ -53,7 +49,6 @@ const customerSchema = new Schema({
   },
 }, {
   timestamps: true,
-  // 4. IMPORTANT: Tell Mongoose to apply 'getters' when converting to JSON
   toJSON: { getters: true },
   toObject: { getters: true }
 });

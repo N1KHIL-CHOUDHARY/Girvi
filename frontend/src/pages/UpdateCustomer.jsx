@@ -45,7 +45,13 @@ export default function UpdateCustomer() {
       navigate('/app/customers');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update customer');
+      const message = 
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        'Failed to update customer';
+        
+    
+      toast.error(message.replace(/"/g, ''));
     },
   });
 

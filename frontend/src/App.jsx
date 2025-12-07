@@ -20,6 +20,7 @@ import Settings from './pages/Setting';
 import CustomerDetail from './pages/CustomerDetail';
 import Employees from './pages/Employee';
 import Roles from './pages/Roles';
+import NotFound from './pages/NotFound';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { Sidebar, SidebarBody, SidebarLink } from './components/sidebar';
@@ -195,7 +196,7 @@ function App() {
           <Route path="roles" element={<Roles />} />
         </Route>
         
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </> 
   );

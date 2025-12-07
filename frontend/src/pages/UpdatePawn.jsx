@@ -63,7 +63,13 @@ export default function UpdatePawn() {
       navigate('/app/pawns');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update ticket');
+      const message = 
+      error.response?.data?.error || 
+      error.response?.data?.message || 
+      'Failed to update pawn ticket';
+      
+  
+    toast.error(message.replace(/"/g, ''));
     },
   });
 

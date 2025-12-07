@@ -26,10 +26,10 @@ const activitySchema = new Schema({
     required: true,
     enum: [
       'NEW_CUSTOMER',
-      'UPDATED_CUSTOMER', // <-- ADDED
-      'DELETED_CUSTOMER', // <-- ADDED
+      'UPDATED_CUSTOMER',
+      'DELETED_CUSTOMER', 
       'NEW_TICKET',
-      'UPDATED_TICKET',   // <-- ADDED
+      'UPDATED_TICKET',   
       'SETTLED_TICKET',
       'DELETED_TICKET',
       'NEW_PAYMENT'
