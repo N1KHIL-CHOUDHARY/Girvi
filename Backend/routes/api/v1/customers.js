@@ -5,12 +5,12 @@ const {
   createCustomer, 
   getCustomers, 
   getCustomerById,
-  updateCustomer,    // <-- You were missing this
+  updateCustomer,    
   deleteCustomer     // <-- You were missing this
 } = require('../../../controllers/customer.js');
 const { getPawnTicketsForCustomer } = require('../../../controllers/pawn.js');
 const { getCustomerStats } = require('../../../controllers/analytics.js');
-const { authenticate, authorize } = require('../../../middlewares/auth.js'); // <-- Import authorize
+const { authenticate, checkPermission } = require('../../../middlewares/auth.js'); 
 const validate = require('../../../middlewares/validate.js');
 const { customerSchema } = require('../../../utils/validators.js');
 
@@ -23,7 +23,7 @@ router.route('/')
 router.route('/:id')
   .get(getCustomerById)
   .patch(validate(customerSchema), updateCustomer) 
-  .delete(authorize('owner'), deleteCustomer);      
+  .delete(checkPermission('can_delete_customers'), deleteCustomer);      
 
 router.get("/:id/pawns", getPawnTicketsForCustomer);
 router.get('/:id/stats', getCustomerStats);

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRoles, createRole, deleteRole } from '../services/api';
+import { getRoles, createRole, deleteRole, updateRole } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "../components/ui/table";
+import { Dialog, DialogContent } from '../components/ui/Dialog';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { IconTrashFilled, IconEdit } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 
-// This is the default permission set for a new role
-// (Matches your backend 'role.js' model)
+
 const initialPermissions = {
   can_view_dashboard: true,
   can_view_customers: true,
@@ -40,6 +41,11 @@ export default function Roles() {
   
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState(initialPermissions);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
+  const [editPermissions, setEditPermissions] = useState(initialPermissions);
+  const [editRoleName, setEditRoleName] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: rolesData, isLoading } = useQuery({
     queryKey: ['roles'],
@@ -66,6 +72,17 @@ export default function Roles() {
     onError: (err) => toast.error(err.response?.data?.message || 'Cannot delete a role in use'),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }) => updateRole(id, payload),
+    onSuccess: () => {
+      toast.success('Role updated!');
+      queryClient.invalidateQueries(['roles']);
+      setEditModalOpen(false);
+      setEditingRole(null);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update role'),
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     createMutation.mutate({ name: roleName, permissions });
@@ -76,12 +93,37 @@ export default function Roles() {
   };
   
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this role?')) {
-      deleteMutation.mutate(id);
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
     }
-  }
+  };
+
+  const handleEditClick = (role) => {
+    setEditingRole(role);
+    setEditRoleName(role.name);
+    setEditPermissions(role.permissions || initialPermissions);
+    setEditModalOpen(true);
+  };
+
+  const handleEditPermissionChange = (key) => {
+    setEditPermissions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (!editingRole) return;
+    updateMutation.mutate({
+      id: editingRole._id,
+      payload: { name: editRoleName, permissions: editPermissions },
+    });
+  };
 
   return (
+    <>
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
       <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-6">
         Roles & Permissions
@@ -145,7 +187,7 @@ export default function Roles() {
                 </TableHeader>
                 <TableBody>
                   {rolesData?.map((role) => (
-                    <TableRow key={role._id}>
+                    <TableRow key={role._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
                       <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{role.name}</TableCell>
                       <TableCell className="text-neutral-600 dark:text-neutral-400 text-xs">
                         {Object.keys(role.permissions)
@@ -157,7 +199,7 @@ export default function Roles() {
                           <span className="text-xs text-neutral-500">Locked</span>
                         ) : (
                           <div className="flex justify-center gap-2">
-                            <button title="Edit (Coming Soon)">
+                            <button title="Edit" onClick={() => handleEditClick(role)}>
                               <IconEdit className="text-blue-500 w-5 h-5" />
                             </button>
                             <button onClick={() => handleDelete(role._id)} disabled={deleteMutation.isLoading}>
@@ -175,6 +217,69 @@ export default function Roles() {
         </div>
       </div>
     </div>
+
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+            Edit Role
+          </h3>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <LabelInputContainer>
+              <Label htmlFor="edit_role_name">Role Name</Label>
+              <Input
+                id="edit_role_name"
+                type="text"
+                value={editRoleName}
+                onChange={(e) => setEditRoleName(e.target.value)}
+                required
+              />
+            </LabelInputContainer>
+            <div className="space-y-2">
+              <Label>Permissions</Label>
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                {Object.keys(editPermissions).map((key) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <Label htmlFor={`edit_${key}`} className="font-normal">{formatLabel(key)}</Label>
+                    <input
+                      type="checkbox"
+                      id={`edit_${key}`}
+                      checked={editPermissions[key]}
+                      onChange={() => handleEditPermissionChange(key)}
+                      className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="h-10 px-4 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200"
+                onClick={() => setEditModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="h-10 px-4 rounded-md bg-indigo-600 text-white font-medium"
+                disabled={updateMutation.isLoading}
+              >
+                {updateMutation.isLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Delete role?"
+        message="This action cannot be undone. Users with this role may be affected."
+        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
+      />
+    </>
   );
 }
 

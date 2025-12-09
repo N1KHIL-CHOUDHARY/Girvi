@@ -91,7 +91,7 @@ export const MobileSidebar = ({
       {/* Mobile Navbar */}
       <div
         className={cn(
-          "fixed top-0 left-0 right-0 h-14 md:hidden flex items-center justify-between px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 z-50 shadow-sm"
+          "fixed top-0 left-0 right-0 h-14 md:hidden flex items-center justify-between px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 z-[120] shadow-sm"
         )}
       >
         <div className="flex items-center space-x-2">
@@ -117,7 +117,7 @@ export const MobileSidebar = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 bg-black/50 z-[99] md:hidden"
+              className="fixed inset-0 bg-black/50 z-[115] md:hidden"
             />
             {/* Sidebar Menu */}
             <motion.div
@@ -129,7 +129,7 @@ export const MobileSidebar = ({
                 ease: "easeInOut",
               }}
               className={cn(
-                "fixed top-0 left-0 h-full w-80 bg-white dark:bg-neutral-900 p-6 z-[100] flex flex-col shadow-xl",
+                "fixed top-0 left-0 h-full w-80 bg-white dark:bg-neutral-900 p-6 z-[120] flex flex-col shadow-xl",
                 className
               )}
             >

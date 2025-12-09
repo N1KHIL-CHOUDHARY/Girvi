@@ -2,7 +2,6 @@ import React, { useState } from 'react'; // <-- 1. REMOVED useEffect
 import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
 import { usePermission } from '../hooks/usePermission';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,15 +21,16 @@ import {
 } from "../components/ui/table";
 import { Input } from "../components/ui/Input";
 import TableSkeleton from "../components/TableSkeleton";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 export default function AllCustomers() {
   // --- 3. REMOVED loading, accounts, totalPages, totalCustomers state ---
   
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   
   const { isDarkMode } = useTheme();
-  const { user } = useAuth();
   const { hasPermission } = usePermission();
   
   // Get the QueryClient instance
@@ -58,8 +58,12 @@ export default function AllCustomers() {
   });
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this account?')) {
-      deleteMutation.mutate(id); 
+    setDeleteTarget(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget); 
     }
   };
   
@@ -145,7 +149,7 @@ export default function AllCustomers() {
                     </TableHeader>
                     <TableBody>
                       {accounts.map((account) => (
-                        <TableRow key={account._id}>
+                        <TableRow key={account._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
                           <TableCell>
                             <img
                               src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
@@ -293,6 +297,14 @@ export default function AllCustomers() {
           </button>
         </div>
       )}
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        title="Delete customer?"
+        message="This action will soft-delete the customer and hide them from lists."
+        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
+      />
     </div>
   );
 }

@@ -9,14 +9,14 @@ const {
 } = require('../../../controllers/employee');
 const {
   authenticate,
-  authorize,
+  checkPermission,
 } = require('../../../middlewares/auth');
 
 router.use(authenticate);
 
-router.get('/', authorize('owner'), listEmployees);
-router.post('/', authorize('owner'), createEmployee);
-router.patch('/:employeeId', authorize('owner'), updateEmployee);
-router.delete('/:employeeId', authorize('owner'), deleteEmployee);
+router.get('/', checkPermission('can_manage_employees'), listEmployees);
+router.post('/', checkPermission('can_manage_employees'), createEmployee);
+router.patch('/:employeeId', checkPermission('can_manage_employees'), updateEmployee);
+router.delete('/:employeeId', checkPermission('can_manage_employees'), deleteEmployee);
 
 module.exports = router;

@@ -9,15 +9,15 @@ const {
 } = require('../../../controllers/role');
 const {
   authenticate,
-  authorize,
+  checkPermission,
 } = require('../../../middlewares/auth');
 
 router.use(authenticate);
 
 router.get('/', getRoles);
-router.post('/', authorize('owner'), createRole);
-router.patch('/:roleId', authorize('owner'), updateRole);
-router.delete('/:roleId', authorize('owner'), deleteRole);
+router.post('/', checkPermission('can_manage_roles'), createRole);
+router.patch('/:roleId', checkPermission('can_manage_roles'), updateRole);
+router.delete('/:roleId', checkPermission('can_manage_roles'), deleteRole);
 
 module.exports = router;
 
