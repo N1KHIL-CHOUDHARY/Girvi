@@ -55,6 +55,7 @@ export default function AllPawns() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount_paid: "", payment_for: "interest" });
 
@@ -120,6 +121,17 @@ export default function AllPawns() {
     setIsModalOpen(false);
   };
 
+  const openDeleteModal = (id) => {
+    setSelectedTicketId(id);
+    setIsDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedTicketId) return;
+    deleteMutation.mutate(selectedTicketId);
+    setIsDeleteOpen(false);
+  };
+
   const openPaymentModal = (id) => {
     setSelectedTicketId(id);
     setPaymentForm({ amount_paid: "", payment_for: "interest" });
@@ -162,6 +174,15 @@ export default function AllPawns() {
         title="Settle Pawn Ticket"
         message="Are you sure this ticket is settled and the loan is closed?"
         confirmText="Yes, Settle"
+      />
+      {/* Delete Modal */}
+      <ConfirmationModal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Pawn Ticket"
+        message="This will permanently remove the pawn ticket. You can't undo this action."
+        confirmText="Delete"
       />
 
       {/* Payment Modal (Styled to match context file) */}
@@ -331,13 +352,7 @@ export default function AllPawns() {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
-                              <Link
-                                to={`/app/pawns/${pawn._id}`}
-                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                                title="View Details"
-                              >
-                                <IconEye className="text-indigo-500 w-5 h-5" />
-                              </Link>
+                      
                               {hasPermission('can_edit_tickets') && (
                                 <Link
                                   to={`/app/pawns/update/${pawn._id}`}
@@ -349,7 +364,7 @@ export default function AllPawns() {
                               )}
                               {hasPermission('can_delete_tickets') && (
                                 <button
-                                  onClick={() => deleteMutation.mutate(pawn._id)}
+                                  onClick={() => openDeleteModal(pawn._id)}
                                   disabled={deleteMutation.isLoading}
                                   className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                                   title="Delete Ticket"
@@ -454,7 +469,7 @@ export default function AllPawns() {
                         )}
                         {hasPermission('can_delete_tickets') && (
                           <button
-                            onClick={() => deleteMutation.mutate(pawn._id)}
+                            onClick={() => openDeleteModal(pawn._id)}
                             disabled={deleteMutation.isLoading}
                             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm disabled:opacity-50"
                           >
