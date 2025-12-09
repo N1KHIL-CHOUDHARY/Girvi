@@ -1,6 +1,4 @@
 const Customer = require('../models/customer');
-const PawnTicket = require('../models/pawnTicket');
-const Payment = require('../models/payment');
 const { logActivity } = require('../services/activityLogger');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/response');
@@ -53,7 +51,10 @@ exports.getCustomers = asyncHandler(async (req, res) => {
   const searchQuery = req.query.search || '';
   const skip = (page - 1) * limit;
 
-  const query = { shop_id: req.user.shopId };
+  const query = {
+    shop_id: req.user.shopId,
+    is_deleted: { $ne: true },
+  };
   if (searchQuery) {
     query.full_name = { $regex: searchQuery, $options: 'i' };
   }
@@ -84,6 +85,7 @@ exports.getCustomerById = asyncHandler(async (req, res) => {
   const customer = await Customer.findOne({
     _id: req.params.id,
     shop_id: req.user.shopId,
+    is_deleted: { $ne: true },
   });
 
   if (!customer) {
@@ -98,7 +100,7 @@ exports.getCustomerById = asyncHandler(async (req, res) => {
 
 exports.updateCustomer = asyncHandler(async (req, res) => {
   const updatedCustomer = await Customer.findOneAndUpdate(
-    { _id: req.params.id, shop_id: req.user.shopId },
+    { _id: req.params.id, shop_id: req.user.shopId, is_deleted: { $ne: true } },
     req.body,
     { new: true, runValidators: true }
   );
@@ -125,20 +127,15 @@ exports.deleteCustomer = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { shopId, userId } = req.user;
 
-  await PawnTicket.deleteMany({
-    customer_id: id,
-    shop_id: shopId,
-  });
-
-  await Payment.deleteMany({
-    customer_id: id,
-    shop_id: shopId,
-  });
-
-  const deletedCustomer = await Customer.findOneAndDelete({
-    _id: id,
-    shop_id: shopId,
-  });
+  const deletedCustomer = await Customer.findOneAndUpdate(
+    {
+      _id: id,
+      shop_id: shopId,
+      is_deleted: { $ne: true },
+    },
+    { $set: { is_deleted: true } },
+    { new: true }
+  );
 
   if (!deletedCustomer) {
     throw new ApiError(404, 'Customer not found.');

@@ -1,6 +1,5 @@
 const PawnTicket = require('../models/pawnTicket');
 const Customer = require('../models/customer');
-const Payment = require('../models/payment');
 const { logActivity } = require('../services/activityLogger');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/response');
@@ -18,48 +17,77 @@ exports.createPawnTicket = asyncHandler(async (req, res) => {
   } = req.body;
   const { shopId, userId } = req.user;
 
+  const numericFields = {
+    loan_amount,
+    interest_rate,
+    adv_amount,
+  };
+
+  const normalizedNumericFields = Object.entries(numericFields).reduce(
+    (acc, [key, value]) => {
+      const numericValue = Number(value);
+      if (!Number.isFinite(numericValue) || numericValue <= 0) {
+        throw new ApiError(400, `${key} must be a number greater than 0.`);
+      }
+      acc[key] = numericValue;
+      return acc;
+    },
+    {}
+  );
+
   const customer = await Customer.findOne({
     _id: customer_id,
     shop_id: shopId,
+    is_deleted: { $ne: true },
   });
 
   if (!customer) {
     throw new ApiError(404, 'Customer not found for this shop.');
   }
 
-  const existingTicket = await PawnTicket.findOne({ ticket_number, shop_id: shopId });
-  if (existingTicket) {
-    throw new ApiError(409, 'Ticket number already exists.');
+  try {
+    const existingTicket = await PawnTicket.findOne({
+      ticket_number,
+      shop_id: shopId,
+    });
+    if (existingTicket) {
+      throw new ApiError(409, 'Ticket number already exists.');
+    }
+
+    const newTicket = new PawnTicket({
+      customer_id,
+      ticket_number,
+      loan_amount: normalizedNumericFields.loan_amount,
+      interest_rate: normalizedNumericFields.interest_rate,
+      adv_amount: normalizedNumericFields.adv_amount,
+      items,
+      pawned_date: pawned_date || new Date(),
+      shop_id: shopId,
+      created_by_user_id: userId,
+    });
+
+    const savedTicket = await newTicket.save();
+
+    await logActivity({
+      shopId,
+      userId,
+      type: 'NEW_TICKET',
+      message: `Created ticket ${savedTicket.ticket_number} for ${customer.full_name} (₹${savedTicket.loan_amount})`,
+      customerId: customer._id,
+      ticketId: savedTicket._id,
+    });
+
+    return sendSuccess(res, {
+      status: 201,
+      message: 'Pawn ticket created successfully.',
+      data: savedTicket,
+    });
+  } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.ticket_number) {
+      throw new ApiError(409, 'Ticket number already exists.');
+    }
+    throw error;
   }
-
-  const newTicket = new PawnTicket({
-    customer_id,
-    ticket_number,
-    loan_amount,
-    interest_rate,
-    adv_amount,
-    items,
-    pawned_date: pawned_date || new Date(),
-    shop_id: shopId,
-    created_by_user_id: userId,
-  });
-
-  const savedTicket = await newTicket.save();
-
-  await logActivity({
-    shopId,
-    userId,
-    type: 'NEW_TICKET',
-    message: `Created ticket ${savedTicket.ticket_number} for ${customer.full_name} (₹${savedTicket.loan_amount})`,
-    customerId: customer._id,
-    ticketId: savedTicket._id,
-  });
-
-  return sendSuccess(res, {
-    status: 201,
-    message: 'Pawn ticket created successfully.',
-    data: savedTicket,
-  });
 });
 
 exports.getPawnTickets = asyncHandler(async (req, res) => {
@@ -71,6 +99,7 @@ exports.getPawnTickets = asyncHandler(async (req, res) => {
 
   const query = {
     shop_id: req.user.shopId,
+    is_deleted: { $ne: true },
   };
 
   if (searchQuery) {
@@ -112,6 +141,7 @@ exports.getPawnTicketById = asyncHandler(async (req, res) => {
   const ticket = await PawnTicket.findOne({
     _id: req.params.id,
     shop_id: req.user.shopId,
+    is_deleted: { $ne: true },
   }).populate('customer_id', 'full_name phone_number address');
 
   if (!ticket) {
@@ -126,7 +156,7 @@ exports.getPawnTicketById = asyncHandler(async (req, res) => {
 
 exports.updatePawnTicket = asyncHandler(async (req, res) => {
   const updatedTicket = await PawnTicket.findOneAndUpdate(
-    { _id: req.params.id, shop_id: req.user.shopId },
+    { _id: req.params.id, shop_id: req.user.shopId, is_deleted: { $ne: true } },
     req.body,
     { new: true, runValidators: true }
   );
@@ -145,15 +175,15 @@ exports.deletePawnTicket = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { shopId, userId } = req.user;
 
-  await Payment.deleteMany({
-    ticket_id: id,
-    shop_id: shopId,
-  });
-
-  const deletedTicket = await PawnTicket.findOneAndDelete({
-    _id: id,
-    shop_id: shopId,
-  });
+  const deletedTicket = await PawnTicket.findOneAndUpdate(
+    {
+      _id: id,
+      shop_id: shopId,
+      is_deleted: { $ne: true },
+    },
+    { $set: { is_deleted: true } },
+    { new: true }
+  );
 
   if (!deletedTicket) {
     throw new ApiError(404, 'Ticket not found.');
@@ -179,6 +209,7 @@ exports.settlePawnTicket = asyncHandler(async (req, res) => {
   const ticket = await PawnTicket.findOne({
     _id: req.params.id,
     shop_id: req.user.shopId,
+    is_deleted: { $ne: true },
   });
 
   if (!ticket) {
@@ -209,6 +240,7 @@ exports.getPawnTicketsForCustomer = asyncHandler(async (req, res) => {
   const tickets = await PawnTicket.find({
     shop_id: req.user.shopId,
     customer_id: id,
+    is_deleted: { $ne: true },
   })
     .populate('customer_id', 'full_name')
     .sort({ pawned_date: -1 });

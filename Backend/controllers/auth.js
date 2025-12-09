@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 
@@ -15,12 +16,14 @@ const ApiError = require('../utils/ApiError');
 
 dotenv.config();
 
-const generateToken = (user) =>
+const generateToken = (user, permissions) =>
   jwt.sign(
     {
       userId: user._id,
       shopId: user.shop_id,
       role: user.role,
+      roleId: user.role_id,
+      permissions,
     },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
@@ -29,52 +32,66 @@ const generateToken = (user) =>
 exports.signup = asyncHandler(async (req, res) => {
   const { shop_name, email, password, full_name } = req.body;
 
-  const userExists = await User.findOne({ email: email.toLowerCase() });
-  if (userExists) {
-    throw new ApiError(409, 'Unable to create user. Email already exists.');
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const newShop = new Shop({ shop_name });
+  try {
+    const userExists = await User.findOne({ email: email.toLowerCase() }).session(
+      session
+    );
+    if (userExists) {
+      throw new ApiError(409, 'Unable to create user. Email already exists.');
+    }
 
-  const ownerRole = new Role({
-    shop_id: newShop._id,
-    name: normalizeRoleName('owner'),
-    is_owner_role: true,
-    permissions: DEFAULT_ROLE_PERMISSIONS.owner,
-  });
+    const newShop = new Shop({ shop_name });
 
-  const newUser = new User({
-    shop_id: newShop._id,
-    email: email.toLowerCase(),
-    password,
-    full_name,
-    role: 'owner',
-    role_id: ownerRole._id,
-  });
+    const ownerRole = new Role({
+      shop_id: newShop._id,
+      name: normalizeRoleName('owner'),
+      is_owner_role: true,
+      permissions: DEFAULT_ROLE_PERMISSIONS.owner,
+    });
 
-  newShop.owner_id = newUser._id;
+    const newUser = new User({
+      shop_id: newShop._id,
+      email: email.toLowerCase(),
+      password,
+      full_name,
+      role: 'owner',
+      role_id: ownerRole._id,
+    });
 
-  await newShop.save();
-  await ownerRole.save();
-  await newUser.save();
+    newShop.owner_id = newUser._id;
 
-  const token = generateToken(newUser);
+    await newShop.save({ session });
+    await ownerRole.save({ session });
+    await newUser.save({ session });
 
-  return sendSuccess(res, {
-    status: 201,
-    message: 'Signup successful.',
-    data: {
-      token,
-      user: {
-        id: newUser._id,
-        shopId: newUser.shop_id,
-        role: newUser.role,
-        full_name: newUser.full_name,
-        email: newUser.email,
-        permissions: ownerRole.permissions,
+    await session.commitTransaction();
+    session.endSession();
+
+    const token = generateToken(newUser, ownerRole.permissions);
+
+    return sendSuccess(res, {
+      status: 201,
+      message: 'Signup successful.',
+      data: {
+        token,
+        user: {
+          id: newUser._id,
+          shopId: newUser.shop_id,
+          role: newUser.role,
+          full_name: newUser.full_name,
+          email: newUser.email,
+          permissions: ownerRole.permissions,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });
 
 exports.login = asyncHandler(async (req, res) => {
@@ -91,7 +108,7 @@ exports.login = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'User role not found.');
   }
 
-  const token = generateToken(user);
+  const token = generateToken(user, role.permissions);
 
   return sendSuccess(res, {
     message: 'Login successful.',

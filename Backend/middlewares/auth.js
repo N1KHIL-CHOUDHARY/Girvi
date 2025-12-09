@@ -1,13 +1,15 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+const Role = require('../models/role');
 const ApiError = require('../utils/ApiError');
+const asyncHandler = require('../utils/asyncHandler');
 
-const authenticate = (req, res, next) => {
+const authenticate = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new ApiError(401, 'Not authorized. Token missing.'));
+    throw new ApiError(401, 'Not authorized. Token missing.');
   }
 
   const token = authHeader.split(' ')[1];
@@ -15,21 +17,38 @@ const authenticate = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    let permissions = decoded.permissions;
+
+    // Fallback to database lookup if token does not include permissions
+    if (!permissions) {
+      const role = await Role.findOne({
+        _id: decoded.roleId,
+        shop_id: decoded.shopId,
+      });
+      permissions = role ? role.permissions : undefined;
+    }
+
     req.user = {
       userId: decoded.userId,
       shopId: decoded.shopId,
       role: decoded.role,
+      roleId: decoded.roleId,
+      permissions: permissions || {},
     };
 
     return next();
   } catch (error) {
-    return next(new ApiError(401, 'Not authorized. Token invalid.'));
+    throw new ApiError(401, 'Not authorized. Token invalid.');
   }
-};
+});
 
-const authorize = (...roles) => {
+const checkPermission = (permissionName) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (
+      !req.user ||
+      !req.user.permissions ||
+      req.user.permissions[permissionName] !== true
+    ) {
       return next(new ApiError(403, 'Forbidden. Insufficient permissions.'));
     }
 
@@ -39,5 +58,5 @@ const authorize = (...roles) => {
 
 module.exports = {
   authenticate,
-  authorize,
+  checkPermission,
 };
