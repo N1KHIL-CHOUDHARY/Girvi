@@ -2,6 +2,7 @@ import React, { useState } from 'react'; // <-- 1. REMOVED useEffect
 import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { usePermission } from '../hooks/usePermission';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +30,7 @@ export default function AllCustomers() {
   const [search, setSearch] = useState('');
   
   const { isDarkMode } = useTheme();
+  const { user } = useAuth();
   const { hasPermission } = usePermission();
   
   // Get the QueryClient instance

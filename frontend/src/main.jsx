@@ -4,6 +4,7 @@ import App from './App';
 import './index.css';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 // --- 1. Import ---
@@ -17,16 +18,18 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Router>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider> 
-          <App />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              className: 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-lg rounded-lg',
-            }}
-          />
-        </ThemeProvider>
-        <ReactQueryDevtools initialIsOpen={false} /> 
+        <AuthProvider>
+          <ThemeProvider> 
+            <App />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                className: 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-lg rounded-lg',
+              }}
+            />
+          </ThemeProvider>
+          <ReactQueryDevtools initialIsOpen={false} /> 
+        </AuthProvider>
       </QueryClientProvider>
     </Router>
   </React.StrictMode>

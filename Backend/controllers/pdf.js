@@ -7,13 +7,9 @@ const ApiError = require('../utils/ApiError');
 
 exports.generateNotice = asyncHandler(async (req, res) => {
   const { ticketId } = req.params;
-  const shopId = req.query.shop_id;
+  const { shopId } = req.user;
 
-  const query = { _id: ticketId };
-  if (shopId) {
-    query.shop_id = shopId;
-  }
-  const ticket = await PawnTicket.findOne(query).populate('customer_id');
+  const ticket = await PawnTicket.findOne({ _id: ticketId, shop_id: shopId }).populate('customer_id');
   if (!ticket) {
     throw new ApiError(404, 'Ticket not found.');
   }

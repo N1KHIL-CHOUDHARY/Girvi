@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/api';
 import toast from 'react-hot-toast';
 import { useTheme } from '../contexts/ThemeContext';
@@ -37,6 +38,7 @@ const RecentActivity = ({ activities }) => (
 );
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { isDarkMode } = useTheme();
 
   // ✅ Replace useEffect + local state with useQuery

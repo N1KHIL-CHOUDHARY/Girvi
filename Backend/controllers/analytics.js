@@ -6,26 +6,9 @@ const Activity = require('../models/activity');
 const Payment = require('../models/payment');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/response');
-const ApiError = require('../utils/ApiError');
 
 exports.getDashboardStats = asyncHandler(async (req, res) => {
-  const shopId = req.query.shop_id;
-  if (!shopId) {
-    return sendSuccess(res, {
-      message: 'Dashboard stats fetched successfully.',
-      data: {
-        stats: {
-          total_loan_active: 0,
-          monthly_loan_given: 0,
-          total_active_tickets: 0,
-        },
-        gender_data: [],
-        area_data: [],
-        top_customers: [],
-        recent_activity: [],
-      },
-    });
-  }
+  const { shopId } = req.user;
   const shopObjectId = new mongoose.Types.ObjectId(shopId);
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -115,10 +98,7 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
 });
 
 exports.getCustomerStats = asyncHandler(async (req, res) => {
-  const shopId = req.query.shop_id;
-  if (!shopId) {
-    throw new ApiError(400, 'Shop ID is required.');
-  }
+  const { shopId } = req.user;
   const customerId = new mongoose.Types.ObjectId(req.params.id);
   const shopObjectId = new mongoose.Types.ObjectId(shopId);
 

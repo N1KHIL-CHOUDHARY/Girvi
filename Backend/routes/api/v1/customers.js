@@ -10,8 +10,11 @@ const {
 } = require('../../../controllers/customer.js');
 const { getPawnTicketsForCustomer } = require('../../../controllers/pawn.js');
 const { getCustomerStats } = require('../../../controllers/analytics.js');
+const { authenticate, authorize } = require('../../../middlewares/auth.js'); // <-- Import authorize
 const validate = require('../../../middlewares/validate.js');
 const { customerSchema } = require('../../../utils/validators.js');
+
+router.use(authenticate);
 
 router.route('/')
   .get(getCustomers)
@@ -20,7 +23,7 @@ router.route('/')
 router.route('/:id')
   .get(getCustomerById)
   .patch(validate(customerSchema), updateCustomer) 
-  .delete(deleteCustomer);      
+  .delete(authorize('owner'), deleteCustomer);      
 
 router.get("/:id/pawns", getPawnTicketsForCustomer);
 router.get('/:id/stats', getCustomerStats);
