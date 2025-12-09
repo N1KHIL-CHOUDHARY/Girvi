@@ -8,10 +8,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {
@@ -49,20 +45,7 @@ api.interceptors.response.use(
   }
 );
 
-export const setAuthToken = (token) => {
-  if (token) {
-    localStorage.setItem('token', token);
-  } else {
-    localStorage.removeItem('token');
-  }
-};
-
-// --- Auth Routes ---
-export const signup = (data) => api.post('/auth/signup', data);
-export const login = (data) => api.post('/auth/login', data);
-export const loginWithGoogle = (idToken) => api.post('/auth/google', { idToken });
 export const getProfile = () => api.get('/app/me');
-export const changePassword = (data) => api.post('/auth/change-password', data); // NEW
 
 // --- Customer (Account) Routes ---
 export const getAccounts = (page = 1, search = "") => {

@@ -9,10 +9,7 @@ const { sendSuccess } = require('../utils/response');
 const ApiError = require('../utils/ApiError');
 
 const getShopId = (req) => {
-  if (!req.user || !req.user.shopId) {
-    throw new ApiError(400, 'Shop context missing.');
-  }
-  return req.user.shopId;
+  return req.query.shop_id || req.body.shop_id || null;
 };
 
 const getOrCreateWorkerRole = async (shopId) => {

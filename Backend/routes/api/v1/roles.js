@@ -7,17 +7,10 @@ const {
   updateRole,
   deleteRole,
 } = require('../../../controllers/role');
-const {
-  authenticate,
-  authorize,
-} = require('../../../middlewares/auth');
-
-router.use(authenticate);
-
 router.get('/', getRoles);
-router.post('/', authorize('owner'), createRole);
-router.patch('/:roleId', authorize('owner'), updateRole);
-router.delete('/:roleId', authorize('owner'), deleteRole);
+router.post('/', createRole);
+router.patch('/:roleId', updateRole);
+router.delete('/:roleId', deleteRole);
 
 module.exports = router;
 

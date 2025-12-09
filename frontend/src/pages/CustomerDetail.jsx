@@ -5,7 +5,7 @@ import { getAccountById, getPawnTicketsByAccountId, getAccountStats } from '../s
 import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IconPlus, IconEdit } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconEye } from '@tabler/icons-react';
 import {
   Table,
   TableBody,
@@ -101,7 +101,7 @@ export default function CustomerDetail() {
         key="customer-detail"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, transition: { duration: 0.5 } }}
-        className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}
+        className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}
       >
         {/* Customer Info */}
         <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 dark:bg-black mb-6">
@@ -154,41 +154,108 @@ export default function CustomerDetail() {
           </Link>
         </div>
 
-        <div className="shadow-input rounded-2xl bg-white dark:bg-black">
-          <Table>
-            <TableCaption>A list of all pawn tickets for {customer.full_name}.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ticket #</TableHead>
-                <TableHead>Item(s)</TableHead>
-                <TableHead>Loan Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pawns?.length ? pawns.map((pawn) => (
-                <TableRow key={pawn._id}>
-                  <TableCell className="font-medium">{pawn.ticket_number}</TableCell>
-                  <TableCell>{pawn.items[0]?.name}{pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}</TableCell>
-                  <TableCell>{`₹${pawn.loan_amount.toLocaleString('en-IN')}`}</TableCell>
-                  <TableCell>{new Date(pawn.pawned_date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <span className={cn('px-2 py-1 text-xs font-medium rounded-full', statusClass(pawn.status))}>
-                      {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-neutral-500 dark:text-neutral-400 py-10">
-                    This customer has no pawn tickets.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        {pawns?.length ? (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block shadow-input rounded-2xl bg-white dark:bg-black">
+              <Table>
+                <TableCaption>A list of all pawn tickets for {customer.full_name}.</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ticket #</TableHead>
+                    <TableHead>Item(s)</TableHead>
+                    <TableHead>Loan Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pawns.map((pawn) => (
+                    <TableRow key={pawn._id}>
+                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{pawn.ticket_number}</TableCell>
+                      <TableCell className="text-neutral-600 dark:text-neutral-400">{pawn.items[0]?.name}{pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}</TableCell>
+                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{`₹${pawn.loan_amount.toLocaleString('en-IN')}`}</TableCell>
+                      <TableCell className="text-neutral-600 dark:text-neutral-400">{new Date(pawn.pawned_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <span className={cn('px-2 py-1 text-xs font-medium rounded-full', statusClass(pawn.status))}>
+                          {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Link
+                          to={`/app/pawns/${pawn._id}`}
+                          className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 mx-auto w-fit"
+                          title="View Details"
+                        >
+                          <IconEye className="text-indigo-500 w-5 h-5" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+                A list of all pawn tickets for {customer.full_name}.
+              </p>
+              {pawns.map((pawn) => (
+                <motion.div
+                  key={pawn._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="shadow-input rounded-xl bg-white dark:bg-black p-4 border border-neutral-200 dark:border-neutral-800"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-lg text-neutral-800 dark:text-neutral-200">
+                          {pawn.ticket_number}
+                        </h3>
+                        <span
+                          className={cn(
+                            'px-2 py-1 text-xs font-medium rounded-full',
+                            statusClass(pawn.status)
+                          )}
+                        >
+                          {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-sm text-neutral-600 dark:text-neutral-400">
+                        <p>
+                          <span className="font-medium">Item:</span> {pawn.items[0]?.name}
+                          {pawn.items.length > 1 && ` (+${pawn.items.length - 1} more)`}
+                        </p>
+                        <p>
+                          <span className="font-medium">Date:</span> {new Date(pawn.pawned_date).toLocaleDateString()}
+                        </p>
+                        <p className="text-base font-semibold text-neutral-800 dark:text-neutral-200 mt-2">
+                          ₹{pawn.loan_amount.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                    <Link
+                      to={`/app/pawns/${pawn._id}`}
+                      className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-sm"
+                    >
+                      <IconEye className="w-4 h-4"/>
+                      <span>View Details</span>
+                    </Link>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-10 text-neutral-500 dark:text-neutral-400 shadow-input rounded-2xl bg-white dark:bg-black">
+            This customer has no pawn tickets.
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

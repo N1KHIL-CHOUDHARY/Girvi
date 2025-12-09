@@ -18,12 +18,9 @@ import {
   IconUserCog,
   IconShieldLock
 } from '@tabler/icons-react';
-import { useAuth } from '../contexts/AuthContext';
-
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth(); // Get user to show/hide admin links
 
   // 1. Listen for Cmd+K / Ctrl+K
   useEffect(() => {
@@ -77,19 +74,16 @@ export default function CommandPalette() {
               </CommandItem>
             </CommandGroup>
 
-            {/* Show Admin links only to 'owner' */}
-            {user?.role === 'owner' && (
-              <CommandGroup heading="Admin">
-                <CommandItem onSelect={() => runCommand('/app/employees')}>
-                  <IconUserCog className="mr-2 h-4 w-4 text-black dark:text-white" />
-                  <span>Manage Employees</span>
-                </CommandItem>
-                <CommandItem onSelect={() => runCommand('/app/roles')}>
-                  <IconShieldLock className="mr-2 h-4 w-4 text-black dark:text-white" />
-                  <span>Manage Roles</span>
-                </CommandItem>
-              </CommandGroup>
-            )}
+            <CommandGroup heading="Admin">
+              <CommandItem onSelect={() => runCommand('/app/employees')}>
+                <IconUserCog className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <span>Manage Employees</span>
+              </CommandItem>
+              <CommandItem onSelect={() => runCommand('/app/roles')}>
+                <IconShieldLock className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <span>Manage Roles</span>
+              </CommandItem>
+            </CommandGroup>
             
           </CommandList>
         </Command>

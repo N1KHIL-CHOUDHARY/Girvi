@@ -19,7 +19,7 @@ export default function LandingPage() {
               <a href="#demo" className="hover:text-indigo-500 transition">Demo</a>
               <a href="#faq" className="hover:text-indigo-500 transition">FAQ</a>
             </div>
-            <Link to="/signup" className="px-6 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-sm font-semibold hover:scale-105 transition">
+            <Link to="/app/dashboard" className="px-6 py-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-600 text-white text-sm font-semibold hover:scale-105 transition">
               Get Started
             </Link>
           </div>

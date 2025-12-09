@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../../../middlewares/auth');
 const { generateNotice } = require('../../../controllers/pdf');
 
-router.get('/notice/:ticketId', authenticate, generateNotice);
+router.get('/notice/:ticketId', generateNotice);
 
 module.exports = router;
 

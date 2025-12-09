@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../../../middlewares/auth');
 const { uploadSingle } = require('../../../controllers/upload');
 
-router.post('/', authenticate, uploadSingle);
+router.post('/', uploadSingle);
 
 module.exports = router;
 

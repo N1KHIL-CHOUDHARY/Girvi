@@ -2,6 +2,7 @@
 import { cn } from "../lib/utils";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Link } from "react-router-dom";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
 const SidebarContext = createContext(undefined);
@@ -87,40 +88,73 @@ export const MobileSidebar = ({
   const { open, setOpen } = useSidebar();
   return (
     <>
+      {/* Mobile Navbar */}
       <div
         className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden  items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full"
+          "fixed top-0 left-0 right-0 h-14 md:hidden flex items-center justify-between px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 z-50 shadow-sm"
         )}
-        {...props}>
-        <div className="flex justify-end z-20 w-full">
-          <IconMenu2
-            className="text-neutral-800 dark:text-neutral-200 text-black dark:text-white"
-            onClick={() => setOpen(!open)} />
+      >
+        <div className="flex items-center space-x-2">
+          <div className="h-5 w-6 shrink-0 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-black dark:bg-white" />
+          <span className="font-medium text-black dark:text-white">PawnManager</span>
         </div>
-        <AnimatePresence>
-          {open && (
+        <button
+          onClick={() => setOpen(!open)}
+          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+          aria-label="Toggle menu"
+        >
+          <IconMenu2 className="h-6 w-6 text-neutral-800 dark:text-neutral-200" />
+        </button>
+      </div>
+      
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Backdrop */}
             <motion.div
-              initial={{ x: "-100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "-100%", opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 bg-black/50 z-[99] md:hidden"
+            />
+            {/* Sidebar Menu */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
               transition={{
                 duration: 0.3,
                 ease: "easeInOut",
               }}
               className={cn(
-                "fixed h-full w-full inset-0 bg-white dark:bg-neutral-900 p-10 z-[100] flex flex-col justify-between",
+                "fixed top-0 left-0 h-full w-80 bg-white dark:bg-neutral-900 p-6 z-[100] flex flex-col shadow-xl",
                 className
-              )}>
-              <div
-                className="absolute right-10 top-10 z-50 text-neutral-800 dark:text-neutral-200"
-                onClick={() => setOpen(!open)}>
-                <IconX className="text-black dark:text-white" />
+              )}
+            >
+              {/* Close Button */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-2">
+                  <div className="h-5 w-6 shrink-0 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-black dark:bg-white" />
+                  <span className="font-medium text-black dark:text-white">PawnManager</span>
+                </div>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <IconX className="h-6 w-6 text-neutral-800 dark:text-neutral-200" />
+                </button>
               </div>
-              {children}
+              {/* Menu Content */}
+              <div className="flex-1 overflow-y-auto">
+                {children}
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };
@@ -130,11 +164,18 @@ export const SidebarLink = ({
   className,
   ...props
 }) => {
-  const { open, animate } = useSidebar();
+  const { open, animate, setOpen } = useSidebar();
+  
+  const handleClick = () => {
+    // Close mobile menu when link is clicked
+    setOpen(false);
+  };
+
   return (
-    <a
-      href={link.href}
-      className={cn("flex items-center justify-start gap-2  group/sidebar py-2", className)}
+    <Link
+      to={link.href}
+      onClick={handleClick}
+      className={cn("flex items-center justify-start gap-2 group/sidebar py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors", className)}
       {...props}>
       {link.icon}
       <motion.span
@@ -145,6 +186,6 @@ export const SidebarLink = ({
         className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0">
         {link.label}
       </motion.span>
-    </a>
+    </Link>
   );
 };

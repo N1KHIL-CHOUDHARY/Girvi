@@ -7,16 +7,9 @@ const {
   updateEmployee,
   deleteEmployee,
 } = require('../../../controllers/employee');
-const {
-  authenticate,
-  authorize,
-} = require('../../../middlewares/auth');
-
-router.use(authenticate);
-
-router.get('/', authorize('owner'), listEmployees);
-router.post('/', authorize('owner'), createEmployee);
-router.patch('/:employeeId', authorize('owner'), updateEmployee);
-router.delete('/:employeeId', authorize('owner'), deleteEmployee);
+router.get('/', listEmployees);
+router.post('/', createEmployee);
+router.patch('/:employeeId', updateEmployee);
+router.delete('/:employeeId', deleteEmployee);
 
 module.exports = router;

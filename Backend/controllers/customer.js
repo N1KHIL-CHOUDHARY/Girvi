@@ -15,8 +15,8 @@ exports.createCustomer = asyncHandler(async (req, res) => {
     customer_photo_url,
     aadhaar_number,
     pan_number,
+    shop_id,
   } = req.body;
-  const { shopId, userId } = req.user;
 
   const newCustomer = new Customer({
     full_name,
@@ -26,19 +26,21 @@ exports.createCustomer = asyncHandler(async (req, res) => {
     customer_photo_url,
     aadhaar_number,
     pan_number,
-    shop_id: shopId,
-    created_by_user_id: userId,
+    shop_id: shop_id || null,
+    created_by_user_id: null,
   });
 
   const savedCustomer = await newCustomer.save();
 
-  await logActivity({
-    shopId,
-    userId,
-    type: 'NEW_CUSTOMER',
-    message: `Created new customer: ${savedCustomer.full_name}`,
-    customerId: savedCustomer._id,
-  });
+  if (shop_id) {
+    await logActivity({
+      shopId: shop_id,
+      userId: null,
+      type: 'NEW_CUSTOMER',
+      message: `Created new customer: ${savedCustomer.full_name}`,
+      customerId: savedCustomer._id,
+    });
+  }
 
   return sendSuccess(res, {
     status: 201,
@@ -51,9 +53,13 @@ exports.getCustomers = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const searchQuery = req.query.search || '';
+  const shop_id = req.query.shop_id;
   const skip = (page - 1) * limit;
 
-  const query = { shop_id: req.user.shopId };
+  const query = {};
+  if (shop_id) {
+    query.shop_id = shop_id;
+  }
   if (searchQuery) {
     query.full_name = { $regex: searchQuery, $options: 'i' };
   }
@@ -81,10 +87,11 @@ exports.getCustomers = asyncHandler(async (req, res) => {
 });
 
 exports.getCustomerById = asyncHandler(async (req, res) => {
-  const customer = await Customer.findOne({
-    _id: req.params.id,
-    shop_id: req.user.shopId,
-  });
+  const query = { _id: req.params.id };
+  if (req.query.shop_id) {
+    query.shop_id = req.query.shop_id;
+  }
+  const customer = await Customer.findOne(query);
 
   if (!customer) {
     throw new ApiError(404, 'Customer not found.');
@@ -97,8 +104,12 @@ exports.getCustomerById = asyncHandler(async (req, res) => {
 });
 
 exports.updateCustomer = asyncHandler(async (req, res) => {
+  const query = { _id: req.params.id };
+  if (req.query.shop_id) {
+    query.shop_id = req.query.shop_id;
+  }
   const updatedCustomer = await Customer.findOneAndUpdate(
-    { _id: req.params.id, shop_id: req.user.shopId },
+    query,
     req.body,
     { new: true, runValidators: true }
   );
@@ -107,13 +118,15 @@ exports.updateCustomer = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Customer not found.');
   }
 
-  await logActivity({
-    shopId: req.user.shopId,
-    userId: req.user.userId,
-    type: 'UPDATED_CUSTOMER',
-    message: `Updated customer details for: ${updatedCustomer.full_name}`,
-    customerId: updatedCustomer._id,
-  });
+  if (updatedCustomer.shop_id) {
+    await logActivity({
+      shopId: updatedCustomer.shop_id,
+      userId: null,
+      type: 'UPDATED_CUSTOMER',
+      message: `Updated customer details for: ${updatedCustomer.full_name}`,
+      customerId: updatedCustomer._id,
+    });
+  }
 
   return sendSuccess(res, {
     message: 'Customer updated successfully.',
@@ -123,34 +136,36 @@ exports.updateCustomer = asyncHandler(async (req, res) => {
 
 exports.deleteCustomer = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { shopId, userId } = req.user;
+  const shop_id = req.query.shop_id;
 
-  await PawnTicket.deleteMany({
-    customer_id: id,
-    shop_id: shopId,
-  });
+  const query = { customer_id: id };
+  if (shop_id) {
+    query.shop_id = shop_id;
+  }
 
-  await Payment.deleteMany({
-    customer_id: id,
-    shop_id: shopId,
-  });
+  await PawnTicket.deleteMany(query);
+  await Payment.deleteMany(query);
 
-  const deletedCustomer = await Customer.findOneAndDelete({
-    _id: id,
-    shop_id: shopId,
-  });
+  const deleteQuery = { _id: id };
+  if (shop_id) {
+    deleteQuery.shop_id = shop_id;
+  }
+
+  const deletedCustomer = await Customer.findOneAndDelete(deleteQuery);
 
   if (!deletedCustomer) {
     throw new ApiError(404, 'Customer not found.');
   }
 
-  await logActivity({
-    shopId,
-    userId,
-    type: 'DELETED_CUSTOMER',
-    message: `Deleted customer: ${deletedCustomer.full_name}`,
-    customerId: deletedCustomer._id,
-  });
+  if (deletedCustomer.shop_id) {
+    await logActivity({
+      shopId: deletedCustomer.shop_id,
+      userId: null,
+      type: 'DELETED_CUSTOMER',
+      message: `Deleted customer: ${deletedCustomer.full_name}`,
+      customerId: deletedCustomer._id,
+    });
+  }
 
   return sendSuccess(res, {
     message: 'Customer deleted successfully.',

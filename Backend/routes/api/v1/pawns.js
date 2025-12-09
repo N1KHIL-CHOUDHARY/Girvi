@@ -9,11 +9,8 @@ const {
   deletePawnTicket,  // <-- You were missing this
   settlePawnTicket   // <-- You were missing this
 } = require('../../../controllers/pawn.js');
-const { authenticate, authorize } = require('../../../middlewares/auth.js'); // <-- Import authorize
 const validate = require('../../../middlewares/validate.js');
 const { pawnTicketSchema } = require('../../../utils/validators.js');
-
-router.use(authenticate);
 
 router.route('/')
   .post(validate(pawnTicketSchema), createPawnTicket)
@@ -23,7 +20,7 @@ router.route('/:id')
   .get(getPawnTicketById)                           
   .patch(validate(pawnTicketSchema), updatePawnTicket); 
 
-router.delete('/:id', authorize('owner'), deletePawnTicket); 
+router.delete('/:id', deletePawnTicket); 
 
 router.patch('/:id/settle', settlePawnTicket);
 

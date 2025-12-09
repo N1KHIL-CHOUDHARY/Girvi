@@ -2,7 +2,6 @@ import React, { useState } from 'react'; // <-- 1. REMOVED useEffect
 import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
 import { usePermission } from '../hooks/usePermission';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +29,6 @@ export default function AllCustomers() {
   const [search, setSearch] = useState('');
   
   const { isDarkMode } = useTheme();
-  const { user } = useAuth();
   const { hasPermission } = usePermission();
   
   // Get the QueryClient instance
@@ -75,7 +73,7 @@ export default function AllCustomers() {
   };
 
   return (
-    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}>
       {/* --- HEADER (No change) --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
@@ -127,72 +125,144 @@ export default function AllCustomers() {
                 {search ? `No customers found matching "${search}".` : "No customers created yet."}
               </div>
             ) : (
-              <div className="shadow-input rounded-2xl bg-white dark:bg-black">
-                <Table>
-                  <TableCaption className="pb-4">
-                    {`Showing ${accounts.length} of ${totalCustomers} customers.`}
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Photo</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {accounts.map((account) => (
-                      <TableRow key={account._id}>
-                        <TableCell>
-                          <img
-                            src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
-                            alt={account.full_name}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">
-                          {account.full_name}
-                        </TableCell>
-                        <TableCell className="text-neutral-600 dark:text-neutral-400">
-                          {account.phone_number}
-                        </TableCell>
-                        <TableCell className="text-neutral-600 dark:text-neutral-400">
-                          {account.address?.city || 'N/A'}
-                          {account.address?.pincode && `, ${account.address.pincode}`}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex justify-center gap-2">
-                            <Link
-                              to={`/app/customer/${account._id}`}
-                              className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                            >
-                              <IconEye className="text-indigo-500 w-5 h-5"/>
-                            </Link>
-                            {hasPermission('can_edit_customers') && (
-                              <Link
-                                to={`/app/customer/update/${account._id}`}
-                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                              >
-                                <IconEdit className="text-blue-500 w-5 h-5"/>
-                              </Link>
-                            )}
-                            {hasPermission('can_delete_customers') && (
-                              <button
-                                onClick={() => handleDelete(account._id)}
-                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                                disabled={deleteMutation.isLoading} // Disable button while deleting
-                              >
-                                <IconTrashFilled className="text-red-500 w-5 h-5"/>
-                              </button>
-                            )}
-                          </div>
-                        </TableCell>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block shadow-input rounded-2xl bg-white dark:bg-black">
+                  <Table>
+                    <TableCaption className="pb-4">
+                      {`Showing ${accounts.length} of ${totalCustomers} customers.`}
+                    </TableCaption>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Photo</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {accounts.map((account) => (
+                        <TableRow key={account._id}>
+                          <TableCell>
+                            <img
+                              src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                              alt={account.full_name}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">
+                            {account.full_name}
+                          </TableCell>
+                          <TableCell className="text-neutral-600 dark:text-neutral-400">
+                            {account.phone_number}
+                          </TableCell>
+                          <TableCell className="text-neutral-600 dark:text-neutral-400">
+                            {account.address?.city || 'N/A'}
+                            {account.address?.pincode && `, ${account.address.pincode}`}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2">
+                              <Link
+                                to={`/app/customer/${account._id}`}
+                                className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                              >
+                                <IconEye className="text-indigo-500 w-5 h-5"/>
+                              </Link>
+                              {hasPermission('can_edit_customers') && (
+                                <Link
+                                  to={`/app/customer/update/${account._id}`}
+                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                >
+                                  <IconEdit className="text-blue-500 w-5 h-5"/>
+                                </Link>
+                              )}
+                              {hasPermission('can_delete_customers') && (
+                                <button
+                                  onClick={() => handleDelete(account._id)}
+                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                  disabled={deleteMutation.isLoading}
+                                >
+                                  <IconTrashFilled className="text-red-500 w-5 h-5"/>
+                                </button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+                    {`Showing ${accounts.length} of ${totalCustomers} customers.`}
+                  </p>
+                  {accounts.map((account) => (
+                    <motion.div
+                      key={account._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="shadow-input rounded-xl bg-white dark:bg-black p-4 border border-neutral-200 dark:border-neutral-800"
+                    >
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                          alt={account.full_name}
+                          className="h-14 w-14 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg text-neutral-800 dark:text-neutral-200 mb-1 truncate">
+                            {account.full_name}
+                          </h3>
+                          <div className="space-y-1 text-sm text-neutral-600 dark:text-neutral-400">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">Phone:</span>
+                              <span>{account.phone_number}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">Address:</span>
+                              <span className="truncate">
+                                {account.address?.city || 'N/A'}
+                                {account.address?.pincode && `, ${account.address.pincode}`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                        <Link
+                          to={`/app/customer/${account._id}`}
+                          className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
+                        >
+                          <IconEye className="w-4 h-4"/>
+                          <span className="text-sm font-medium">View</span>
+                        </Link>
+                        {hasPermission('can_edit_customers') && (
+                          <Link
+                            to={`/app/customer/update/${account._id}`}
+                            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                          >
+                            <IconEdit className="w-4 h-4"/>
+                            <span className="text-sm font-medium">Edit</span>
+                          </Link>
+                        )}
+                        {hasPermission('can_delete_customers') && (
+                          <button
+                            onClick={() => handleDelete(account._id)}
+                            disabled={deleteMutation.isLoading}
+                            className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50"
+                          >
+                            <IconTrashFilled className="w-4 h-4"/>
+                            <span className="text-sm font-medium">Delete</span>
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </>
             )}
           </motion.div>
         )}

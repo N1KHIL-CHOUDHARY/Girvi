@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { Routes, Route, Link, Outlet, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { Routes, Route, Link, Outlet } from 'react-router-dom';
 import { useTheme } from './contexts/ThemeContext';
 import { cn } from './lib/utils';
 import { motion } from 'framer-motion';
 
 // --- Page Imports (Corrected file names) ---
-import Signup from './pages/Signup';
-import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Landingpage from './pages/LandingPage';
 import NewCustomer from './pages/NewCustomer';
@@ -21,8 +18,6 @@ import CustomerDetail from './pages/CustomerDetail';
 import Employees from './pages/Employee';
 import Roles from './pages/Roles';
 import NotFound from './pages/NotFound';
-
-import ProtectedRoute from './components/ProtectedRoute';
 import { Sidebar, SidebarBody, SidebarLink } from './components/sidebar';
 import CommandPalette from './components/CommandPalette';
 
@@ -40,7 +35,6 @@ import {
 
 // --- AppLayout Component ---
 const AppLayout = () => {
-  const { user, logout } = useAuth();
   const { isDarkMode } = useTheme();
   const [open, setOpen] = useState(false); 
 
@@ -88,21 +82,19 @@ const AppLayout = () => {
                 <SidebarLink key={idx} link={link} />
               ))}
               
-              {/* --- 4. Conditionally render admin links --- */}
-              {user?.role === 'owner' && (
-                <>
-                  <div className="my-2 h-[1px] w-full bg-neutral-200 dark:bg-neutral-800" />
-                  <motion.span
-                    animate={{ display: open ? "inline-block" : "none", opacity: open ? 1 : 0 }}
-                    className="px-3 text-xs font-semibold uppercase text-neutral-500"
-                  >
-                    Admin
-                  </motion.span>
-                  {adminLinks.map((link, idx) => (
-                    <SidebarLink key={idx} link={link} />
-                  ))}
-                </>
-              )}
+              {/* --- 4. Admin links --- */}
+              <>
+                <div className="my-2 h-px w-full bg-neutral-200 dark:bg-neutral-800" />
+                <motion.span
+                  animate={{ display: open ? "inline-block" : "none", opacity: open ? 1 : 0 }}
+                  className="px-3 text-xs font-semibold uppercase text-neutral-500"
+                >
+                  Admin
+                </motion.span>
+                {adminLinks.map((link, idx) => (
+                  <SidebarLink key={idx} link={link} />
+                ))}
+              </>
             </div>
           </div>
           
@@ -118,16 +110,12 @@ const AppLayout = () => {
               
             </div>
             <SidebarLink link={settingsLink} />
-            
-            <div onClick={logout}>
-              <SidebarLink link={logoutLink} />
-            </div>
           </div>
         </SidebarBody>
       </Sidebar>
       
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-950 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-950 overflow-y-auto pt-16 md:pt-4">
         <Outlet />
       </main>
       
@@ -171,17 +159,11 @@ function App() {
       <CommandPalette />
       
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
         <Route path="/" element={<Landingpage/>} />
 
         <Route
           path="/app"
-          element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }
+          element={<AppLayout />}
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="customers" element={<AllCustomers />} />

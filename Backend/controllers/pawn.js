@@ -15,13 +15,15 @@ exports.createPawnTicket = asyncHandler(async (req, res) => {
     adv_amount,
     items,
     pawned_date,
+    shop_id,
   } = req.body;
-  const { shopId, userId } = req.user;
+  const shopId = shop_id || null;
 
-  const customer = await Customer.findOne({
-    _id: customer_id,
-    shop_id: shopId,
-  });
+  const customerQuery = { _id: customer_id };
+  if (shopId) {
+    customerQuery.shop_id = shopId;
+  }
+  const customer = await Customer.findOne(customerQuery);
 
   if (!customer) {
     throw new ApiError(404, 'Customer not found for this shop.');
@@ -41,19 +43,21 @@ exports.createPawnTicket = asyncHandler(async (req, res) => {
     items,
     pawned_date: pawned_date || new Date(),
     shop_id: shopId,
-    created_by_user_id: userId,
+    created_by_user_id: null,
   });
 
   const savedTicket = await newTicket.save();
 
-  await logActivity({
-    shopId,
-    userId,
-    type: 'NEW_TICKET',
-    message: `Created ticket ${savedTicket.ticket_number} for ${customer.full_name} (₹${savedTicket.loan_amount})`,
-    customerId: customer._id,
-    ticketId: savedTicket._id,
-  });
+  if (shopId && customer) {
+    await logActivity({
+      shopId,
+      userId: null,
+      type: 'NEW_TICKET',
+      message: `Created ticket ${savedTicket.ticket_number} for ${customer.full_name} (₹${savedTicket.loan_amount})`,
+      customerId: customer._id,
+      ticketId: savedTicket._id,
+    });
+  }
 
   return sendSuccess(res, {
     status: 201,
@@ -67,11 +71,13 @@ exports.getPawnTickets = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 10;
   const searchQuery = req.query.search || '';
   const status = req.query.status || 'active';
+  const shop_id = req.query.shop_id;
   const skip = (page - 1) * limit;
 
-  const query = {
-    shop_id: req.user.shopId,
-  };
+  const query = {};
+  if (shop_id) {
+    query.shop_id = shop_id;
+  }
 
   if (searchQuery) {
     query.$or = [
@@ -109,10 +115,11 @@ exports.getPawnTickets = asyncHandler(async (req, res) => {
 });
 
 exports.getPawnTicketById = asyncHandler(async (req, res) => {
-  const ticket = await PawnTicket.findOne({
-    _id: req.params.id,
-    shop_id: req.user.shopId,
-  }).populate('customer_id', 'full_name phone_number address');
+  const query = { _id: req.params.id };
+  if (req.query.shop_id) {
+    query.shop_id = req.query.shop_id;
+  }
+  const ticket = await PawnTicket.findOne(query).populate('customer_id', 'full_name phone_number address');
 
   if (!ticket) {
     throw new ApiError(404, 'Ticket not found.');
@@ -125,8 +132,12 @@ exports.getPawnTicketById = asyncHandler(async (req, res) => {
 });
 
 exports.updatePawnTicket = asyncHandler(async (req, res) => {
+  const query = { _id: req.params.id };
+  if (req.query.shop_id) {
+    query.shop_id = req.query.shop_id;
+  }
   const updatedTicket = await PawnTicket.findOneAndUpdate(
-    { _id: req.params.id, shop_id: req.user.shopId },
+    query,
     req.body,
     { new: true, runValidators: true }
   );
@@ -143,29 +154,33 @@ exports.updatePawnTicket = asyncHandler(async (req, res) => {
 
 exports.deletePawnTicket = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { shopId, userId } = req.user;
+  const shopId = req.query.shop_id || null;
 
-  await Payment.deleteMany({
-    ticket_id: id,
-    shop_id: shopId,
-  });
+  const paymentQuery = { ticket_id: id };
+  if (shopId) {
+    paymentQuery.shop_id = shopId;
+  }
+  await Payment.deleteMany(paymentQuery);
 
-  const deletedTicket = await PawnTicket.findOneAndDelete({
-    _id: id,
-    shop_id: shopId,
-  });
+  const deleteQuery = { _id: id };
+  if (shopId) {
+    deleteQuery.shop_id = shopId;
+  }
+  const deletedTicket = await PawnTicket.findOneAndDelete(deleteQuery);
 
   if (!deletedTicket) {
     throw new ApiError(404, 'Ticket not found.');
   }
 
-  await logActivity({
-    shopId,
-    userId,
-    type: 'DELETED_TICKET',
-    message: `Deleted ticket ${deletedTicket.ticket_number}`,
-    ticketId: deletedTicket._id,
-  });
+  if (deletedTicket.shop_id) {
+    await logActivity({
+      shopId: deletedTicket.shop_id,
+      userId: null,
+      type: 'DELETED_TICKET',
+      message: `Deleted ticket ${deletedTicket.ticket_number}`,
+      ticketId: deletedTicket._id,
+    });
+  }
 
   return sendSuccess(res, {
     message: 'Pawn ticket deleted successfully.',
@@ -176,10 +191,11 @@ exports.deletePawnTicket = asyncHandler(async (req, res) => {
 });
 
 exports.settlePawnTicket = asyncHandler(async (req, res) => {
-  const ticket = await PawnTicket.findOne({
-    _id: req.params.id,
-    shop_id: req.user.shopId,
-  });
+  const query = { _id: req.params.id };
+  if (req.query.shop_id) {
+    query.shop_id = req.query.shop_id;
+  }
+  const ticket = await PawnTicket.findOne(query);
 
   if (!ticket) {
     throw new ApiError(404, 'Ticket not found.');
@@ -189,13 +205,15 @@ exports.settlePawnTicket = asyncHandler(async (req, res) => {
   ticket.settled_date = new Date();
   const savedTicket = await ticket.save();
 
-  await logActivity({
-    shopId: req.user.shopId,
-    userId: req.user.userId,
-    type: 'SETTLED_TICKET',
-    message: `Settled ticket ${savedTicket.ticket_number}`,
-    ticketId: savedTicket._id,
-  });
+  if (savedTicket.shop_id) {
+    await logActivity({
+      shopId: savedTicket.shop_id,
+      userId: null,
+      type: 'SETTLED_TICKET',
+      message: `Settled ticket ${savedTicket.ticket_number}`,
+      ticketId: savedTicket._id,
+    });
+  }
 
   return sendSuccess(res, {
     message: 'Pawn ticket settled successfully.',
@@ -205,11 +223,13 @@ exports.settlePawnTicket = asyncHandler(async (req, res) => {
 
 exports.getPawnTicketsForCustomer = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const shop_id = req.query.shop_id;
 
-  const tickets = await PawnTicket.find({
-    shop_id: req.user.shopId,
-    customer_id: id,
-  })
+  const query = { customer_id: id };
+  if (shop_id) {
+    query.shop_id = shop_id;
+  }
+  const tickets = await PawnTicket.find(query)
     .populate('customer_id', 'full_name')
     .sort({ pawned_date: -1 });
 
