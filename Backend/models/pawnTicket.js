@@ -55,6 +55,13 @@ const pawnTicketSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  original_loan_amount: {
+    type: Number,
+    required: true,
+    default: function () {
+      return this.loan_amount;
+    },
+  },
   interest_rate: {
     type: Number, 
     required: true

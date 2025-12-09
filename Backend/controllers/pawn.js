@@ -57,6 +57,7 @@ exports.createPawnTicket = asyncHandler(async (req, res) => {
     const newTicket = new PawnTicket({
       customer_id,
       ticket_number,
+      original_loan_amount: normalizedNumericFields.loan_amount,
       loan_amount: normalizedNumericFields.loan_amount,
       interest_rate: normalizedNumericFields.interest_rate,
       adv_amount: normalizedNumericFields.adv_amount,

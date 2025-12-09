@@ -173,16 +173,16 @@ export default function Roles() {
 
         {/* --- Role List --- */}
         <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white dark:bg-black">
+          <div className="shadow-input rounded-2xl bg-white dark:bg-black dark:text-white text-base">
             {isLoading ? (
-              <p className="p-4 text-center">Loading roles...</p>
+              <p className="p-4 text-center text-neutral-600 dark:text-neutral-400">Loading roles...</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Role Name</TableHead>
-                    <TableHead>Permissions</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="text-neutral-800 dark:text-neutral-200">Role Name</TableHead>
+                    <TableHead className="text-neutral-800 dark:text-neutral-200">Permissions</TableHead>
+                    <TableHead className="text-center text-neutral-800 dark:text-neutral-200">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

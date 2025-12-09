@@ -14,6 +14,7 @@ import NewCustomer from './pages/NewCustomer';
 import NewPawn from './pages/NewPawn';
 import AllCustomers from './pages/AllCustomer'; // Corrected import
 import AllPawns from './pages/AllPawn';     // Corrected import
+import Payments from './pages/Payments';
 import UpdateCustomer from './pages/UpdateCustomer';
 import UpdatePawn from './pages/UpdatePawn';
 import Settings from './pages/Setting';
@@ -21,6 +22,7 @@ import CustomerDetail from './pages/CustomerDetail';
 import Employees from './pages/Employee';
 import Roles from './pages/Roles';
 import NotFound from './pages/NotFound';
+import PawnDetail from './pages/PawnDetail';
 import PermissionGuard from './components/PermissionGuard';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,7 +38,8 @@ import {
   IconUserCog,
   IconLogout,
   IconSettings,
-  IconShieldLock 
+  IconShieldLock,
+  IconReportMoney 
 } from '@tabler/icons-react';
 
 // --- AppLayout Component ---
@@ -49,6 +52,8 @@ const AppLayout = () => {
     { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Payments', href: '/app/payments', icon: <IconReportMoney className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Payments', href: '/app/payments', icon: <IconShieldLock className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
   ];
@@ -187,6 +192,15 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="customers" element={<AllCustomers />} />
           <Route path="pawns" element={<AllPawns />} />
+          <Route path="pawns/:id" element={<PawnDetail />} />
+          <Route
+            path="payments"
+            element={
+              <PermissionGuard requiredPermission="can_view_reports">
+                <Payments />
+              </PermissionGuard>
+            }
+          />
           <Route
             path="customer/add"
             element={

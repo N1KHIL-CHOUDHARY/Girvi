@@ -7,6 +7,84 @@ const Payment = require('../models/payment');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/response');
 
+exports.getFinancialReport = asyncHandler(async (req, res) => {
+  const { shopId } = req.user;
+  const shopObjectId = new mongoose.Types.ObjectId(shopId);
+
+  const report = await PawnTicket.aggregate([
+    { $match: { shop_id: shopObjectId } },
+    {
+      $lookup: {
+        from: 'payments',
+        localField: '_id',
+        foreignField: 'ticket_id',
+        as: 'payment_history',
+      },
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer_id',
+        foreignField: '_id',
+        as: 'customer',
+      },
+    },
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        total_interest_paid: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: '$payment_history',
+                  as: 'p',
+                  cond: { $eq: ['$$p.payment_for', 'interest'] },
+                },
+              },
+              as: 'i',
+              in: '$$i.amount_paid',
+            },
+          },
+        },
+        total_principal_paid: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: '$payment_history',
+                  as: 'p',
+                  cond: { $eq: ['$$p.payment_for', 'principal'] },
+                },
+              },
+              as: 'i',
+              in: '$$i.amount_paid',
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        ticket_number: 1,
+        status: 1,
+        original_loan_amount: 1,
+        loan_amount: 1,
+        total_interest_paid: 1,
+        total_principal_paid: 1,
+        customer_name: '$customer.full_name',
+      },
+    },
+    { $sort: { ticket_number: 1 } },
+  ]);
+
+  return sendSuccess(res, {
+    message: 'Financial report fetched successfully.',
+    data: report,
+  });
+});
+
 exports.getDashboardStats = asyncHandler(async (req, res) => {
   const { shopId } = req.user;
   const shopObjectId = new mongoose.Types.ObjectId(shopId);
