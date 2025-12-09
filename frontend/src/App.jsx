@@ -21,6 +21,7 @@ import CustomerDetail from './pages/CustomerDetail';
 import Employees from './pages/Employee';
 import Roles from './pages/Roles';
 import NotFound from './pages/NotFound';
+import PermissionGuard from './pages/PermissionGaurd'
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { Sidebar, SidebarBody, SidebarLink } from './components/sidebar';
@@ -207,6 +208,43 @@ function App() {
           <Route path="employees" element={<Employees />} />
           <Route path="roles" element={<Roles />} />
         </Route>
+
+        <Route 
+            path="customer/add" 
+            element={
+              <PermissionGuard requiredPermission="can_create_customers">
+                <NewCustomer />
+              </PermissionGuard>
+            } 
+          />
+          
+          <Route 
+            path="pawn/add" 
+            element={
+              <PermissionGuard requiredPermission="can_create_tickets">
+                <NewPawn />
+              </PermissionGuard>
+            } 
+          />
+
+          {/* --- PROTECTED UPDATE ROUTES --- */}
+          <Route 
+            path="customer/update/:id" 
+            element={
+              <PermissionGuard requiredPermission="can_edit_customers">
+                <UpdateCustomer />
+              </PermissionGuard>
+            } 
+          />
+          
+          <Route 
+            path="pawn/update/:id" 
+            element={
+              <PermissionGuard requiredPermission="can_edit_tickets">
+                <UpdatePawn />
+              </PermissionGuard>
+            } 
+          />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

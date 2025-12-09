@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-// Import the correct getProfile function
-import { login as apiLogin, signup as apiSignup, loginWithGoogle as apiGoogleLogin, getProfile, setAuthToken } from '../services/api'; 
+import { login as apiLogin, signup as apiSignup, getProfile, setAuthToken } from '../services/api'; 
 
 const AuthContext = createContext(null);
 
@@ -12,18 +11,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs when the app first loads
     const loadUser = async () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         setToken(storedToken);
         setAuthToken(storedToken); 
         try {
-       
           const res = await getProfile(); 
           setUser(res.data.user); 
         } catch (error) {
-      
+          console.error("Profile fetch failed:", error);
           localStorage.removeItem('token');
           setAuthToken(null);
           setToken(null);
@@ -36,7 +33,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const handleAuthResponse = (result) => {
-    
     if (result.token) { 
       localStorage.setItem('token', result.token);
       setAuthToken(result.token); 
@@ -53,15 +49,6 @@ export const AuthProvider = ({ children }) => {
       const result = await apiLogin(credentials);
       return handleAuthResponse(result.data);
     } catch(error){
-      return { success: false, message: error.response?.data?.message || error.message };
-    }
-  };
-
-  const loginWithGoogle = async (idToken) => {
-    try {
-      const result = await apiGoogleLogin(idToken);
-      return handleAuthResponse(result.data);
-    } catch (error) {
       return { success: false, message: error.response?.data?.message || error.message };
     }
   };
@@ -88,7 +75,6 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!token,
     login,
-    loginWithGoogle,
     signup,
     logout,
   };

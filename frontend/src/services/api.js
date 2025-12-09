@@ -60,13 +60,7 @@ export const setAuthToken = (token) => {
 // --- Auth Routes ---
 export const signup = (data) => api.post('/auth/signup', data);
 export const login = (data) => api.post('/auth/login', data);
-export const loginWithGoogle = (idToken, shop_name = null) => {
-  const payload = { idToken };
-  if (shop_name) {
-    payload.shop_name = shop_name;
-  }
-  return api.post('/auth/google', payload);
-};
+
 export const getProfile = () => api.get('/app/me');
 export const changePassword = (data) => api.post('/auth/change-password', data); // NEW
 

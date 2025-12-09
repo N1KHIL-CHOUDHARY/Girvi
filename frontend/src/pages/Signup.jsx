@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ export default function Signup() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,13 +41,13 @@ export default function Signup() {
         toast.error(result.message || 'Signup failed');
       }
     } catch (error) {
+      console.log(error);
       toast.error(error.response?.data?.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
 
- 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-neutral-950 p-4">
       <div className="shadow-input relative mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
@@ -93,10 +94,6 @@ export default function Signup() {
             {loading ? 'Creating Account...' : 'Sign up →'}
             <BottomGradient />
           </button>
-
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-
-          
         </form>
 
         <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-300">
