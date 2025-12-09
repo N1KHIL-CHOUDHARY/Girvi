@@ -10,9 +10,29 @@ const { sendSuccess } = require('../utils/response');
 exports.getFinancialReport = asyncHandler(async (req, res) => {
   const { shopId } = req.user;
   const shopObjectId = new mongoose.Types.ObjectId(shopId);
+  
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const searchQuery = req.query.search || '';
+  const skip = (page - 1) * limit;
+
+  // Build match conditions
+  const matchConditions = { shop_id: shopObjectId };
+  if (searchQuery) {
+    matchConditions.ticket_number = { $regex: searchQuery, $options: 'i' };
+  }
+
+  // First, get total count for pagination
+  const countPipeline = [
+    { $match: matchConditions },
+    { $count: 'total' },
+  ];
+  const countResult = await PawnTicket.aggregate(countPipeline);
+  const totalItems = countResult[0]?.total || 0;
+  const totalPages = Math.ceil(totalItems / limit);
 
   const report = await PawnTicket.aggregate([
-    { $match: { shop_id: shopObjectId } },
+    { $match: matchConditions },
     {
       $lookup: {
         from: 'payments',
@@ -77,11 +97,19 @@ exports.getFinancialReport = asyncHandler(async (req, res) => {
       },
     },
     { $sort: { ticket_number: 1 } },
+    { $skip: skip },
+    { $limit: limit },
   ]);
 
   return sendSuccess(res, {
     message: 'Financial report fetched successfully.',
     data: report,
+    meta: {
+      page,
+      totalPages,
+      totalItems,
+      limit,
+    },
   });
 });
 

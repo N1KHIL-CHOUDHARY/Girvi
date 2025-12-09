@@ -103,7 +103,11 @@ export const createPayment = (data) => api.post('/app/payments', data);
 export const getPaymentsForTicket = (ticketId) => api.get(`/app/payments/ticket/${ticketId}`);
 
 export const getDashboardStats = () => api.get('/app/stat/dashboard');
-export const getFinancialReport = () => api.get('/app/stat/financial-report');
+export const getFinancialReport = (page = 1, search = "") => {
+  return api.get('/app/stat/financial-report', {
+    params: { page, search, limit: 10 }
+  });
+};
 
 export const getShopDetails = () => api.get('/app/shop'); // NEW
 export const updateShopDetails = (data) => api.patch('/app/shop', data); // NEW

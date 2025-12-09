@@ -1,24 +1,34 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFinancialReport } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
-import { IconReportMoney, IconCurrencyRupee, IconCircleCheck, IconAlertTriangle } from '@tabler/icons-react';
+import { IconReportMoney, IconCurrencyRupee, IconCircleCheck, IconAlertTriangle, IconCircleArrowLeftFilled, IconCircleArrowRightFilled, IconSearch } from '@tabler/icons-react';
+import { Input } from '../components/ui/Input';
+import { cn } from '../lib/utils';
 
 const currency = (value = 0) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
 export default function Payments() {
   const { isDarkMode } = useTheme();
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['financial-report'],
-    queryFn: getFinancialReport,
+    queryKey: ['financial-report', page, search],
+    queryFn: () => getFinancialReport(page, search),
+    keepPreviousData: true,
     onError: (err) => toast.error(err.message || 'Failed to load financial report'),
   });
 
   const rows = data?.data || [];
+  const totalPages = data?.meta?.totalPages || 1;
+  const totalItems = data?.meta?.totalItems || 0;
 
+  // Calculate totals from all data (not just current page)
+  // Note: For accurate totals across all pages, we'd need a separate endpoint
+  // For now, we calculate from current page data
   const totals = useMemo(() => {
     return rows.reduce(
       (acc, row) => {
@@ -31,6 +41,15 @@ export default function Payments() {
     );
   }, [rows]);
 
+  const goToPage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1); // Reset to first page when searching
+  };
+
   return (
     <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}>
       <div className="mb-6 flex items-center gap-2">
@@ -39,9 +58,23 @@ export default function Payments() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <SummaryCard title="Total Outstanding Balance" value={currency(totals.outstanding)} accent="bg-blue-50 text-blue-800" />
-        <SummaryCard title="Total Principal Collected" value={currency(totals.principal)} accent="bg-green-50 text-green-800" />
-        <SummaryCard title="Total Interest Collected" value={currency(totals.interest)} accent="bg-amber-50 text-amber-800" />
+        <SummaryCard title="Total Outstanding Balance" value={currency(totals.outstanding)} accent="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200" />
+        <SummaryCard title="Total Principal Collected" value={currency(totals.principal)} accent="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200" />
+        <SummaryCard title="Total Interest Collected" value={currency(totals.interest)} accent="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200" />
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative w-full md:w-64">
+          <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Input
+            type="text"
+            placeholder="Search by ticket number..."
+            value={search}
+            onChange={handleSearchChange}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -66,7 +99,9 @@ export default function Payments() {
                 </tr>
               ) : !rows.length ? (
                 <tr>
-                  <td colSpan={8} className="py-4 text-center text-neutral-500">No data.</td>
+                  <td colSpan={8} className="py-4 text-center text-neutral-500">
+                    {search ? `No tickets found matching "${search}".` : 'No data.'}
+                  </td>
                 </tr>
               ) : (
                 rows.map((row) => (
@@ -99,7 +134,49 @@ export default function Payments() {
             </tbody>
           </table>
         </div>
+        {!isLoading && totalItems > 0 && (
+          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 text-sm text-neutral-500 dark:text-neutral-400">
+            Showing {rows.length} of {totalItems} total tickets.
+          </div>
+        )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && totalPages > 1 && (
+        <div className="flex justify-between items-center mt-6">
+          <button
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 1}
+            className="px-4 py-2 rounded-md disabled:opacity-50"
+          >
+            <IconCircleArrowLeftFilled
+              className={cn(
+                'h-10 w-10',
+                page === 1
+                  ? 'text-gray-400 dark:text-neutral-700'
+                  : 'text-neutral-800 dark:text-neutral-200'
+              )}
+            />
+          </button>
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page === totalPages}
+            className="px-4 py-2 rounded-md disabled:opacity-50"
+          >
+            <IconCircleArrowRightFilled
+              className={cn(
+                'h-10 w-10',
+                page === totalPages
+                  ? 'text-gray-400 dark:text-neutral-700'
+                  : 'text-neutral-800 dark:text-neutral-200'
+              )}
+            />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
