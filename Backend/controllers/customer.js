@@ -61,6 +61,7 @@ exports.getCustomers = asyncHandler(async (req, res) => {
 
   const totalCustomers = await Customer.countDocuments(query);
   const customers = await Customer.find(query)
+    .select('-aadhaar_number -pan_number')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

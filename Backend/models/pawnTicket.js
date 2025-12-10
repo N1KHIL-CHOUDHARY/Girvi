@@ -49,7 +49,7 @@ const pawnTicketSchema = new mongoose.Schema({
   ticket_number: {
     type: String,
     required: true,
-  
+    unique: true,
   },
   loan_amount: {
     type: Number,

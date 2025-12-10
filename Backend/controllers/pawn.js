@@ -26,9 +26,19 @@ exports.createPawnTicket = asyncHandler(async (req, res) => {
   const normalizedNumericFields = Object.entries(numericFields).reduce(
     (acc, [key, value]) => {
       const numericValue = Number(value);
-      if (!Number.isFinite(numericValue) || numericValue <= 0) {
+
+      if (!Number.isFinite(numericValue)) {
+        throw new ApiError(400, `${key} must be a valid number.`);
+      }
+
+      if (key === 'loan_amount' && numericValue <= 0) {
         throw new ApiError(400, `${key} must be a number greater than 0.`);
       }
+
+      if ((key === 'interest_rate' || key === 'adv_amount') && numericValue < 0) {
+        throw new ApiError(400, `${key} must be a number greater than or equal to 0.`);
+      }
+
       acc[key] = numericValue;
       return acc;
     },
