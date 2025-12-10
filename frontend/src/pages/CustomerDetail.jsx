@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getAccountById, getPawnTicketsByAccountId, getAccountStats } from '../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAccountById, getPawnTicketsByAccountId, getAccountStats, updatePawnTicketStatus } from '../services/api';
 import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "../components/ui/table";
 import { cn } from '../lib/utils';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 // ✅ StatCard
 const StatCard = ({ title, value }) => (
@@ -44,6 +45,9 @@ const CustomerDetailSkeleton = () => (
 export default function CustomerDetail() {
   const { id } = useParams();
   const { isDarkMode } = useTheme();
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
 
   // ✅ Define queries
   const {
@@ -76,16 +80,31 @@ export default function CustomerDetail() {
     onError: () => toast.error('Failed to load stats.'),
   });
 
+  // SETTLE mutation
+  const settleMutation = useMutation({
+    mutationFn: (ticketId) => updatePawnTicketStatus(ticketId, 'settled'),
+    onSuccess: () => {
+      toast.success('Ticket settled');
+      queryClient.invalidateQueries(['pawns', id]);
+      queryClient.invalidateQueries(['stats', id]);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to settle ticket')
+  });
+
+  const openSettleModal = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmSettle = () => {
+    if (!selectedTicketId) return;
+    settleMutation.mutate(selectedTicketId);
+    setIsModalOpen(false);
+  };
+
   const loading = customerLoading || pawnLoading || statsLoading;
   const error = customerError || pawnError || statsError;
 
-  const handleSettle = () => {
-    toast('Settle action is available from the Pawn Tickets page.');
-  };
-
-  const handlePayment = () => {
-    toast('Add payment from the Pawn Tickets page.');
-  };
 
   const statusClass = (status) => {
     switch (status) {
@@ -111,6 +130,15 @@ export default function CustomerDetail() {
         animate={{ opacity: 1, transition: { duration: 0.5 } }}
         className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}
       >
+        {/* Settle Modal */}
+        <ConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleConfirmSettle}
+          title="Settle Pawn Ticket"
+          message="Are you sure this ticket is settled and the loan is closed?"
+          confirmText="Yes, Settle"
+        />
         {/* Customer Info */}
         <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 dark:bg-black mb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
@@ -199,20 +227,24 @@ export default function CustomerDetail() {
                             <IconEdit size={16} />
                             <span>Edit</span>
                           </Link>
-                          <button
-                            onClick={handleSettle}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                          >
-                            <IconCheck size={16} />
-                            <span>Settle</span>
-                          </button>
-                          <button
-                            onClick={handlePayment}
+                          {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
+                            <button
+                              onClick={() => openSettleModal(pawn._id)}
+                              disabled={settleMutation.isLoading}
+                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Mark as Settled"
+                            >
+                              <IconCheck size={16} />
+                              <span>Settle</span>
+                            </button>
+                          )}
+                          <Link
+                            to={`/app/pawns/${pawn._id}`}
                             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
                           >
                             <IconCurrencyRupee size={16} />
                             <span>Payment</span>
-                          </button>
+                          </Link>
                           <a
                             href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/app/pdf/notice/${pawn._id}`}
                             target="_blank"
@@ -271,7 +303,42 @@ export default function CustomerDetail() {
                       </div>
                     </div>
                   </div>
-                  
+                  <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                    <Link
+                      to={`/app/pawns/update/${pawn._id}`}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm"
+                    >
+                      <IconEdit className="w-4 h-4"/>
+                      <span>Edit</span>
+                    </Link>
+                    {pawn.status === 'active' && (
+                      <>
+                        <button
+                          onClick={() => openSettleModal(pawn._id)}
+                          disabled={settleMutation.isLoading}
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <IconCheck className="w-4 h-4"/>
+                          <span>Settle</span>
+                        </button>
+                        <Link
+                          to={`/app/pawns/${pawn._id}`}
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
+                        >
+                          <span>₹</span>
+                          <span>Payment</span>
+                        </Link>
+                      </>
+                    )}
+                    <a
+                      href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/app/pdf/notice/${pawn._id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm"
+                    >
+                      <span>PDF</span>
+                    </a>
+                  </div>
                 </motion.div>
               ))}
             </div>

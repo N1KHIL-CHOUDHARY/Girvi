@@ -58,9 +58,9 @@ export default function Payments() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <SummaryCard title="Total Outstanding Balance" value={currency(totals.outstanding)} accent="bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200" />
-        <SummaryCard title="Total Principal Collected" value={currency(totals.principal)} accent="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200" />
-        <SummaryCard title="Total Interest Collected" value={currency(totals.interest)} accent="bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200" />
+        <SummaryCard title="Total Outstanding Balance" value={currency(totals.outstanding)} />
+        <SummaryCard title="Total Principal Collected" value={currency(totals.principal)} />
+        <SummaryCard title="Total Interest Collected" value={currency(totals.interest)} />
       </div>
 
       {/* Search Bar */}
@@ -181,10 +181,10 @@ export default function Payments() {
   );
 }
 
-const SummaryCard = ({ title, value, accent }) => (
+const SummaryCard = ({ title, value }) => (
   <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
     <p className="text-xs text-neutral-500">{title}</p>
-    <p className={`mt-2 text-lg font-semibold ${accent}`}>{value}</p>
+    <p className="mt-2 text-lg font-semibold text-neutral-800 dark:text-neutral-200">{value}</p>
   </div>
 );
 

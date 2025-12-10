@@ -8,7 +8,6 @@ const analyticsRoutes = require('./analytics');
 const appRoutes = require('./app');
 const roleRoutes = require('./roles');
 const uploadRoutes = require('./upload');
-const pdfRoutes = require('./pdf');
 const paymentRoutes = require('./payments');
 
 router.get('/', (req, res) => {
@@ -23,7 +22,6 @@ router.use('/app/customers', customerRoutes);
 router.use('/app/employees', employeeRoutes);
 router.use('/app/pawns', pawnRoutes);
 router.use('/app/upload', uploadRoutes);
-router.use('/app/pdf', pdfRoutes);
 router.use('/app/payments', paymentRoutes);
 
 router.use('/app/stat', analyticsRoutes);

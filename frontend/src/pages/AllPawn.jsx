@@ -385,13 +385,14 @@ export default function AllPawns() {
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                                 <button
-                                  onClick={() => openSettleModal(pawn._id)}
-                                  disabled={settleMutation.isLoading}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                                  title="Mark as Settled"
-                                >
-                                  <span className="text-green-600 dark:text-green-500 w-5 h-5" > Settle </span> 
-                                </button>
+                                onClick={() => openSettleModal(pawn._id)}
+                                disabled={settleMutation.isLoading}
+                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Mark as Settled"
+                              >
+                                <IconCheck size={16} />
+                                <span>Settle</span>
+                              </button>
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                                 <Link
@@ -493,8 +494,8 @@ export default function AllPawns() {
                               disabled={settleMutation.isLoading}
                               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-sm disabled:opacity-50"
                             >
-                              <IconCheck className="w-4 h-4"/>
-                              <span>Settle</span>
+                      
+                              Settle
                             </button>
                             <Link
                               to={`/app/pawns/${pawn._id}`}

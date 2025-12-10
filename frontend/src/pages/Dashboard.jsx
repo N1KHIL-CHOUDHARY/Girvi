@@ -7,7 +7,6 @@ import GenderPieChart from '../components/GenderPieChart';
 import AreaBarChart from '../components/AreaPieChart';
 import { useQuery } from '@tanstack/react-query';
 
-// A simple component for displaying key stats
 const StatCard = ({ title, value }) => (
   <div className="shadow-input rounded-2xl bg-white p-4 dark:bg-black">
     <p className="text-sm text-neutral-600 dark:text-neutral-400">{title}</p>
@@ -91,7 +90,6 @@ export default function Dashboard() {
        
       </div>
 
-      {/* 1. Key Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           title="Total Active Loan"
