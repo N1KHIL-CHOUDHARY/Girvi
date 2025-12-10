@@ -390,18 +390,17 @@ export default function AllPawns() {
                                   className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
                                   title="Mark as Settled"
                                 >
-                                  <IconCheck className="text-green-600 dark:text-green-500 w-5 h-5" />
+                                  <span className="text-green-600 dark:text-green-500 w-5 h-5" > Settle </span> 
                                 </button>
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
-                                <button
-                                  onClick={() => openPaymentModal(pawn._id)}
-                                  disabled={paymentMutation.isLoading}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
-                                  title="Add Payment"
-                                >
-                                  ₹
-                                </button>
+                                <Link
+                                to={`/app/pawns/${pawn._id}`}
+                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
+                              >
+                                <span>₹</span>
+                                <span>Payment</span>
+                              </Link>
                               )}
                             </div>
                           </TableCell>
@@ -497,14 +496,13 @@ export default function AllPawns() {
                               <IconCheck className="w-4 h-4"/>
                               <span>Settle</span>
                             </button>
-                            <button
-                              onClick={() => openPaymentModal(pawn._id)}
-                              disabled={paymentMutation.isLoading}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm disabled:opacity-50"
+                            <Link
+                              to={`/app/pawns/${pawn._id}`}
+                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
                             >
                               <span>₹</span>
                               <span>Payment</span>
-                            </button>
+                            </Link>
                           </>
                         )}
                       </div>
