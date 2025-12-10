@@ -156,7 +156,7 @@ graph TD
     G --> G2[Manage Roles & Permissions]
     G --> G3[Audit Logs]
 
-```
+
 
 ## 🛡️ Security Features
 Data Encryption: Sensitive fields like Aadhaar and PAN numbers are encrypted using AES-256-GCM before storage and decrypted only upon retrieval.
@@ -185,5 +185,6 @@ Pawn_manager/
     │   ├── pages/      # Dashboard, Forms, Listings
     │   ├── services/   # Axios API configuration
     │   └── lib/        # Utilities (Tailwind merge)
+
 
 
