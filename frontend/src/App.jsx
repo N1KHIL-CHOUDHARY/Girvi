@@ -53,7 +53,6 @@ const AppLayout = () => {
     { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'Payments', href: '/app/payments', icon: <IconReportMoney className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'Payments', href: '/app/payments', icon: <IconShieldLock className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
     { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
   ];
