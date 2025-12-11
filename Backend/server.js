@@ -1,5 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cron = require('node-cron');
+const axios = require('axios');
+
 const dotenv = require('dotenv');
 dotenv.config();
 const cors = require('cors');
@@ -36,4 +39,13 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  try {
+    await axios.get(process.env.BACKEND_URL + "/");
+    console.log("Pinged backend to keep it alive");
+  } catch (error) {
+    console.log("Ping failed:", error.message);
+  }
 });
