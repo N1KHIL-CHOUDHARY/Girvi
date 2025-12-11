@@ -396,7 +396,7 @@ export default function AllPawns() {
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                                 <Link
-                                to={`/app/pawns/${pawn._id}`}
+                                to={`/app/pawn/${pawn._id}`}
                                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
                               >
                                 <span>₹</span>

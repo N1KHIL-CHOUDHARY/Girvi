@@ -75,7 +75,8 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      {/* Desktop Table */}
+      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="overflow-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -102,7 +103,6 @@ export default function Payments() {
                   </td>
                 </tr>
               ) : (
-                
                 rows.map((row) => (
                   <tr key={row._id} className="border-b border-neutral-100 dark:border-neutral-800">
                     <td className="py-3 pr-4 font-semibold text-neutral-900 dark:text-neutral-100">{row.ticket_number}</td>
@@ -135,6 +135,70 @@ export default function Payments() {
         </div>
         {!isLoading && totalItems > 0 && (
           <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 text-sm text-neutral-500 dark:text-neutral-400">
+            Showing {rows.length} of {totalItems} total tickets.
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            Loading...
+          </div>
+        ) : !rows.length ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            {search ? `No tickets found matching "${search}".` : 'No data.'}
+          </div>
+        ) : (
+          rows.map((row) => (
+            <div key={row._id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-neutral-500">Ticket</p>
+                  <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{row.ticket_number}</p>
+                  <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                    {Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}
+                  </p>
+                </div>
+                <StatusPill status={row.status} />
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600 dark:text-neutral-300">
+                <div>
+                  <p className="text-xs text-neutral-500">Original Loan</p>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.original_loan_amount)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Principal Paid</p>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.total_principal_paid)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Interest Paid</p>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.total_interest_paid)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Balance Due</p>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-100">
+                    <IconCurrencyRupee className="h-4 w-4" />
+                    {Number(row.loan_amount || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <Link
+                  to={`/app/pawns/${row._id}`}
+                  className="text-sm font-semibold text-blue-600 hover:underline"
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
+        {!isLoading && totalItems > 0 && (
+          <div className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
             Showing {rows.length} of {totalItems} total tickets.
           </div>
         )}

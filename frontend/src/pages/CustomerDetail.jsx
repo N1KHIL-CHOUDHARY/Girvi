@@ -17,6 +17,7 @@ import {
 } from "../components/ui/table";
 import { cn } from '../lib/utils';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { usePermission } from '../hooks/usePermission';
 
 // ✅ StatCard
 const StatCard = ({ title, value }) => (
@@ -48,6 +49,7 @@ export default function CustomerDetail() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const { hasPermission } = usePermission();
 
   // ✅ Define queries
   const {
@@ -221,7 +223,7 @@ export default function CustomerDetail() {
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link
-                            to={`/app/pawns/update/${pawn._id}`}
+                            to={`/app/pawn/update/${pawn._id}`}
                             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                           >
                             <IconEdit size={16} />
@@ -245,15 +247,7 @@ export default function CustomerDetail() {
                             <IconCurrencyRupee size={16} />
                             <span>Payment</span>
                           </Link>
-                          <a
-                            href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/app/pdf/notice/${pawn._id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-                          >
-                            <IconFileText size={16} />
-                            <span>PDF</span>
-                          </a>
+                          
                         </div>
                       </TableCell>
                     </TableRow>
@@ -311,7 +305,7 @@ export default function CustomerDetail() {
                       <IconEdit className="w-4 h-4"/>
                       <span>Edit</span>
                     </Link>
-                    {pawn.status === 'active' && (
+                    {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                       <>
                         <button
                           onClick={() => openSettleModal(pawn._id)}
