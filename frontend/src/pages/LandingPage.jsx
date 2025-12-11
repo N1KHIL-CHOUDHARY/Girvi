@@ -78,7 +78,7 @@ export default function PawnManagerLanding() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            {/* --- CONDITIONAL DESKTOP BUTTONS --- */}
+          
             {isLoggedIn ? (
               <>
                  <button 
@@ -146,8 +146,8 @@ export default function PawnManagerLanding() {
         </AnimatePresence>
       </nav>
 
-      {/* Rest of the component (Header, Tabs, Features, FAQ, Footer) remains exactly the same */}
-      <header className="relative bg-blue-600 pt-36 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
+      
+      <header className="relative  bg-blue-600 pt-36 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
            <div className="absolute top-20 left-20 w-2 h-2 bg-white rounded-full"></div>
            <div className="absolute bottom-32 right-10 w-2 h-2 bg-white rounded-full"></div>
