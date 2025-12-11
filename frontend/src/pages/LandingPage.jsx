@@ -24,8 +24,7 @@ import {
   LogOut
 } from "lucide-react";
 
-import heroImage from "../assets/bussinessman.png";
-
+const heroImage = "https://res.cloudinary.com/ddgdcca86/image/upload/v1765437152/bussinessman_zqomrz.png";
 const appScreenPayments ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436517/Payments_j0iapt.png";
 const appScreenCustomer ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Customers_rul5vq.png";
 const appScreenDashboard ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png";
