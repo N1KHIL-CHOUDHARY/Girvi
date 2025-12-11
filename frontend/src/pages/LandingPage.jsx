@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react"; 
+import { useNavigate } from "react-router-dom";
 import { 
   motion, 
   useScroll, 
@@ -39,6 +40,7 @@ export default function PawnManagerLanding() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token'); 
@@ -80,7 +82,7 @@ export default function PawnManagerLanding() {
             {isLoggedIn ? (
               <>
                  <button 
-                  onClick={() => window.location.href = '/dashboard'} 
+                  onClick={() => navigate('/app/dashboard')} 
                   className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2"
                  >
                    <LayoutDashboard size={16} /> Dashboard
@@ -94,8 +96,16 @@ export default function PawnManagerLanding() {
               </>
             ) : (
               <>
-                <button className="text-sm font-semibold hover:opacity-80 transition">Login</button>
-                <button className="px-5 py-2 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-sm font-semibold">
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="text-sm font-semibold hover:opacity-80 transition"
+                >
+                  Login
+                </button>
+                <button 
+                  onClick={() => navigate('/signup')}
+                  className="px-5 py-2 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-sm font-semibold"
+                >
                   Get Started
                 </button>
               </>
@@ -125,7 +135,7 @@ export default function PawnManagerLanding() {
               
               {isLoggedIn ? (
                 <>
-                  <button onClick={() => window.location.href = '/dashboard'} className="text-left text-lg font-medium flex items-center gap-2">
+                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/app/dashboard'); }} className="text-left text-lg font-medium flex items-center gap-2">
                     <LayoutDashboard size={18} /> Go to Dashboard
                   </button>
                   <button onClick={handleLogout} className="py-3 rounded-full bg-white/10 border border-white/30 text-white font-bold flex items-center justify-center gap-2">
@@ -134,8 +144,8 @@ export default function PawnManagerLanding() {
                 </>
               ) : (
                 <>
-                  <button className="text-left text-lg font-medium">Login</button>
-                  <button className="py-3 rounded-full bg-white text-blue-600 font-bold">Get Started</button>
+                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }} className="text-left text-lg font-medium">Login</button>
+                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/signup'); }} className="py-3 rounded-full bg-white text-blue-600 font-bold">Get Started</button>
                 </>
               )}
             </motion.div>
@@ -179,13 +189,16 @@ export default function PawnManagerLanding() {
             >
               {isLoggedIn ? (
                  <button 
-                  onClick={() => window.location.href = '/dashboard'}
+                  onClick={() => navigate('/app/dashboard')}
                   className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform flex items-center gap-2"
                  >
                    <LayoutDashboard size={20} /> Open Dashboard
                  </button>
               ) : (
-                <button className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform">
+                <button 
+                  onClick={() => navigate('/signup')}
+                  className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform"
+                >
                   Get Started Free
                 </button>
               )}
