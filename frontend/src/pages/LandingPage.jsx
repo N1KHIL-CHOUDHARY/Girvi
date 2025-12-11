@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react"; // Added useEffect
+import React, { useRef, useState, useEffect } from "react"; 
 import { 
   motion, 
   useScroll, 
@@ -20,7 +20,7 @@ import {
   LayoutDashboard,
   Wallet,
   UserCircle,
-  LogOut // Added LogOut icon
+  LogOut 
 } from "lucide-react";
 
 import heroImage from "../assets/bussinessman.png";
@@ -38,11 +38,9 @@ const tabs = [
 export default function PawnManagerLanding() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(tabs[0].id);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // New State for Auth
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
-  // --- CHECK FOR TOKEN ON LOAD ---
   useEffect(() => {
-    // Replace 'token' with whatever key you use to store your JWT
     const token = localStorage.getItem('token'); 
     if (token) {
       setIsLoggedIn(true);
@@ -50,10 +48,10 @@ export default function PawnManagerLanding() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token
-    localStorage.removeItem('user');  // Clear user data if stored
+    localStorage.removeItem('token'); 
+    localStorage.removeItem('user');  
     setIsLoggedIn(false);
-    window.location.reload(); // Reload to reset state
+    window.location.reload(); 
   };
 
   const handleScroll = (id) => {
@@ -82,7 +80,7 @@ export default function PawnManagerLanding() {
             {isLoggedIn ? (
               <>
                  <button 
-                  onClick={() => window.location.href = '/dashboard'} // Navigate to dashboard
+                  onClick={() => window.location.href = '/dashboard'} 
                   className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2"
                  >
                    <LayoutDashboard size={16} /> Dashboard
@@ -123,7 +121,6 @@ export default function PawnManagerLanding() {
               <button onClick={() => handleScroll('features')} className="text-left text-lg font-medium">Features</button>
               <button onClick={() => handleScroll('faq')} className="text-left text-lg font-medium">FAQ</button>
               
-              {/* --- CONDITIONAL MOBILE BUTTONS --- */}
               <div className="h-px bg-white/20 my-2"></div>
               
               {isLoggedIn ? (
@@ -146,14 +143,15 @@ export default function PawnManagerLanding() {
         </AnimatePresence>
       </nav>
 
-      
-      <header className="relative  bg-blue-600 pt-36 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
+      {/* --- CHANGED SECTION: HERO --- */}
+      {/* Added 'min-h-screen' and 'flex items-center' to vertically center the content and fill the screen */}
+      <header className="relative bg-blue-600 min-h-screen flex items-center pt-20 px-6 overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
            <div className="absolute top-20 left-20 w-2 h-2 bg-white rounded-full"></div>
            <div className="absolute bottom-32 right-10 w-2 h-2 bg-white rounded-full"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center w-full">
           <div className="text-left">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -179,7 +177,6 @@ export default function PawnManagerLanding() {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
-              {/* Conditional Button in Hero Section as well */}
               {isLoggedIn ? (
                  <button 
                   onClick={() => window.location.href = '/dashboard'}
@@ -327,31 +324,38 @@ export default function PawnManagerLanding() {
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
-            <FaqItem 
-              question="Is PawnManager compliant with local regulations?"
-              answer="Yes. PawnManager is built with compliance in mind. We allow custom configurations for interest rates, grace periods, and reporting formats to match specific state requirements."
-            />
-            <FaqItem 
-              question="Can I migrate data from my existing software?"
-              answer="Absolutely. Our team offers complimentary data migration services to ensure a smooth transition from your current system to PawnManager, keeping your history intact."
-            />
-            <FaqItem 
-              question="Is my data secure in the cloud?"
-              answer="Security is our top priority. We use 256-bit SSL encryption for all data in transit and at rest, hosted on secure AWS servers with daily automated backups."
-            />
-             <FaqItem 
-              question="Do you offer training for my staff?"
-              answer="Yes, all new accounts include onboarding sessions. We also provide extensive documentation and video tutorials accessed directly within the dashboard."
-            />
-             <FaqItem 
-              question="Does it work with barcode scanners?"
-              answer="Yes, PawnManager is plug-and-play compatible with most standard USB and Bluetooth barcode scanners and receipt printers."
-            />
-             <FaqItem 
-              question="Can I manage multiple store locations?"
-              answer="Yes! Our multi-store architecture allows you to manage inventory transfers, employee permissions, and reporting across unlimited locations from one master account."
-            />
-          </div>
+  <FaqItem 
+    question="Is PawnManager compliant with local regulations?"
+    answer="Yes. PawnManager supports customizable interest rules, grace periods, and reporting formats so you can align the system with your state's regulatory requirements."
+  />
+
+  <FaqItem 
+  question="Does PawnManager work offline?"
+  answer="Offline support is currently in development. We're actively working on enabling essential features to function during temporary internet outages, with automatic data syncing once you're back online."
+/>
+
+
+  <FaqItem 
+    question="How secure is my data?"
+    answer="Your data is protected with 256-bit SSL encryption and hosted on secure AWS infrastructure with automated daily backups and strict access controls."
+  />
+
+  <FaqItem 
+    question="Do you offer onboarding support?"
+    answer="Yes. We offer self-serve onboarding with step-by-step setup guides, video tutorials, and in-app tooltips designed to help your team get comfortable quickly."
+  />
+
+  <FaqItem 
+    question="Does PawnManager work with barcode scanners and printers?"
+    answer="Yes. PawnManager is plug-and-play compatible with most standard USB and Bluetooth barcode scanners, receipt printers, and label printers."
+  />
+
+  <FaqItem 
+    question="Can I manage multiple store locations?"
+    answer="Yes. Our multi-store system lets you manage inventory transfers, permissions, financial reports, and user access across all your locations from one dashboard."
+  />
+</div>
+
         </div>
       </section>
 
