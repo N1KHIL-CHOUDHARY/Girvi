@@ -6,7 +6,7 @@ import {
   useTransform,
   AnimatePresence,
   useSpring
-} from "framer-motion";
+} from "motion/react"; // Ensure you have motion installed (or framer-motion)
 import {
   Users,
   BarChart3,
@@ -29,8 +29,6 @@ const appScreenPayments ="https://res.cloudinary.com/ddgdcca86/image/upload/v176
 const appScreenCustomer ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Customers_rul5vq.png";
 const appScreenDashboard ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png";
 
-
-
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, image: appScreenDashboard, desc: "Get a bird's eye view of your daily performance, recent loans, and inventory alerts." },
   { id: "customer", label: "Customers", icon: UserCircle, image: appScreenCustomer, desc: "Manage detailed client profiles, view history, and track pawn limits instantly." },
@@ -42,7 +40,29 @@ export default function PawnManagerLanding() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false); // New state for nav style
   const navigate = useNavigate();
+
+  // --- 1. Auto-Play Tabs Logic ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((current) => {
+        const currentIndex = tabs.findIndex(t => t.id === current);
+        const nextIndex = (currentIndex + 1) % tabs.length;
+        return tabs[nextIndex].id;
+      });
+    }, 4000); // Switch every 4 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- 2. Scroll Detection for Navbar ---
+  useEffect(() => {
+    const handleScrollListener = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScrollListener);
+    return () => window.removeEventListener("scroll", handleScrollListener);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -59,7 +79,7 @@ export default function PawnManagerLanding() {
   };
 
   const handleScroll = (id) => {
-    setIsMobileMenuOpen(false);
+    setIsMobileMenuOpen(false); // Close menu on click
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -96,23 +116,30 @@ export default function PawnManagerLanding() {
   return (
     <div className="min-h-screen w-full bg-white font-sans text-slate-900 overflow-x-hidden">
 
-      <nav className="absolute top-0 left-0 w-full z-50 py-6 px-6 md:px-12 font-sans">
+      {/* --- Navbar with Dynamic Background --- */}
+      <nav 
+        className={`fixed top-0 left-0 w-full z-50 py-4 px-6 md:px-12 font-sans transition-all duration-300 ${
+          isScrolled || isMobileMenuOpen 
+            ? "bg-blue-600/95 backdrop-blur-md shadow-lg py-4" 
+            : "bg-transparent py-6"
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between text-white">
           <div className="text-2xl font-bold tracking-tight">PawnManager</div>
 
+          {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8 font-medium text-sm/6 opacity-90">
-            <button onClick={() => handleScroll('features')} className="hover:opacity-100 transition">Features</button>
-            <button onClick={() => handleScroll('faq')} className="hover:opacity-100 transition">FAQ</button>
-            <button onClick={() => handleScroll('contact')} className="hover:opacity-100 transition">Contact</button>
+            <button onClick={() => handleScroll('features')} className="hover:opacity-100 transition hover:text-blue-200">Features</button>
+            <button onClick={() => handleScroll('faq')} className="hover:opacity-100 transition hover:text-blue-200">FAQ</button>
+            <button onClick={() => handleScroll('contact')} className="hover:opacity-100 transition hover:text-blue-200">Contact</button>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-
             {isLoggedIn ? (
               <>
                 <button
                   onClick={() => navigate('/app/dashboard')}
-                  className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2"
+                  className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2 shadow-sm"
                 >
                   <LayoutDashboard size={16} /> Dashboard
                 </button>
@@ -141,6 +168,7 @@ export default function PawnManagerLanding() {
             )}
           </div>
 
+          {/* Mobile Toggle */}
           <button
             className="md:hidden text-white z-50 relative"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -149,16 +177,18 @@ export default function PawnManagerLanding() {
           </button>
         </div>
 
+        {/* Mobile Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-0 left-0 w-full bg-blue-700 pt-24 p-6 flex flex-col gap-6 text-white shadow-xl md:hidden z-40"
+              className="absolute top-0 left-0 w-full bg-blue-700 pt-24 p-6 flex flex-col gap-6 text-white shadow-xl md:hidden z-40 h-screen"
             >
               <button onClick={() => handleScroll('features')} className="text-left text-lg font-medium">Features</button>
               <button onClick={() => handleScroll('faq')} className="text-left text-lg font-medium">FAQ</button>
+              <button onClick={() => handleScroll('contact')} className="text-left text-lg font-medium">Contact</button>
 
               <div className="h-px bg-white/20 my-2"></div>
 
@@ -184,6 +214,7 @@ export default function PawnManagerLanding() {
 
       {/* --- HERO --- */}
       <header className="relative bg-blue-600 min-h-screen flex items-center pt-20 px-6 overflow-hidden">
+        {/* Decorative Circles */}
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
           <div className="absolute top-20 left-20 w-2 h-2 bg-white rounded-full"></div>
           <div className="absolute bottom-32 right-10 w-2 h-2 bg-white rounded-full"></div>
@@ -240,83 +271,62 @@ export default function PawnManagerLanding() {
             </motion.div>
           </div>
 
-                      <motion.div
-              initial={{ opacity: 0, x: 60 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, type: "spring", stiffness: 120, damping: 18 }}
-              className="relative flex justify-center md:justify-end"
-            >
-              <div className="relative">
-                {/* Soft organic blob background */}
-                <div
-                  className="
-                    absolute inset-0 
-                    bg-white/30 
-                    rounded-[58%_42%_35%_65%_/_60%_38%_62%_40%]
-                    blur-[90px]
-                    -z-10
-                    scale-[1.35]
-                    opacity-80
-                  "
-                />
-
-                {/* Floating subtle glow */}
-                <div
-                  className="
-                    absolute -top-10 -left-10 w-40 h-40
-                    bg-white/20 blur-3xl rounded-full 
-                    -z-10
-                  "
-                />
-
-                {/* Image */}
-                <motion.img
-                  src={heroImage}
-                  alt="3D Character Working"
-                  className="w-full max-w-[500px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.9, type: "spring" }}
-                />
-              </div>
-            </motion.div>
-
+          <motion.div
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, type: "spring", stiffness: 120, damping: 18 }}
+            className="relative flex justify-center md:justify-end pointer-events-none"
+          >
+            <div className="relative">
+               {/* Soft organic blob background */}
+               <div className="absolute inset-0 bg-white/30 rounded-[58%_42%_35%_65%_/_60%_38%_62%_40%] blur-[90px] -z-10 scale-[1.35] opacity-80" />
+               <motion.img
+                 src={heroImage}
+                 alt="3D Character Working"
+                 className="w-full max-w-[500px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
+                 initial={{ scale: 0.9 }}
+                 animate={{ scale: 1 }}
+                 transition={{ duration: 0.9, type: "spring" }}
+               />
+            </div>
+          </motion.div>
         </div>
       </header>
 
-      <section id="demo-section" className="py-10 bg-slate-50 relative">
+      {/* --- WORKFLOW TABS --- */}
+      <section id="demo-section" className="py-24 bg-slate-50 relative">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl font-bold mb-4 text-slate-900">Experience the Workflow</h2>
             <p className="text-lg text-slate-600">Switch between views to see how PawnManager streamlines your operations.</p>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-
             <div className="flex border-b border-slate-200">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex-1 py-4 px-4 text-center focus:outline-none transition-colors duration-300 ${activeTab === tab.id ? "text-blue-600 bg-blue-50/50" : "text-slate-500 hover:bg-slate-50"
-                    }`}
+                  onClick={() => setActiveTab(tab.id)} // Manual click sets tab (and effectively resets timer visually)
+                  className={`relative flex-1 py-6 px-4 text-center focus:outline-none transition-colors duration-300 ${
+                    activeTab === tab.id ? "text-blue-600 bg-blue-50/50" : "text-slate-500 hover:bg-slate-50"
+                  }`}
                 >
-                  <div className="flex items-center justify-center gap-2 font-bold text-lg">
+                  <div className="flex items-center justify-center gap-2 font-bold text-lg md:text-xl">
                     <tab.icon size={20} className={activeTab === tab.id ? "text-blue-600" : "text-slate-400"} />
-                    {tab.label}
+                    <span className="hidden sm:inline">{tab.label}</span>
                   </div>
 
                   {activeTab === tab.id && (
                     <motion.div
                       layoutId="activeTabIndicator"
-                      className="absolute bottom-0 left-0 w-full h-1 bg-blue-600"
+                      className="absolute bottom-0 left-0 w-full h-1.5 bg-blue-600"
                     />
                   )}
                 </button>
               ))}
             </div>
 
-            <div className="p-8 md:p-12 bg-white min-h-[700px] max-h-[700px]  flex flex-col items-center justify-center">
+            <div className="p-8 md:p-12 bg-white min-h-[500px] flex flex-col items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -327,13 +337,13 @@ export default function PawnManagerLanding() {
                   className="w-full text-center"
                 >
                   <div className="mb-8">
-                    <p className="text-slate-500 text-lg">{tabs.find(t => t.id === activeTab).desc}</p>
+                    <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">{tabs.find(t => t.id === activeTab).desc}</p>
                   </div>
-                  <div className="rounded-xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 inline-block">
+                  <div className="rounded-xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 inline-block">
                     <img
                       src={tabs.find(t => t.id === activeTab).image}
                       alt={tabs.find(t => t.id === activeTab).label}
-                      className="max-w-full h-auto"
+                      className="max-w-full h-auto object-cover"
                     />
                   </div>
                 </motion.div>
@@ -343,6 +353,7 @@ export default function PawnManagerLanding() {
         </div>
       </section>
 
+      {/* --- FEATURES --- */}
       <section id="features" className="py-24 px-6 max-w-7xl mx-auto bg-white">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Everything you need to run efficiently</h2>
@@ -382,30 +393,29 @@ export default function PawnManagerLanding() {
         </div>
       </section>
 
-
-          <section id="faq" className="py-24 px-6 bg-slate-50">
+      {/* --- FAQ --- */}
+      <section id="faq" className="py-24 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
           <div className="mb-14 text-center">
             <h2 className="text-3xl font-bold mb-4 text-slate-900">Common Questions</h2>
             <p className="text-slate-600">Everything you need to know about the product.</p>
           </div>
 
-          
-        <div className="grid md:grid-cols-2 gap-6 items-start">
-          {faqData.map((item, index) => (
-            <FaqItem
-              key={index}
-              question={item.question}
-              answer={item.answer}
-              isOpen={openFaqIndex === index}
-              onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-            />
-          ))}
-        </div>
-
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            {faqData.map((item, index) => (
+              <FaqItem
+                key={index}
+                question={item.question}
+                answer={item.answer}
+                isOpen={openFaqIndex === index}
+                onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
+      {/* --- FOOTER --- */}
       <footer id="contact" className="bg-white border-t border-slate-100 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2">
@@ -457,29 +467,22 @@ function FaqItem({ question, answer, isOpen, onClick }) {
     <motion.div
       layout
       initial={false}
-      onClick={onClick} // Clicking anywhere on the card toggles it
+      onClick={onClick}
       className={`bg-white rounded-xl overflow-hidden border cursor-pointer transition-all duration-300 ${
         isOpen 
           ? 'border-blue-500 shadow-md ring-1 ring-blue-100' 
           : 'border-slate-200 hover:border-slate-300'
       }`}
     >
-      <button
-        className="flex justify-between items-start w-full text-left p-6 focus:outline-none group"
-      >
-        <span className={`font-semibold text-base pr-4 transition-colors ${
-          isOpen ? 'text-blue-700' : 'text-slate-800'
-        }`}>
+      <button className="flex justify-between items-start w-full text-left p-6 focus:outline-none group">
+        <span className={`font-semibold text-base pr-4 transition-colors ${isOpen ? 'text-blue-700' : 'text-slate-800'}`}>
           {question}
         </span>
-        
         <motion.div
           layout
           transition={{ duration: 0.2 }}
           className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-            isOpen 
-              ? 'bg-blue-100 text-blue-600' 
-              : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
+            isOpen ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
           }`}
         >
           {isOpen ? <Minus size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
