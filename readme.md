@@ -194,7 +194,6 @@ Pawn_manager/
 ```
 git clone https://github.com/yourname/Pawn_manager.git
 cd Pawn_manager
-
 ```
 ## backend
 
@@ -202,7 +201,6 @@ cd Pawn_manager
 cd Backend
 npm install
 npm run dev
-
 ```
 
 # Env for backend
@@ -213,17 +211,14 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ENCRYPTION_KEY=
-
 ```
 
 ## frontend
 
 ```
-
 cd frontend
 npm install
 npm run dev
-
 ```
 
 
