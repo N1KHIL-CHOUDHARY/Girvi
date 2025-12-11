@@ -41,6 +41,7 @@ export default function PawnManagerLanding() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +65,33 @@ export default function PawnManagerLanding() {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const faqData = [
+    {
+      question: "Is PawnManager compliant with local regulations?",
+      answer: "Yes. PawnManager supports customizable interest rules, grace periods, and reporting formats so you can align the system with your state's regulatory requirements."
+    },
+    {
+      question: "Does PawnManager work offline?",
+      answer: "Offline support is currently in development. We're actively working on enabling essential features to function during temporary internet outages, with automatic data syncing once you're back online."
+    },
+    {
+      question: "How secure is my data?",
+      answer: "Your data is protected with 256-bit SSL encryption and hosted on secure AWS infrastructure with automated daily backups and strict access controls."
+    },
+    {
+      question: "Do you offer onboarding support?",
+      answer: "Yes. We offer self-serve onboarding with step-by-step setup guides, video tutorials, and in-app tooltips designed to help your team get comfortable quickly."
+    },
+    {
+      question: "Does PawnManager work with barcode scanners and printers?",
+      answer: "Yes. PawnManager is plug-and-play compatible with most standard USB and Bluetooth barcode scanners, receipt printers, and label printers."
+    },
+    {
+      question: "Can I manage multiple store locations?",
+      answer: "Yes. Our multi-store system lets you manage inventory transfers, permissions, financial reports, and user access across all your locations from one dashboard."
+    }
+  ];
 
   return (
     <div className="min-h-screen w-full bg-white font-sans text-slate-900 overflow-x-hidden">
@@ -354,45 +382,26 @@ export default function PawnManagerLanding() {
         </div>
       </section>
 
-      <section id="faq" className="py-24 px-6 bg-slate-50">
+
+          <section id="faq" className="py-24 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
           <div className="mb-14 text-center">
             <h2 className="text-3xl font-bold mb-4 text-slate-900">Common Questions</h2>
             <p className="text-slate-600">Everything you need to know about the product.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          
+        <div className="grid md:grid-cols-2 gap-6 items-start">
+          {faqData.map((item, index) => (
             <FaqItem
-              question="Is PawnManager compliant with local regulations?"
-              answer="Yes. PawnManager supports customizable interest rules, grace periods, and reporting formats so you can align the system with your state's regulatory requirements."
+              key={index}
+              question={item.question}
+              answer={item.answer}
+              isOpen={openFaqIndex === index}
+              onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
             />
-
-            <FaqItem
-              question="Does PawnManager work offline?"
-              answer="Offline support is currently in development. We're actively working on enabling essential features to function during temporary internet outages, with automatic data syncing once you're back online."
-            />
-
-
-            <FaqItem
-              question="How secure is my data?"
-              answer="Your data is protected with 256-bit SSL encryption and hosted on secure AWS infrastructure with automated daily backups and strict access controls."
-            />
-
-            <FaqItem
-              question="Do you offer onboarding support?"
-              answer="Yes. We offer self-serve onboarding with step-by-step setup guides, video tutorials, and in-app tooltips designed to help your team get comfortable quickly."
-            />
-
-            <FaqItem
-              question="Does PawnManager work with barcode scanners and printers?"
-              answer="Yes. PawnManager is plug-and-play compatible with most standard USB and Bluetooth barcode scanners, receipt printers, and label printers."
-            />
-
-            <FaqItem
-              question="Can I manage multiple store locations?"
-              answer="Yes. Our multi-store system lets you manage inventory transfers, permissions, financial reports, and user access across all your locations from one dashboard."
-            />
-          </div>
+          ))}
+        </div>
 
         </div>
       </section>
@@ -443,29 +452,41 @@ function FeatureCard({ icon, title, desc }) {
   );
 }
 
-function FaqItem({ question, answer }) {
-  const [isOpen, setIsOpen] = useState(false);
-
+function FaqItem({ question, answer, isOpen, onClick }) {
   return (
     <motion.div
       layout
-      className={`bg-white rounded-xl overflow-hidden border transition-all duration-300 ${isOpen ? 'border-blue-500 shadow-md ring-1 ring-blue-100' : 'border-slate-200 hover:border-slate-300'}`}
+      initial={false}
+      onClick={onClick} // Clicking anywhere on the card toggles it
+      className={`bg-white rounded-xl overflow-hidden border cursor-pointer transition-all duration-300 ${
+        isOpen 
+          ? 'border-blue-500 shadow-md ring-1 ring-blue-100' 
+          : 'border-slate-200 hover:border-slate-300'
+      }`}
     >
       <button
-        onClick={() => setIsOpen(!isOpen)}
         className="flex justify-between items-start w-full text-left p-6 focus:outline-none group"
       >
-        <span className={`font-semibold text-base pr-4 transition-colors ${isOpen ? 'text-blue-700' : 'text-slate-800'}`}>
+        <span className={`font-semibold text-base pr-4 transition-colors ${
+          isOpen ? 'text-blue-700' : 'text-slate-800'
+        }`}>
           {question}
         </span>
+        
         <motion.div
-          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}
+          layout
+          transition={{ duration: 0.2 }}
+          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+            isOpen 
+              ? 'bg-blue-100 text-blue-600' 
+              : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
+          }`}
         >
           {isOpen ? <Minus size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
         </motion.div>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
@@ -473,7 +494,7 @@ function FaqItem({ question, answer }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <div className="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-50 pt-4 mt-2">
+            <div className="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-50 pt-4">
               {answer}
             </div>
           </motion.div>
