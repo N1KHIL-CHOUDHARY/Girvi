@@ -168,6 +168,7 @@ Permission Guard: Frontend routes and UI elements are protected by a PermissionG
 
 ## project structure
 
+```bash
 Pawn_manager/
 ├── Backend/
 │   ├── config/         # DB connection
@@ -186,6 +187,8 @@ Pawn_manager/
     │   ├── pages/      # Dashboard, Forms, Listings
     │   ├── services/   # Axios API configuration
     │   └── lib/        # Utilities (Tailwind merge)
+```
+
 
 
 
