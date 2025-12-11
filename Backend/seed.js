@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const crypto = require('crypto');
 
 // Load env vars
 dotenv.config();
@@ -60,9 +59,7 @@ const getRandomDate = () => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 };
 
-// Helper to encrypt dummy Aadhaar/PAN (using a simple mock format if your encryption service is complex, 
-// OR simpler: we just store raw strings and let the model's setters handle it if they are set up.
-// NOTE: Since your model imports 'encrypt', saving raw strings normally works because of the setter.)
+// Helper to encrypt dummy Aadhaar/PAN
 const generateAadhaar = () => Math.floor(100000000000 + Math.random() * 900000000000).toString();
 const generatePan = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -79,6 +76,17 @@ const seed = async () => {
     console.log('Connecting to MongoDB...');
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected!');
+
+    // 0. CLEANUP (Delete existing data)
+    console.log('🧹 Clearing existing data...');
+    await Promise.all([
+      Shop.deleteMany({}),
+      User.deleteMany({}),
+      Role.deleteMany({}),
+      Customer.deleteMany({}),
+      PawnTicket.deleteMany({})
+    ]);
+    console.log('✨ Database cleared.');
 
     // 1. Create Shop
     console.log('Creating Shop...');
@@ -131,8 +139,6 @@ const seed = async () => {
     // 4. Create 100 Customers & Pawn Tickets
     console.log('Generating 100 Customers and Pawn Data...');
     
-    const customersToInsert = [];
-    const ticketsToInsert = [];
     let ticketCounter = 1000;
 
     for (let i = 0; i < 100; i++) {
@@ -140,7 +146,7 @@ const seed = async () => {
       const firstName = getRandom(firstNames);
       const lastName = getRandom(lastNames);
       
-      // Create Customer Instance (we'll save them in bulk ideally, but loop save is safer for references)
+      // Create Customer
       const customer = new Customer({
         shop_id: shop._id,
         full_name: `${firstName} ${lastName}`,
@@ -176,7 +182,12 @@ const seed = async () => {
           customer_id: customer._id,
           created_by_user_id: Math.random() > 0.5 ? owner._id : worker._id,
           ticket_number: `TKT-${ticketCounter++}`,
+          
+          // --- FIX: Added original_pawn_amount ---
           loan_amount: loanAmt,
+          original_pawn_amount: loanAmt, 
+          // -------------------------------------
+          
           interest_rate: 3, // 3%
           adv_amount: Math.floor(interest), // 1 month interest as advance
           pawned_date: getRandomDate(),

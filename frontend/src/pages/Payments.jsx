@@ -26,9 +26,7 @@ export default function Payments() {
   const totalPages = data?.meta?.totalPages || 1;
   const totalItems = data?.meta?.totalItems || 0;
 
-  // Calculate totals from all data (not just current page)
-  // Note: For accurate totals across all pages, we'd need a separate endpoint
-  // For now, we calculate from current page data
+ 
   const totals = useMemo(() => {
     return rows.reduce(
       (acc, row) => {
@@ -104,6 +102,7 @@ export default function Payments() {
                   </td>
                 </tr>
               ) : (
+                
                 rows.map((row) => (
                   <tr key={row._id} className="border-b border-neutral-100 dark:border-neutral-800">
                     <td className="py-3 pr-4 font-semibold text-neutral-900 dark:text-neutral-100">{row.ticket_number}</td>

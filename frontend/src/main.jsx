@@ -28,7 +28,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               }}
             />
           </ThemeProvider>
-          <ReactQueryDevtools initialIsOpen={false} /> 
         </AuthProvider>
       </QueryClientProvider>
     </Router>
