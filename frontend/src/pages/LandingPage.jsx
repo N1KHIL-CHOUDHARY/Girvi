@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react"; // Added useEffect
 import { 
   motion, 
   useScroll, 
@@ -19,7 +19,8 @@ import {
   Minus,
   LayoutDashboard,
   Wallet,
-  UserCircle
+  UserCircle,
+  LogOut // Added LogOut icon
 } from "lucide-react";
 
 import heroImage from "../assets/bussinessman.png";
@@ -37,6 +38,23 @@ const tabs = [
 export default function PawnManagerLanding() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(tabs[0].id);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // New State for Auth
+
+  // --- CHECK FOR TOKEN ON LOAD ---
+  useEffect(() => {
+    // Replace 'token' with whatever key you use to store your JWT
+    const token = localStorage.getItem('token'); 
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Clear token
+    localStorage.removeItem('user');  // Clear user data if stored
+    setIsLoggedIn(false);
+    window.location.reload(); // Reload to reset state
+  };
 
   const handleScroll = (id) => {
     setIsMobileMenuOpen(false);
@@ -60,10 +78,30 @@ export default function PawnManagerLanding() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <button className="text-sm font-semibold hover:opacity-80 transition">Login</button>
-            <button className="px-5 py-2 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-sm font-semibold">
-              Get Started
-            </button>
+            {/* --- CONDITIONAL DESKTOP BUTTONS --- */}
+            {isLoggedIn ? (
+              <>
+                 <button 
+                  onClick={() => window.location.href = '/dashboard'} // Navigate to dashboard
+                  className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2"
+                 >
+                   <LayoutDashboard size={16} /> Dashboard
+                 </button>
+                 <button 
+                  onClick={handleLogout}
+                  className="text-sm font-semibold hover:opacity-80 transition flex items-center gap-2"
+                 >
+                   <LogOut size={16} /> Logout
+                 </button>
+              </>
+            ) : (
+              <>
+                <button className="text-sm font-semibold hover:opacity-80 transition">Login</button>
+                <button className="px-5 py-2 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-sm font-semibold">
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
 
           <button
@@ -84,13 +122,31 @@ export default function PawnManagerLanding() {
             >
               <button onClick={() => handleScroll('features')} className="text-left text-lg font-medium">Features</button>
               <button onClick={() => handleScroll('faq')} className="text-left text-lg font-medium">FAQ</button>
-              <button className="text-left text-lg font-medium">Login</button>
-              <button className="py-3 rounded-full bg-white text-blue-600 font-bold">Get Started</button>
+              
+              {/* --- CONDITIONAL MOBILE BUTTONS --- */}
+              <div className="h-px bg-white/20 my-2"></div>
+              
+              {isLoggedIn ? (
+                <>
+                  <button onClick={() => window.location.href = '/dashboard'} className="text-left text-lg font-medium flex items-center gap-2">
+                    <LayoutDashboard size={18} /> Go to Dashboard
+                  </button>
+                  <button onClick={handleLogout} className="py-3 rounded-full bg-white/10 border border-white/30 text-white font-bold flex items-center justify-center gap-2">
+                    <LogOut size={18} /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="text-left text-lg font-medium">Login</button>
+                  <button className="py-3 rounded-full bg-white text-blue-600 font-bold">Get Started</button>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </nav>
 
+      {/* Rest of the component (Header, Tabs, Features, FAQ, Footer) remains exactly the same */}
       <header className="relative bg-blue-600 pt-36 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
            <div className="absolute top-20 left-20 w-2 h-2 bg-white rounded-full"></div>
@@ -123,9 +179,20 @@ export default function PawnManagerLanding() {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="flex flex-col sm:flex-row items-start gap-4"
             >
-              <button className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform">
-                Get Started Free
-              </button>
+              {/* Conditional Button in Hero Section as well */}
+              {isLoggedIn ? (
+                 <button 
+                  onClick={() => window.location.href = '/dashboard'}
+                  className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform flex items-center gap-2"
+                 >
+                   <LayoutDashboard size={20} /> Open Dashboard
+                 </button>
+              ) : (
+                <button className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform">
+                  Get Started Free
+                </button>
+              )}
+
               <button 
                 onClick={() => handleScroll('demo-section')}
                 className="px-8 py-3.5 rounded-full border border-white/40 text-white font-semibold hover:bg-white/10 backdrop-blur-sm transition flex items-center gap-2"
