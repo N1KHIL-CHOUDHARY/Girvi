@@ -1,13 +1,12 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTheme } from '../contexts/ThemeContext';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-2 bg-white dark:bg-neutral-800 shadow-lg rounded-md border border-gray-200 dark:border-neutral-700">
-        <p className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{`Pincode: ${label}`}</p>
-        <p className="text-sm text-indigo-500">{`Customers: ${payload[0].value}`}</p>
+      <div className="p-2 app-surface shadow-lg rounded-md border border-app">
+        <p className="text-sm font-semibold text-app-primary">{`Pincode: ${label}`}</p>
+        <p className="text-sm app-accent">{`Customers: ${payload[0].value}`}</p>
       </div>
     );
   }
@@ -15,8 +14,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function AreaBarChart({ data }) {
-  const { isDarkMode } = useTheme();
-
   // data from API: [{ pincode: '600001', count: 1 }]
   // We rename 'pincode' to 'name' and 'customers' to 'value'
   const chartData = data.map(item => ({
@@ -25,8 +22,8 @@ export default function AreaBarChart({ data }) {
   }));
 
   return (
-    <div className="shadow-input w-full rounded-2xl bg-white p-4 dark:bg-black">
-      <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+    <div className="shadow-input w-full rounded-2xl app-surface p-4">
+      <h3 className="text-lg font-semibold text-app-primary mb-4">
         Top Customer Areas (by Pincode)
       </h3>
       <ResponsiveContainer width="100%" height={250}>
@@ -35,14 +32,14 @@ export default function AreaBarChart({ data }) {
           <YAxis 
             dataKey="name" 
             type="category" 
-            stroke={isDarkMode ? "#a3a3a3" : "#4b5563"} 
+            stroke="var(--color-text-secondary)" 
             width={80} 
             tickLine={false} 
             axisLine={false}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-          <Legend formatter={(value) => <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>{value}</span>} />
-          <Bar dataKey="customers" fill="#6366f1" barSize={20} />
+          <Legend formatter={(value) => <span className="text-app-secondary">{value}</span>} />
+          <Bar dataKey="customers" fill="var(--color-chart-1)" barSize={20} />
         </BarChart>
       </ResponsiveContainer>
     </div>

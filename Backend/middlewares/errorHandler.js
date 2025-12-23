@@ -1,6 +1,6 @@
 const { sendError } = require('../utils/response');
 
-const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused-vars
+const errorHandler = (err, req, res, next) => { 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Unexpected server error.';
 

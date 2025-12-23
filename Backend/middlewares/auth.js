@@ -19,7 +19,6 @@ const authenticate = asyncHandler(async (req, res, next) => {
 
     let permissions = decoded.permissions;
 
-    // Fallback to database lookup if token does not include permissions
     if (!permissions) {
       const role = await Role.findOne({
         _id: decoded.roleId,

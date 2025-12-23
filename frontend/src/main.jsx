@@ -24,7 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Toaster
               position="top-right"
               toastOptions={{
-                className: 'bg-white dark:bg-neutral-800 text-black dark:text-white shadow-lg rounded-lg',
+                className: 'app-surface shadow-lg rounded-lg',
               }}
             />
           </ThemeProvider>

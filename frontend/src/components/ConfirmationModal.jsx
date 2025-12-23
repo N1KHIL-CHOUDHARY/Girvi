@@ -21,11 +21,11 @@ export default function ConfirmationModal({
             <IconAlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 text-black dark:text-white" aria-hidden="true" />
           </div>
           <div className="ml-4 mt-0 text-left">
-            <h3 className="text-lg font-semibold leading-6 text-neutral-900 dark:text-neutral-100" id="modal-title">
+            <h3 className="text-lg font-semibold leading-6 text-app-primary" id="modal-title">
               {title}
             </h3>
             <div className="mt-2">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              <p className="text-sm text-app-secondary">
                 {message}
               </p>
             </div>
@@ -44,7 +44,7 @@ export default function ConfirmationModal({
           </button>
           <button
             type="button"
-            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700 sm:mt-0 sm:w-auto"
+            className="mt-3 inline-flex w-full justify-center rounded-md app-surface px-3 py-2 text-sm font-semibold text-app-primary shadow-sm ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-muted)] sm:mt-0 sm:w-auto"
             onClick={onClose}
           >
             {cancelText}

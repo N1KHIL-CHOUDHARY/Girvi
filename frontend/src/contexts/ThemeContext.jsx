@@ -15,37 +15,46 @@ export const ThemeProvider = ({ children }) => {
     const saved = localStorage.getItem('theme');
     return saved || 'system';
   });
+  const [resolvedTheme, setResolvedTheme] = useState('light');
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
     const root = document.documentElement;
+    const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = (newTheme) => {
       root.classList.remove('light', 'dark');
       root.classList.add(newTheme);
+      setResolvedTheme(newTheme);
     };
 
+    const resolveTheme = (targetTheme) =>
+      targetTheme === 'system'
+        ? systemThemeQuery.matches
+          ? 'dark'
+          : 'light'
+        : targetTheme;
+
+    const handleSystemChange = (e) => {
+      const next = e.matches ? 'dark' : 'light';
+      applyTheme(next);
+    };
+
+    const nextTheme = resolveTheme(theme);
+    applyTheme(nextTheme);
+
     if (theme === 'system') {
-      const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
-      const handleSystemChange = (e) => {
-        applyTheme(e.matches ? 'dark' : 'light');
-      };
-      
-      applyTheme(systemThemeQuery.matches ? 'dark' : 'light');
       systemThemeQuery.addEventListener('change', handleSystemChange);
-      
       return () => {
         systemThemeQuery.removeEventListener('change', handleSystemChange);
       };
-    } else {
-      applyTheme(theme);
     }
   }, [theme]);
 
   const value = {
     theme,
     setTheme,
+    isDarkMode: resolvedTheme === 'dark',
   };
 
   return (

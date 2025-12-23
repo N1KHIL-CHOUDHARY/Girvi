@@ -53,26 +53,26 @@ export default function CommandPalette() {
             
             <CommandGroup heading="Navigation">
               <CommandItem onSelect={() => runCommand('/app/dashboard')}>
-                <IconHome className="mr-2 h-4 w-4 text-black dark:text-white" />
+``                <IconHome className="mr-2 h-4 w-4 text-app-primary" />
                 <span>Dashboard</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/customers')}>
-                <IconUsers className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <IconUsers className="mr-2 h-4 w-4 text-app-primary" />
                 <span>All Customers</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/pawns')}>
-                <IconFileText className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <IconFileText className="mr-2 h-4 w-4 text-app-primary" />
                 <span>All Pawn Tickets</span>
               </CommandItem>
             </CommandGroup>
             
             <CommandGroup heading="Actions">
               <CommandItem onSelect={() => runCommand('/app/customer/add')}>
-                <IconUserPlus className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <IconUserPlus className="mr-2 h-4 w-4 text-app-primary" />
                 <span>New Customer</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/pawn/add')}>
-                <IconPlus className="mr-2 h-4 w-4 text-black dark:text-white" />
+                <IconPlus className="mr-2 h-4 w-4 text-app-primary" />
                 <span>New Pawn Ticket</span>
               </CommandItem>
             </CommandGroup>
@@ -81,11 +81,11 @@ export default function CommandPalette() {
             {user?.role === 'owner' && (
               <CommandGroup heading="Admin">
                 <CommandItem onSelect={() => runCommand('/app/employees')}>
-                  <IconUserCog className="mr-2 h-4 w-4 text-black dark:text-white" />
+                  <IconUserCog className="mr-2 h-4 w-4 text-app-primary" />
                   <span>Manage Employees</span>
                 </CommandItem>
                 <CommandItem onSelect={() => runCommand('/app/roles')}>
-                  <IconShieldLock className="mr-2 h-4 w-4 text-black dark:text-white" />
+                  <IconShieldLock className="mr-2 h-4 w-4 text-app-primary" />
                   <span>Manage Roles</span>
                 </CommandItem>
               </CommandGroup>

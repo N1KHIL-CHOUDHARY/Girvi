@@ -41,7 +41,7 @@ const TableFooter = React.forwardRef(({ className, ...props }, ref) => (
     ref={ref}
     data-slot="table-footer"
     className={cn(
-      "bg-neutral-100/50 border-t font-medium [&>tr]:last:border-b-0 dark:bg-neutral-800/50",
+      "bg-[var(--color-surface-muted)] border-t border-app font-medium [&>tr]:last:border-b-0",
       className
     )}
     {...props}
@@ -54,7 +54,7 @@ const TableRow = React.forwardRef(({ className, ...props }, ref) => (
     ref={ref}
     data-slot="table-row"
     className={cn(
-      "hover:bg-neutral-100/50 data-[state=selected]:bg-neutral-100 border-b transition-colors dark:hover:bg-neutral-800/50 dark:data-[state=selected]:bg-neutral-800",
+      "hover:bg-[var(--color-surface-muted)] data-[state=selected]:bg-[color-mix(in_srgb,var(--color-bg-secondary),#ffffff_10%)] border-b border-app transition-colors",
       className
     )}
     {...props}
@@ -67,7 +67,7 @@ const TableHead = React.forwardRef(({ className, ...props }, ref) => (
     ref={ref}
     data-slot="table-head"
     className={cn(
-      "text-neutral-900 dark:text-neutral-100 h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "text-app-primary h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className
     )}
     {...props}
@@ -92,7 +92,7 @@ const TableCaption = React.forwardRef(({ className, ...props }, ref) => (
   <caption
     ref={ref}
     data-slot="table-caption"
-    className={cn("text-neutral-500 dark:text-neutral-400 mt-4 text-sm", className)}
+    className={cn("text-app-secondary mt-4 text-sm", className)}
     {...props}
   />
 ));

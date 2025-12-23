@@ -81,7 +81,7 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-full px-4 py-4 hidden  md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[300px] shrink-0",
+          "h-full px-4 py-4 hidden  md:flex md:flex-col app-surface bg-app-surface w-[300px] shrink-0",
           className
         )}
         animate={{
@@ -105,15 +105,15 @@ export const MobileSidebar = ({
 
   return (
     <div className="md:hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-neutral-100 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="flex items-center justify-between px-4 py-3 app-surface bg-app-surface border-b border-app">
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="p-2 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800 shadow-sm"
+          className="p-2 rounded-md border border-app bg-app-surface shadow-sm"
           aria-label={open ? "Close menu" : "Open menu"}>
           {open ? <IconX size={22} /> : <IconMenu2 size={22} />}
         </button>
-        <span className="text-sm text-neutral-600 dark:text-neutral-300">
+        <span className="text-sm text-app-secondary">
           Menu
         </span>
       </div>
@@ -133,7 +133,7 @@ export const MobileSidebar = ({
             <motion.div
               key="drawer"
               className={cn(
-                "fixed top-0 left-0 bottom-0 w-64 bg-neutral-100 dark:bg-neutral-900 shadow-lg z-50 p-4 flex flex-col",
+                "fixed top-0 left-0 bottom-0 w-64 app-surface bg-app-surface shadow-lg z-50 p-4 flex flex-col",
                 className
               )}
               initial={{ x: -280 }}
@@ -142,13 +142,13 @@ export const MobileSidebar = ({
               transition={{ type: "spring", stiffness: 260, damping: 25 }}
               {...props}>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-base font-semibold text-neutral-800 dark:text-neutral-100">
+                <span className="text-base font-semibold text-app-primary">
                   Navigation
                 </span>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="p-2 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                  className="p-2 rounded-md hover:bg-[var(--color-surface-muted)]"
                   aria-label="Close menu">
                   <IconX size={20} />
                 </button>
@@ -183,7 +183,7 @@ export const SidebarLink = ({
     <Link
       to={link.href}
       onClick={handleClick}
-      className={cn("flex items-center justify-start gap-2 group/sidebar py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors", className)}
+      className={cn("flex items-center justify-start gap-2 group/sidebar py-2 px-3 rounded-md transition-colors hover:bg-[var(--color-surface-muted)]", className)}
       {...props}>
       {link.icon}
       <motion.span
@@ -191,7 +191,7 @@ export const SidebarLink = ({
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block ">
+        className="text-app-primary text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block ">
         {link.label}
       </motion.span>
     </Link>

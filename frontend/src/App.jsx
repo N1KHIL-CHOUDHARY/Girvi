@@ -50,29 +50,29 @@ const AppLayout = () => {
   const [open, setOpen] = useState(false); 
 
   const links = [
-    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'Payments', href: '/app/payments', icon: <IconReportMoney className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
+    { label: 'Dashboard', href: '/app/dashboard', icon: <IconHome className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'Customers', href: '/app/customers', icon: <IconUsers className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'Pawn Tickets', href: '/app/pawns', icon: <IconFileText className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'Payments', href: '/app/payments', icon: <IconReportMoney className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'New Customer', href: '/app/customer/add', icon: <IconUserPlus className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'New Pawn Ticket', href: '/app/pawn/add', icon: <IconPlus className="h-5 w-5 shrink-0 text-app-primary" /> },
   ];
   
   const adminLinks = [
-    { label: 'Employees', href: '/app/employees', icon: <IconUserCog className="h-5 w-5 shrink-0 text-black dark:text-white" /> },
-    { label: 'Roles', href: '/app/roles', icon: <IconShieldLock className="h-5 w-5 shrink-0 text-black dark:text-white" /> }
+    { label: 'Employees', href: '/app/employees', icon: <IconUserCog className="h-5 w-5 shrink-0 text-app-primary" /> },
+    { label: 'Roles', href: '/app/roles', icon: <IconShieldLock className="h-5 w-5 shrink-0 text-app-primary" /> }
   ];
   
   const settingsLink = {
     label: "Settings",
     href: "/app/settings",
-    icon: <IconSettings className="h-5 w-5 shrink-0 text-black dark:text-white" />,
+    icon: <IconSettings className="h-5 w-5 shrink-0 text-app-primary" />,
   };
 
   const logoutLink = {
     label: "Logout",
     href: "/login",
-    icon: <IconLogout className="h-5 w-5 shrink-0 text-black dark:text-white" />,
+    icon: <IconLogout className="h-5 w-5 shrink-0 text-app-primary" />,
   };
 
   return (
@@ -84,7 +84,7 @@ const AppLayout = () => {
       )}
     >
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-10 bg-white dark:bg-black border-r border-neutral-200 dark:border-neutral-800">
+        <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
           
           <div className="flex flex-1 flex-col overflow-y-auto">
             {open ? <Logo /> : <LogoIcon />}
@@ -119,12 +119,12 @@ const AppLayout = () => {
                 setOpen(false);
                 logout();
               }}
-              className="flex items-center justify-start gap-2 group/sidebar py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors w-full text-left"
+              className="flex items-center justify-start gap-2 group/sidebar py-2 px-3 rounded-md transition-colors w-full text-left hover:bg-[var(--color-surface-muted)]"
             >
               {logoutLink.icon}
               <motion.span
                 animate={{ display: open ? "inline-block" : "none", opacity: open ? 1 : 0 }}
-                className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+                className="text-app-primary text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
               >
                 {logoutLink.label}
               </motion.span>
@@ -133,7 +133,7 @@ const AppLayout = () => {
         </SidebarBody>
       </Sidebar>
       
-      <main className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-neutral-950 overflow-y-auto pt-16 md:pt-4">
+      <main className="flex-1 p-4 md:p-6 bg-app-primary overflow-y-auto pt-16 md:pt-4">
         <Outlet />
       </main>
       

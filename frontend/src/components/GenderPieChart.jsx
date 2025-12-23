@@ -1,15 +1,18 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTheme } from '../contexts/ThemeContext';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = [
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)'
+];
 
 // Custom Tooltip for Theming
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-2 bg-white dark:bg-neutral-800 shadow-lg rounded-md border border-gray-200 dark:border-neutral-700">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300">{`${payload[0].name} : ${payload[0].value} customers`}</p>
+      <div className="p-2 app-surface shadow-lg rounded-md border border-app">
+        <p className="text-sm text-app-primary">{`${payload[0].name} : ${payload[0].value} customers`}</p>
       </div>
     );
   }
@@ -18,8 +21,6 @@ const CustomTooltip = ({ active, payload }) => {
 
 // This component now accepts a 'data' prop
 export default function GenderPieChart({ data }) {
-  const { isDarkMode } = useTheme();
-
   // data from API: [{ gender: 'Male', count: 1 }]
   // We rename 'gender' to 'name' and 'count' to 'value' for the chart
   const chartData = data.map(item => ({
@@ -28,8 +29,8 @@ export default function GenderPieChart({ data }) {
   }));
 
   return (
-    <div className="shadow-input w-full rounded-2xl bg-white p-4 dark:bg-black">
-      <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+    <div className="shadow-input w-full rounded-2xl app-surface p-4">
+      <h3 className="text-lg font-semibold text-app-primary mb-4">
         Customer Gender
       </h3>
       <ResponsiveContainer width="100%" height={250}>
@@ -40,7 +41,7 @@ export default function GenderPieChart({ data }) {
             cy="50%"
             labelLine={false}
             outerRadius={80}
-            fill="#8884d8"
+            fill="var(--color-chart-1)"
             dataKey="value"
             label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
           >
@@ -49,7 +50,7 @@ export default function GenderPieChart({ data }) {
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
-          <Legend formatter={(value) => <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>{value}</span>} />
+          <Legend formatter={(value) => <span className="text-app-secondary">{value}</span>} />
         </PieChart>
       </ResponsiveContainer>
     </div>

@@ -1,3 +1,134 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-border: #e2e8f0;
+  --color-accent: #6366f1;
+  --color-accent-strong: #4f46e5;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-field: #f8fafc;
+  --color-field-border: #e2e8f0;
+  --color-chart-1: #6366f1;
+  --color-chart-2: #22c55e;
+  --color-chart-3: #f59e0b;
+  --color-chart-4: #f97316;
+  --color-chart-stroke: #cbd5e1;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-bg-primary: #0b1220;
+  --color-bg-secondary: #111827;
+  --color-surface-muted: #0f172a;
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #9ca3af;
+  --color-border: #1f2937;
+  --color-accent: #a5b4fc;
+  --color-accent-strong: #c7d2fe;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  --color-field: #0f172a;
+  --color-field-border: #1f2937;
+  --color-chart-1: #a5b4fc;
+  --color-chart-2: #4ade80;
+  --color-chart-3: #fbbf24;
+  --color-chart-4: #fb923c;
+  --color-chart-stroke: #334155;
+}
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+  }
+
+  /* Safety overrides so stray light backgrounds honor the active theme */
+  .dark .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-neutral-100,
+  .dark .bg-neutral-200 {
+    background-color: var(--color-bg-secondary) !important;
+  }
+
+  .dark .text-black {
+    color: var(--color-text-primary) !important;
+  }
+
+  .dark .border-neutral-200,
+  .dark .border-gray-200 {
+    border-color: var(--color-border) !important;
+  }
+}
+
+@layer components {
+  .app-surface {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
+
+  .app-surface-muted {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
+
+  .app-border {
+    border-color: var(--color-border);
+  }
+
+  .app-text-muted {
+    color: var(--color-text-secondary);
+  }
+
+  .app-accent {
+    color: var(--color-accent);
+  }
+
+  .app-bg-accent {
+    background-color: var(--color-accent);
+    color: #0b1220;
+  }
+
+  .app-overlay {
+    background-color: var(--color-overlay);
+  }
+
+  .app-input {
+    background-color: var(--color-field);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-field-border);
+  }
+}
+
+@layer utilities {
+  .bg-app-primary {
+    background-color: var(--color-bg-primary);
+  }
+
+  .bg-app-surface {
+    background-color: var(--color-bg-secondary);
+  }
+
+  .text-app-primary {
+    color: var(--color-text-primary);
+  }
+
+  .text-app-secondary {
+    color: var(--color-text-secondary);
+  }
+
+  .border-app {
+    border-color: var(--color-border);
+  }
+}

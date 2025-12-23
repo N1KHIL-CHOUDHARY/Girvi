@@ -8,25 +8,25 @@ import AreaBarChart from '../components/AreaPieChart';
 import { useQuery } from '@tanstack/react-query';
 
 const StatCard = ({ title, value }) => (
-  <div className="shadow-input rounded-2xl bg-white p-4 dark:bg-black">
-    <p className="text-sm text-neutral-600 dark:text-neutral-400">{title}</p>
-    <p className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">{value}</p>
+  <div className="shadow-input rounded-2xl app-surface p-4">
+    <p className="text-sm text-app-secondary">{title}</p>
+    <p className="text-2xl font-bold text-app-primary">{value}</p>
   </div>
 );
 
 const RecentActivity = ({ activities }) => (
-  <div className="shadow-input rounded-2xl bg-white p-4 dark:bg-black">
-    <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+  <div className="shadow-input rounded-2xl app-surface p-4">
+    <h3 className="text-lg font-semibold text-app-primary mb-4">
       Recent Activity
     </h3>
     <div className="space-y-3">
       {activities.length === 0 ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">No recent activity.</p>
+        <p className="text-sm text-app-secondary">No recent activity.</p>
       ) : (
         activities.map((activity) => (
           <div key={activity._id} className="text-sm">
-            <p className="text-neutral-800 dark:text-neutral-200">{activity.message}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-app-primary">{activity.message}</p>
+            <p className="text-xs text-app-secondary">
               {new Date(activity.createdAt).toLocaleString()}
             </p>
           </div>
@@ -84,7 +84,7 @@ export default function Dashboard() {
   return (
     <div className={`p-4 md:p-6 space-y-6 ${isDarkMode ? 'dark' : ''}`}>
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
+        <h2 className="text-3xl font-bold text-app-primary">
           Welcome, {user?.full_name}!
         </h2>
        
@@ -113,18 +113,18 @@ export default function Dashboard() {
 
       {/* 3. Lists (Top Customers & Recent Activity) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="shadow-input rounded-2xl bg-white p-4 dark:bg-black">
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+        <div className="shadow-input rounded-2xl app-surface p-4">
+          <h3 className="text-lg font-semibold text-app-primary mb-4">
             Top Customers
           </h3>
           <div className="space-y-3">
             {(top_customers || []).length === 0 ? (
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">No customer data yet.</p>
+              <p className="text-sm text-app-secondary">No customer data yet.</p>
             ) : (
               top_customers.map((customer) => (
                 <div key={customer._id} className="flex justify-between items-center text-sm">
-                  <p className="text-neutral-800 dark:text-neutral-200">{customer.full_name}</p>
-                  <p className="font-medium text-neutral-600 dark:text-neutral-300">
+                  <p className="text-app-primary">{customer.full_name}</p>
+                  <p className="font-medium text-app-secondary">
                     ₹{(customer.total_loan || 0).toLocaleString('en-IN')}
                   </p>
                 </div>
