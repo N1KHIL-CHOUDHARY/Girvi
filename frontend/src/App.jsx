@@ -1,5 +1,5 @@
 import CommandPalette from './components/CommandPalette';
-import AppRoutes from './routes/AppRoutes';
+import AppRoutes from './Routes/appRoutes';
 
 function App() {
   return (

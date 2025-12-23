@@ -53,7 +53,7 @@ export default function CommandPalette() {
             
             <CommandGroup heading="Navigation">
               <CommandItem onSelect={() => runCommand('/app/dashboard')}>
-``                <IconHome className="mr-2 h-4 w-4 text-app-primary" />
+                <IconHome className="mr-2 h-4 w-4 text-app-primary" />
                 <span>Dashboard</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/customers')}>
