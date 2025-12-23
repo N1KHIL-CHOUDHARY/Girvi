@@ -27,9 +27,9 @@ const AppLayout = () => {
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
           {/* Top section */}
-          <div className="flex flex-1 flex-col overflow-y-auto">
-            {open ? <Logo /> : <LogoIcon />}
-
+          <div className="flex flex-1 flex-col overflow-hidden shirnk-1">
+            <Logo /> 
+        
             <div className="mt-8 flex flex-col gap-2">
               {mainLinks.map((link) => (
                 <SidebarLink
@@ -84,7 +84,7 @@ const AppLayout = () => {
               }}
               className="flex items-center justify-start gap-2 w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--color-surface-muted)]"
             >
-              <IconLogout className="h-5 w-5 text-app-primary" />
+              <IconLogout className="h-5 w-5 shrink-0  text-app-primary" />
               <motion.span
                 animate={{
                   display: open ? 'inline-block' : 'none',
