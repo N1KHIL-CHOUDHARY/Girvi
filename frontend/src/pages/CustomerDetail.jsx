@@ -324,14 +324,7 @@ export default function CustomerDetail() {
                         </Link>
                       </>
                     )}
-                    <a
-                      href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/app/pdf/notice/${pawn._id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm"
-                    >
-                      <span>PDF</span>
-                    </a>
+                    
                   </div>
                 </motion.div>
               ))}

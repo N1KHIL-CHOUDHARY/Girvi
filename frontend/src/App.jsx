@@ -5,7 +5,6 @@ import { useTheme } from './contexts/ThemeContext';
 import { cn } from './lib/utils';
 import { motion } from 'framer-motion';
 
-// --- Page Imports (Corrected file names) ---
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
