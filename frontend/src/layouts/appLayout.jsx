@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/sidebar';
-import HybridNavigation from '../components/HybridNavigation';
+import HybridNavigation from '@/components/HybridNavigation';
 
 import { mainLinks, adminLinks, settingsLink } from '@/config/sidebarLinks';
 import { IconLogout } from '@tabler/icons-react';
