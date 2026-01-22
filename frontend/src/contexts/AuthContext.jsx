@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, signup as apiSignup, getProfile } from '../services/api';
+import { login as apiLogin, signup as apiSignup, logout as apiLogout, getProfile } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -20,38 +20,28 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const initializeAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      // Check if user is authenticated by calling /app/me
+      // Cookie is automatically sent with request (withCredentials: true)
       const res = await getProfile();
       setUser(res.data.user);
     } catch (err) {
-      // Token invalid or expired
-      localStorage.removeItem('token');
+      // No valid cookie or token expired
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAuthResponse = (result) => {
-    if (!result?.token) {
-      return { success: false, message: result?.message };
-    }
-
-    localStorage.setItem('token', result.token);
-    setUser(result.user);
-    return { success: true };
-  };
-
   const login = async (credentials) => {
     try {
       const res = await apiLogin(credentials);
-      return handleAuthResponse(res.data);
+      // Cookie is automatically set by backend, no need to store token
+      if (res.data?.user) {
+        setUser(res.data.user);
+        return { success: true };
+      }
+      return { success: false, message: res.data?.message || 'Login failed' };
     } catch (err) {
       return {
         success: false,
@@ -63,7 +53,12 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       const res = await apiSignup(userData);
-      return handleAuthResponse(res.data);
+      // Cookie is automatically set by backend, no need to store token
+      if (res.data?.user) {
+        setUser(res.data.user);
+        return { success: true };
+      }
+      return { success: false, message: res.data?.message || 'Signup failed' };
     } catch (err) {
       return {
         success: false,
@@ -72,9 +67,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Call backend logout to clear cookie
+      await apiLogout();
+    } catch (err) {
+      // Even if logout fails, clear user state
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value = {

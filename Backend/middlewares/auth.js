@@ -6,13 +6,20 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 
 const authenticate = asyncHandler(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new ApiError(401, 'Not authorized. Token missing.');
+  // Try to get token from HttpOnly cookie first, fallback to Authorization header for backward compatibility
+  let token = req.cookies?.token;
+  
+  // Fallback to Authorization header if cookie not present (for backward compatibility during migration)
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
   }
 
-  const token = authHeader.split(' ')[1];
+  if (!token) {
+    throw new ApiError(401, 'Not authorized. Token missing.');
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

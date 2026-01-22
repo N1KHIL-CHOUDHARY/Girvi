@@ -29,6 +29,20 @@ const generateToken = (user, permissions) =>
     { expiresIn: '7d' }
   );
 
+// Helper function to set HttpOnly cookie
+const setAuthCookie = (res, token) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+  
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: isProduction, // Only send over HTTPS in production
+    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production, 'lax' for same-domain
+    maxAge: maxAge,
+    path: '/',
+  });
+};
+
 exports.signup = asyncHandler(async (req, res) => {
   const { shop_name, email, password, full_name } = req.body;
 
@@ -71,12 +85,14 @@ exports.signup = asyncHandler(async (req, res) => {
     session.endSession();
 
     const token = generateToken(newUser, ownerRole.permissions);
+    
+    // Set HttpOnly cookie instead of returning token
+    setAuthCookie(res, token);
 
     return sendSuccess(res, {
       status: 201,
       message: 'Signup successful.',
       data: {
-        token,
         user: {
           id: newUser._id,
           shopId: newUser.shop_id,
@@ -109,11 +125,13 @@ exports.login = asyncHandler(async (req, res) => {
   }
 
   const token = generateToken(user, role.permissions);
+  
+  // Set HttpOnly cookie instead of returning token
+  setAuthCookie(res, token);
 
   return sendSuccess(res, {
     message: 'Login successful.',
     data: {
-      token,
       user: {
         id: user._id,
         shopId: user.shop_id,
@@ -123,6 +141,21 @@ exports.login = asyncHandler(async (req, res) => {
         permissions: role.permissions,
       },
     },
+  });
+});
+
+// Logout endpoint - clears the auth cookie
+exports.logout = asyncHandler(async (req, res) => {
+  res.cookie('token', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 0, // Immediately expire
+    path: '/',
+  });
+
+  return sendSuccess(res, {
+    message: 'Logout successful.',
   });
 });
 

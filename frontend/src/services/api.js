@@ -4,20 +4,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // Required for HttpOnly cookies to be sent with requests
 });
-
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 api.interceptors.response.use(
   (response) => {
@@ -49,20 +37,12 @@ api.interceptors.response.use(
   }
 );
 
-export const setAuthToken = (token) => {
-  if (token) {
-    localStorage.setItem('token', token);
-  } else {
-    localStorage.removeItem('token');
-  }
-};
-
 // --- Auth Routes ---
 export const signup = (data) => api.post('/auth/signup', data);
 export const login = (data) => api.post('/auth/login', data);
-
+export const logout = () => api.post('/auth/logout');
 export const getProfile = () => api.get('/app/me');
-export const changePassword = (data) => api.post('/auth/change-password', data); // NEW
+export const changePassword = (data) => api.post('/auth/change-password', data);
 
 // --- Customer (Account) Routes ---
 export const getAccounts = (page = 1, search = "") => {
