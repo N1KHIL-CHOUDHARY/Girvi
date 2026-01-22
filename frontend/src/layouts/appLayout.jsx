@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
 
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/sidebar';
 import HybridNavigation from '@/components/HybridNavigation';

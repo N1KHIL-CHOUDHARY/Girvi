@@ -195,7 +195,7 @@ export default function CustomerDetail() {
             {/* Desktop Table View */}
             <div className="hidden md:block shadow-input rounded-2xl bg-white text-base">
               <Table>
-                <TableCaption>A list of all pawn tickets for {customer.full_name}.</TableCaption>
+                <TableCaption className="pb-1.5 text-neutral-700">A list of all pawn tickets for {customer.full_name}.</TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ticket #</TableHead>
