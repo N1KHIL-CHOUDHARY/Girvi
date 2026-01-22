@@ -167,13 +167,11 @@ export default function Employees() {
                   onChange={(e) => setSelectedRole(e.target.value)}
                   required
                   className={cn(
-                    `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-border-neutral-700 bg-neutral-800 text-neutral-200`
+                    `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm text-neutral-800`
                   )}
                 >
                   <option value="" disabled>{isLoadingRoles ? 'Loading roles...' : 'Select a role'}</option>
                   {rolesData?.map((role) => (
-                    // Don't allow assigning 'Owner'
                     !role.is_owner_role && (
                       <option key={role._id} value={role._id}>
                         {role.name}

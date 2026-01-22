@@ -9,8 +9,7 @@ import React, {
   useContext,
 } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Link } from "react-router-dom";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
 
 /* =========================
@@ -125,67 +124,79 @@ function DesktopSidebar({ className, children, ...props }) {
 }
 
 /* =========================
-   MOBILE SIDEBAR
+   MOBILE SIDEBAR (Bottom Sheet)
 ========================= */
 function MobileSidebar({ className, children, ...props }) {
   const { open, setOpen } = useSidebar();
+  const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
 
+  // Close sidebar on route change
+  useEffect(() => {
+    if (open && prevPathRef.current !== location.pathname) {
+      setOpen(false);
+    }
+    prevPathRef.current = location.pathname;
+  }, [location.pathname, open, setOpen]);
+
+  // Handle ESC key and prevent body scroll
   useEffect(() => {
     const onEsc = (e) => e.key === "Escape" && setOpen(false);
-    if (open) window.addEventListener("keydown", onEsc);
-    return () => window.removeEventListener("keydown", onEsc);
+    
+    if (open) {
+      window.addEventListener("keydown", onEsc);
+      // Prevent body scroll when sidebar is open on mobile
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      window.removeEventListener("keydown", onEsc);
+      document.body.style.overflow = "";
+    };
   }, [open, setOpen]);
 
   return (
     <div className="md:hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b app-surface bg-app-surface">
-        <button
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-          className="p-2 rounded-md border border-app bg-app-surface"
-        >
-          {open ? <IconX size={22} /> : <IconMenu2 size={22} />}
-        </button>
-        <span className="text-sm text-app-secondary">Menu</span>
-      </div>
-
       <AnimatePresence>
         {open && (
           <>
+            {/* Backdrop overlay */}
             <motion.div
               className="fixed inset-0 bg-black/40 z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
+              aria-hidden="true"
             />
 
+            {/* Bottom sheet */}
             <motion.nav
               role="dialog"
               aria-modal="true"
+              aria-label="Navigation menu"
               className={cn(
-                "fixed top-0 left-0 bottom-0 w-64 p-4 z-50 shadow-lg app-surface bg-app-surface",
+                "fixed bottom-0 left-0 right-0 z-50",
+                "h-[85vh] max-h-[90vh]",
+                "bg-white rounded-t-3xl",
+                "border-t border-slate-200 shadow-xl",
+                "flex flex-col",
+                "p-4 pt-6",
                 className
               )}
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", stiffness: 260, damping: 25 }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
               {...props}
             >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-base font-semibold text-app-primary">
-                  Navigation
-                </span>
-                <button
-                  onClick={() => setOpen(false)}
-                  aria-label="Close menu"
-                  className="p-2 rounded-md hover:bg-[var(--color-surface-muted)]"
-                >
-                  <IconX size={20} />
-                </button>
-              </div>
-
+              {/* Content area */}
               <div className="flex-1 overflow-y-auto">{children}</div>
             </motion.nav>
           </>
