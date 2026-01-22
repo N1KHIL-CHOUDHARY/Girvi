@@ -6,13 +6,11 @@ import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { useTheme } from '../contexts/ThemeContext';
 
 export default function UpdatePawn() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isDarkMode } = useTheme();
 
   const [formData, setFormData] = useState(null);
   const [customerName, setCustomerName] = useState('');
@@ -103,7 +101,7 @@ export default function UpdatePawn() {
 
   if (isLoading || !formData) {
     return (
-      <div className="text-center py-20 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-20 text-neutral-500 text-neutral-400">
         Loading ticket data...
       </div>
     );
@@ -122,19 +120,19 @@ export default function UpdatePawn() {
   }
 
   return (
-    <div className={`w-full ${isDarkMode ? 'dark' : ''}`}>
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+    <div className="w-full">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
+        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
           Update Pawn Ticket
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
           Editing ticket {formData.ticket_number} for {customerName}.
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
           <LabelInputContainer className="mb-4">
             <Label>Customer</Label>
-            <Input type="text" value={customerName} disabled className="dark:bg-neutral-800" />
+            <Input type="text" value={customerName} disabled className="bg-neutral-800" />
           </LabelInputContainer>
 
           {/* Ticket Info */}
@@ -165,10 +163,10 @@ export default function UpdatePawn() {
             </LabelInputContainer>
           </div>
 
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
 
           {/* Item Info */}
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
             Item Details
           </h3>
 
@@ -197,7 +195,7 @@ export default function UpdatePawn() {
           <div className="flex gap-4">
             <Link
               to="/app/pawns"
-              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 text-center leading-10"
+              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-10"
             >
               Cancel
             </Link>

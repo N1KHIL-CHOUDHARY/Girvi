@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRoles, createRole, deleteRole, updateRole } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import {
@@ -36,7 +35,6 @@ const formatLabel = (key) => {
 };
 
 export default function Roles() {
-  const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
   
   const [roleName, setRoleName] = useState('');
@@ -124,16 +122,16 @@ export default function Roles() {
 
   return (
     <>
-    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-6">
+    <div className="p-4 md:p-6 min-h-screen">
+      <h1 className="text-3xl font-bold text-neutral-800 mb-6">
         Roles & Permissions
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* --- Create Role Form --- */}
         <div className="md:col-span-1">
-          <div className="shadow-input rounded-2xl bg-white p-6 dark:bg-black">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+          <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
+            <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
               Create New Role
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -153,7 +151,7 @@ export default function Roles() {
                         id={key}
                         checked={permissions[key]}
                         onChange={() => handlePermissionChange(key)}
-                        className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
+                        className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 border-neutral-700 bg-gray-50 bg-neutral-800"
                       />
                     </div>
                   ))}
@@ -173,23 +171,23 @@ export default function Roles() {
 
         {/* --- Role List --- */}
         <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white dark:bg-black dark:text-white text-base">
+          <div className="shadow-input rounded-2xl bg-white bg-black text-white text-base">
             {isLoading ? (
-              <p className="p-4 text-center text-neutral-600 dark:text-neutral-400">Loading roles...</p>
+              <p className="p-4 text-center text-neutral-600 text-neutral-400">Loading roles...</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-neutral-800 dark:text-neutral-200">Role Name</TableHead>
-                    <TableHead className="text-neutral-800 dark:text-neutral-200">Permissions</TableHead>
-                    <TableHead className="text-center text-neutral-800 dark:text-neutral-200">Actions</TableHead>
+                    <TableHead className="text-neutral-800 text-neutral-200">Role Name</TableHead>
+                    <TableHead className="text-neutral-800 text-neutral-200">Permissions</TableHead>
+                    <TableHead className="text-center text-neutral-800 text-neutral-200">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rolesData?.map((role) => (
-                    <TableRow key={role._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
-                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{role.name}</TableCell>
-                      <TableCell className="text-neutral-600 dark:text-neutral-400 text-xs">
+                    <TableRow key={role._id} className="hover:bg-gray-50 hover:bg-neutral-800">
+                      <TableCell className="font-medium text-neutral-800 text-neutral-200">{role.name}</TableCell>
+                      <TableCell className="text-neutral-600 text-neutral-400 text-xs">
                         {Object.keys(role.permissions)
                           .filter(k => role.permissions[k] === true)
                           .length} active permissions
@@ -220,7 +218,7 @@ export default function Roles() {
 
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="sm:max-w-lg">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+          <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
             Edit Role
           </h3>
           <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -245,7 +243,7 @@ export default function Roles() {
                       id={`edit_${key}`}
                       checked={editPermissions[key]}
                       onChange={() => handleEditPermissionChange(key)}
-                      className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
+                      className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 border-neutral-700 bg-gray-50 bg-neutral-800"
                     />
                   </div>
                 ))}
@@ -254,7 +252,7 @@ export default function Roles() {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                className="h-10 px-4 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200"
+                className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
                 onClick={() => setEditModalOpen(false)}
               >
                 Cancel

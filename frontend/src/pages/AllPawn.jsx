@@ -15,7 +15,6 @@ import {
   updatePawnTicketStatus,
   createPayment
 } from "../services/api";
-import { useTheme } from "../contexts/ThemeContext";
 import { usePermission } from "../hooks/usePermission";
 import toast from "react-hot-toast";
 
@@ -59,7 +58,6 @@ export default function AllPawns() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount_paid: "", payment_for: "interest" });
 
-  const { isDarkMode } = useTheme();
   const { hasPermission } = usePermission();
 
   // FETCH PAWN TICKETS
@@ -155,17 +153,17 @@ export default function AllPawns() {
 
   const statusClass = (status) =>
     ({
-      active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      settled: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      defaulted: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-    }[status] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200");
+      active: "bg-green-100 text-green-800",
+      settled: "bg-blue-100 text-blue-800",
+      defaulted: "bg-red-100 text-red-800"
+    }[status] || "bg-gray-100 text-gray-800");
 
   const goToPage = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
   return (
-    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? "dark" : ""} pt-20 md:pt-4`}>
+    <div className="p-4 md:p-6 min-h-screen pt-20 md:pt-4">
       {/* Settle Modal */}
       <ConfirmationModal
         isOpen={isModalOpen}
@@ -188,26 +186,26 @@ export default function AllPawns() {
       {/* Payment Modal (Styled to match context file) */}
       {isPaymentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-neutral-900">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100 mb-4">Add Payment</h3>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+            <h3 className="text-lg font-semibold text-neutral-800 mb-4">Add Payment</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm text-neutral-700 dark:text-neutral-300 mb-1">Amount</label>
+                <label className="block text-sm text-neutral-700 mb-1">Amount</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={paymentForm.amount_paid}
                   onChange={(e) => setPaymentForm(prev => ({ ...prev, amount_paid: e.target.value }))}
-                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-sm text-neutral-700 dark:text-neutral-300 mb-1">Payment For</label>
+                <label className="block text-sm text-neutral-700 mb-1">Payment For</label>
                 <select
                   value={paymentForm.payment_for}
                   onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_for: e.target.value }))}
-                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
                   <option value="interest">Interest</option>
                   <option value="principal">Principal</option>
@@ -217,7 +215,7 @@ export default function AllPawns() {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 onClick={() => setIsPaymentOpen(false)}
-                className="h-10 rounded-md px-4 text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                className="h-10 rounded-md px-4 text-neutral-800 hover:bg-gray-100"
                 disabled={paymentMutation.isLoading}
               >
                 Cancel
@@ -236,7 +234,7 @@ export default function AllPawns() {
 
       {/* Header (Styled to match context file) */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
+        <h1 className="text-3xl font-bold text-neutral-800">
           Pawn Tickets
         </h1>
         <div className="flex w-full sm:w-auto gap-2">
@@ -259,7 +257,7 @@ export default function AllPawns() {
               }}
               className={cn(
                 `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200
+                
                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
                  pr-8 appearance-none`
               )}
@@ -273,9 +271,9 @@ export default function AllPawns() {
           {hasPermission('can_create_tickets') && (
             <Link
               to="/app/pawn/add"
-              className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
+              className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 hover:bg-gray-100"
             >
-              <IconPlus className="text-neutral-800 dark:text-neutral-200" />
+              <IconPlus className="text-neutral-800" />
               <span>New Ticket</span>
             </Link>
           )}
@@ -289,7 +287,7 @@ export default function AllPawns() {
             key="loader"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            className="shadow-input rounded-2xl bg-white p-4 dark:bg-black"
+            className="shadow-input rounded-2xl bg-white p-4"
           >
             <PawnTableSkeleton />
           </motion.div>
@@ -301,7 +299,7 @@ export default function AllPawns() {
             transition={{ duration: 0.4 }}
           >
             {pawns.length === 0 ? (
-              <div className="text-center py-10 text-neutral-500 dark:text-neutral-400">
+              <div className="text-center py-10 text-neutral-500">
                 {search
                   ? `No ${status} tickets found matching "${search}".`
                   : `No ${status !== 'all' ? status : ''} pawn tickets found.`}
@@ -309,7 +307,7 @@ export default function AllPawns() {
             ) : (
               <>
                 {/* Desktop Table View */}
-                <div className="hidden md:block shadow-input rounded-2xl bg-white dark:bg-black overflow-hidden">
+                <div className="hidden md:block shadow-input rounded-2xl bg-white overflow-hidden">
                   <Table>
                     <TableCaption className="pb-4">
                       Showing {pawns.length} of {totalPawnTickets} total tickets.
@@ -327,17 +325,17 @@ export default function AllPawns() {
                     <TableBody>
                       {pawns.map((pawn) => (
                         <TableRow key={pawn._id}>
-                          <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">
+                          <TableCell className="font-medium text-neutral-800">
                             {pawn.ticket_number}
                           </TableCell>
-                          <TableCell className="text-neutral-600 dark:text-neutral-400">
+                          <TableCell className="text-neutral-600">
                             {pawn.customer_id?.full_name || 'N/A'}
                           </TableCell>
-                          <TableCell className="text-neutral-600 dark:text-neutral-400">
+                          <TableCell className="text-neutral-600">
                             {pawn.items[0]?.name}
                             {pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}
                           </TableCell>
-                          <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">
+                          <TableCell className="font-medium text-neutral-800">
                             ₹{pawn.loan_amount.toLocaleString('en-IN')}
                           </TableCell>
                           <TableCell>
@@ -356,7 +354,7 @@ export default function AllPawns() {
                               {hasPermission('can_edit_tickets') && (
                                 <Link
                                   to={`/app/pawns/update/${pawn._id}`}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
                                   title="Edit Ticket"
                                 >
                                   <IconEdit className="text-blue-500 w-5 h-5" />
@@ -366,7 +364,7 @@ export default function AllPawns() {
                                 <button
                                   onClick={() => openDeleteModal(pawn._id)}
                                   disabled={deleteMutation.isLoading}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800"
+                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
                                   title="Delete Ticket"
                                 >
                                   <IconTrashFilled className="text-red-500 w-5 h-5" />
@@ -377,7 +375,7 @@ export default function AllPawns() {
                                 <button
                                 onClick={() => openSettleModal(pawn._id)}
                                 disabled={settleMutation.isLoading}
-                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Mark as Settled"
                               >
                                 <IconCheck size={16} />
@@ -387,7 +385,7 @@ export default function AllPawns() {
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                                 <Link
                                 to={`/app/pawn/${pawn._id}`}
-                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
+                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                               >
                                 <span>₹</span>
                                 <span>Payment</span>
@@ -403,7 +401,7 @@ export default function AllPawns() {
 
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+                  <p className="text-sm text-neutral-600 mb-4">
                     Showing {pawns.length} of {totalPawnTickets} total tickets.
                   </p>
                   {pawns.map((pawn) => (
@@ -411,12 +409,12 @@ export default function AllPawns() {
                       key={pawn._id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="shadow-input rounded-xl bg-white dark:bg-black p-4 border border-neutral-200 dark:border-neutral-800"
+                      className="shadow-input rounded-xl bg-white p-4 border border-neutral-200"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg text-neutral-800 dark:text-neutral-200">
+                            <h3 className="font-semibold text-lg text-neutral-800">
                               {pawn.ticket_number}
                             </h3>
                             <span
@@ -428,22 +426,22 @@ export default function AllPawns() {
                               {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
                             </span>
                           </div>
-                          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+                          <p className="text-sm text-neutral-600 mb-1">
                             <span className="font-medium">Customer:</span> {pawn.customer_id?.full_name || 'N/A'}
                           </p>
-                          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+                          <p className="text-sm text-neutral-600 mb-1">
                             <span className="font-medium">Item:</span> {pawn.items[0]?.name}
                             {pawn.items.length > 1 && ` (+${pawn.items.length - 1} more)`}
                           </p>
-                          <p className="text-base font-semibold text-neutral-800 dark:text-neutral-200 mt-2">
+                          <p className="text-base font-semibold text-neutral-800 mt-2">
                             ₹{pawn.loan_amount.toLocaleString('en-IN')}
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                      <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-200">
                         <Link
                           to={`/app/pawns/${pawn._id}`}
-                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-sm"
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors text-sm"
                         >
                           <IconEye className="w-4 h-4"/>
                           <span>View</span>
@@ -451,7 +449,7 @@ export default function AllPawns() {
                         {hasPermission('can_edit_tickets') && (
                           <Link
                             to={`/app/pawns/update/${pawn._id}`}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm"
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-sm"
                           >
                             <IconEdit className="w-4 h-4"/>
                             <span>Edit</span>
@@ -461,7 +459,7 @@ export default function AllPawns() {
                           <button
                             onClick={() => openDeleteModal(pawn._id)}
                             disabled={deleteMutation.isLoading}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm disabled:opacity-50"
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-sm disabled:opacity-50"
                           >
                             <IconTrashFilled className="w-4 h-4"/>
                             <span>Delete</span>
@@ -473,14 +471,14 @@ export default function AllPawns() {
                             <button
                               onClick={() => openSettleModal(pawn._id)}
                               disabled={settleMutation.isLoading}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-sm disabled:opacity-50"
+                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors text-sm disabled:opacity-50"
                             >
                       
                               Settle
                             </button>
                             <Link
                               to={`/app/pawns/${pawn._id}`}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
+                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                             >
                               <span>₹</span>
                               <span>Payment</span>
@@ -508,12 +506,12 @@ export default function AllPawns() {
             <IconCircleArrowLeftFilled
               className={`h-10 w-10 ${
                 page === 1
-                  ? 'text-gray-400 dark:text-neutral-700'
-                  : 'text-neutral-800 dark:text-neutral-200'
+                  ? 'text-gray-400'
+                  : 'text-neutral-800'
               }`}
             />
           </button>
-          <span className="text-sm text-neutral-600 dark:text-neutral-400">
+          <span className="text-sm text-neutral-600">
             Page {page} of {totalPages}
           </span>
           <button
@@ -524,8 +522,8 @@ export default function AllPawns() {
             <IconCircleArrowRightFilled
               className={`h-10 w-10 ${
                 page === totalPages
-                  ? 'text-gray-400 dark:text-neutral-700'
-                  : 'text-neutral-800 dark:text-neutral-200'
+                  ? 'text-gray-400'
+                  : 'text-neutral-800'
               }`}
             />
           </button>

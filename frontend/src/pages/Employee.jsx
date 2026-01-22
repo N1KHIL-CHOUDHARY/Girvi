@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEmployees, createEmployee, deleteEmployee, getRoles, updateEmployee } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import {
@@ -14,7 +13,6 @@ import { cn } from '../lib/utils';
 import toast from 'react-hot-toast';
 
 export default function Employees() {
-  const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
   
   const [fullName, setFullName] = useState('');
@@ -136,16 +134,16 @@ export default function Employees() {
 
   return (
     <>
-    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200 mb-6">
+    <div className="p-4 md:p-6 min-h-screen">
+      <h1 className="text-3xl font-bold text-neutral-800 text-neutral-200 mb-6">
         Manage Employees
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* --- Create Employee Form --- */}
         <div className="md:col-span-1">
-          <div className="shadow-input rounded-2xl bg-white p-6 dark:bg-black">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">
+          <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
+            <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
               Create New Employee
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -170,7 +168,7 @@ export default function Employees() {
                   required
                   className={cn(
                     `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                     dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200`
+border-neutral-700 bg-neutral-800 text-neutral-200`
                   )}
                 >
                   <option value="" disabled>{isLoadingRoles ? 'Loading roles...' : 'Select a role'}</option>
@@ -197,7 +195,7 @@ export default function Employees() {
 
         {/* --- Employee List --- */}
         <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white dark:bg-black">
+          <div className="shadow-input rounded-2xl bg-white bg-black">
             {isLoadingEmployees ? (
               <p className="p-4 text-center">Loading employees...</p>
             ) : (
@@ -212,14 +210,14 @@ export default function Employees() {
                 </TableHeader>
                 <TableBody>
                   {employeesData?.map((emp) => (
-                    <TableRow key={emp._id} className="hover:bg-gray-50 dark:hover:bg-neutral-800">
-                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{emp.full_name}</TableCell>
-                      <TableCell className="text-neutral-600 dark:text-neutral-400">{emp.email}</TableCell>
+                    <TableRow key={emp._id} className="hover:bg-gray-50 hover:bg-neutral-800">
+                      <TableCell className="font-medium text-neutral-800 text-neutral-200">{emp.full_name}</TableCell>
+                      <TableCell className="text-neutral-600 text-neutral-400">{emp.email}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           emp.role === 'owner' 
-                          ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' 
-                          : 'bg-gray-100 text-gray-800 dark:bg-neutral-800 dark:text-neutral-200'
+                          ? 'bg-indigo-100 text-indigo-800 bg-indigo-900 text-indigo-200' 
+                          : 'bg-gray-100 text-gray-800 bg-neutral-800 text-neutral-200'
                         }`}>
                           {emp.role_id?.name || emp.role}
                         </span>
@@ -248,7 +246,7 @@ export default function Employees() {
 
     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
       <DialogContent className="sm:max-w-lg">
-        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+        <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
           Edit Employee
         </h3>
         <form onSubmit={handleUpdate} className="space-y-4">
@@ -291,7 +289,7 @@ export default function Employees() {
               required
               className={cn(
                 `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200`
+border-neutral-700 bg-neutral-800 text-neutral-200`
               )}
             >
               <option value="" disabled>{isLoadingRoles ? 'Loading roles...' : 'Select a role'}</option>
@@ -307,7 +305,7 @@ export default function Employees() {
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              className="h-10 px-4 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200"
+              className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
               onClick={() => setEditModalOpen(false)}
             >
               Cancel

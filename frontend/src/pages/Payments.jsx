@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFinancialReport } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 import { IconReportMoney, IconCurrencyRupee, IconCircleCheck, IconAlertTriangle, IconCircleArrowLeftFilled, IconCircleArrowRightFilled, IconSearch } from '@tabler/icons-react';
 import { Input } from '../components/ui/Input';
@@ -11,7 +10,6 @@ import { cn } from '../lib/utils';
 const currency = (value = 0) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
 export default function Payments() {
-  const { isDarkMode } = useTheme();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
@@ -49,10 +47,10 @@ export default function Payments() {
   };
 
   return (
-    <div className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}>
+    <div className="p-4 md:p-6 min-h-screen pt-20 md:pt-4">
       <div className="mb-6 flex items-center gap-2">
         <IconReportMoney className="h-6 w-6 text-blue-600" />
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Payments & Loan Portfolio</h1>
+        <h1 className="text-xl font-semibold text-neutral-900">Payments & Loan Portfolio</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -76,11 +74,11 @@ export default function Payments() {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="overflow-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+              <tr className="text-left text-neutral-500 border-b border-neutral-200">
                 <th className="py-2 pr-4">Ticket #</th>
                 <th className="py-2 pr-4">Customer</th>
                 <th className="py-2 pr-4">Status</th>
@@ -104,8 +102,8 @@ export default function Payments() {
                 </tr>
               ) : (
                 rows.map((row) => (
-                  <tr key={row._id} className="border-b border-neutral-100 dark:border-neutral-800">
-                    <td className="py-3 pr-4 font-semibold text-neutral-900 dark:text-neutral-100">{row.ticket_number}</td>
+                  <tr key={row._id} className="border-b border-neutral-100">
+                    <td className="py-3 pr-4 font-semibold text-neutral-900">{row.ticket_number}</td>
                     <td className="py-3 pr-4">{Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}</td>
                     <td className="py-3 pr-4">
                       <StatusPill status={row.status} />
@@ -114,7 +112,7 @@ export default function Payments() {
                     <td className="py-3 pr-4">{currency(row.total_principal_paid)}</td>
                     <td className="py-3 pr-4">{currency(row.total_interest_paid)}</td>
                     <td className="py-3 pr-4">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-100">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
                         <IconCurrencyRupee className="h-4 w-4" />
                         {Number(row.loan_amount || 0).toLocaleString('en-IN')}
                       </span>
@@ -134,7 +132,7 @@ export default function Payments() {
           </table>
         </div>
         {!isLoading && totalItems > 0 && (
-          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800 text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="mt-4 pt-4 border-t border-neutral-200 text-sm text-neutral-500">
             Showing {rows.length} of {totalItems} total tickets.
           </div>
         )}
@@ -143,43 +141,43 @@ export default function Payments() {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {isLoading ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
             Loading...
           </div>
         ) : !rows.length ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
             {search ? `No tickets found matching "${search}".` : 'No data.'}
           </div>
         ) : (
           rows.map((row) => (
-            <div key={row._id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div key={row._id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-neutral-500">Ticket</p>
-                  <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{row.ticket_number}</p>
-                  <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                  <p className="text-lg font-semibold text-neutral-900">{row.ticket_number}</p>
+                  <p className="mt-1 text-sm text-neutral-600">
                     {Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}
                   </p>
                 </div>
                 <StatusPill status={row.status} />
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600 dark:text-neutral-300">
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600">
                 <div>
                   <p className="text-xs text-neutral-500">Original Loan</p>
-                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.original_loan_amount)}</p>
+                  <p className="font-semibold text-neutral-900">{currency(row.original_loan_amount)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Principal Paid</p>
-                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.total_principal_paid)}</p>
+                  <p className="font-semibold text-neutral-900">{currency(row.total_principal_paid)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Interest Paid</p>
-                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{currency(row.total_interest_paid)}</p>
+                  <p className="font-semibold text-neutral-900">{currency(row.total_interest_paid)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Balance Due</p>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-100">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
                     <IconCurrencyRupee className="h-4 w-4" />
                     {Number(row.loan_amount || 0).toLocaleString('en-IN')}
                   </span>
@@ -198,7 +196,7 @@ export default function Payments() {
           ))
         )}
         {!isLoading && totalItems > 0 && (
-          <div className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
+          <div className="text-sm text-neutral-500 text-center">
             Showing {rows.length} of {totalItems} total tickets.
           </div>
         )}
@@ -216,12 +214,12 @@ export default function Payments() {
               className={cn(
                 'h-10 w-10',
                 page === 1
-                  ? 'text-gray-400 dark:text-neutral-700'
-                  : 'text-neutral-800 dark:text-neutral-200'
+                  ? 'text-gray-400'
+                  : 'text-neutral-800'
               )}
             />
           </button>
-          <span className="text-sm text-neutral-600 dark:text-neutral-400">
+          <span className="text-sm text-neutral-600">
             Page {page} of {totalPages}
           </span>
           <button
@@ -233,8 +231,8 @@ export default function Payments() {
               className={cn(
                 'h-10 w-10',
                 page === totalPages
-                  ? 'text-gray-400 dark:text-neutral-700'
-                  : 'text-neutral-800 dark:text-neutral-200'
+                  ? 'text-gray-400'
+                  : 'text-neutral-800'
               )}
             />
           </button>
@@ -245,21 +243,21 @@ export default function Payments() {
 }
 
 const SummaryCard = ({ title, value }) => (
-  <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+  <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
     <p className="text-xs text-neutral-500">{title}</p>
-    <p className="mt-2 text-lg font-semibold text-neutral-800 dark:text-neutral-200">{value}</p>
+    <p className="mt-2 text-lg font-semibold text-neutral-800">{value}</p>
   </div>
 );
 
 const StatusPill = ({ status }) => {
   const styles = {
-    active: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-100',
-    settled: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-100',
-    defaulted: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-100',
+    active: 'bg-green-100 text-green-800',
+    settled: 'bg-blue-100 text-blue-800',
+    defaulted: 'bg-red-100 text-red-800',
   };
   const labelIcon = status === 'settled' ? <IconCircleCheck className="h-4 w-4" /> : status === 'defaulted' ? <IconAlertTriangle className="h-4 w-4" /> : null;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${styles[status] || 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100'}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${styles[status] || 'bg-neutral-100 text-neutral-800'}`}>
       {labelIcon}
       {status || '—'}
     </span>

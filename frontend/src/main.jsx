@@ -5,7 +5,6 @@ import App from './App';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 
 // --- 1. Import ---
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,15 +18,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Router>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ThemeProvider> 
-            <App />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                className: 'app-surface shadow-lg rounded-lg',
-              }}
-            />
-          </ThemeProvider>
+          <App />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              className: 'app-surface shadow-lg rounded-lg',
+            }}
+          />
         </AuthProvider>
       </QueryClientProvider>
     </Router>

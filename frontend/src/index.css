@@ -1,10 +1,7 @@
 @import "tailwindcss";
 
-/* Enable class-based dark mode */
-@custom-variant dark (&:where(.dark, .dark *));
-
 /* =========================================================
-   🌞 LIGHT MODE
+   LIGHT MODE (ONLY)
    ========================================================= */
 :root {
   color-scheme: light;
@@ -34,46 +31,6 @@
 }
 
 /* =========================================================
-   🌚 DARK MODE — NEUTRAL BLACK / GRAY
-   ========================================================= */
-.dark {
-  color-scheme: dark;
-
-  /* Base background (darkest) */
-  --color-bg-primary: #000000;      /* app background */
-
-  /* Surfaces */
-  --color-bg-secondary: #0a0a0a;    /* sidebar / cards */
-  --color-surface-muted: #0f0f0f;   /* muted panels */
-  --color-bg-elevated: #141414;     /* forms / modals */
-
-  /* Text */
-  --color-text-primary: #e5e7eb;
-  --color-text-secondary: #9ca3af;
-
-  /* Borders (visible but subtle) */
-  --color-border: #000000;
-
-  /* Accent */
-  --color-accent: #e5e7eb;
-  --color-accent-strong: #ffffff;
-
-  /* Inputs */
-  --color-field: #141414;
-  --color-field-border: #1f2937;
-
-  /* Overlay */
-  --color-overlay: rgba(0, 0, 0, 0.75);
-
-  /* Charts */
-  --color-chart-1: #e5e7eb;
-  --color-chart-2: #9ca3af;
-  --color-chart-3: #6b7280;
-  --color-chart-4: #4b5563;
-  --color-chart-stroke: #374151;
-}
-
-/* =========================================================
    BASE
    ========================================================= */
 @layer base {
@@ -85,23 +42,6 @@
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
   }
-
-  /* Force stray light utilities to respect dark mode */
-  .dark .bg-white,
-  .dark .bg-gray-50,
-  .dark .bg-neutral-100,
-  .dark .bg-neutral-200 {
-    background-color: var(--color-bg-secondary) !important;
-  }
-
-  .dark .text-black {
-    color: var(--color-text-primary) !important;
-  }
-
-  .dark .border-neutral-200,
-  .dark .border-gray-200 {
-    border-color: var(--color-border) !important;
-  }
 }
 
 /* =========================================================
@@ -112,10 +52,6 @@
     background-color: var(--color-bg-secondary);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
-  }
-
-  .dark .app-surface {
-    background-color: var(--color-bg-secondary);
   }
 
   .app-surface-muted {
@@ -138,7 +74,7 @@
 
   .app-bg-accent {
     background-color: var(--color-accent);
-    color: #000000;
+    color: #ffffff;
   }
 
   .app-overlay {
@@ -165,7 +101,7 @@
   }
 
   .bg-app-elevated {
-    background-color: var(--color-bg-elevated);
+    background-color: var(--color-bg-secondary);
   }
 
   .text-app-primary {

@@ -19,8 +19,8 @@ const PermissionGuard = ({ children, requiredPermission }) => {
         animate={{ scale: 1, opacity: 1 }}
         className="relative z-20 app-surface p-8 rounded-2xl shadow-2xl border border-app text-center max-w-sm mx-4"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
-          <IconLock className="h-7 w-7 text-red-600 dark:text-red-500" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 mb-4">
+          <IconLock className="h-7 w-7 text-red-600" />
         </div>
 
         <h2 className="text-xl font-bold text-app-primary mb-2">

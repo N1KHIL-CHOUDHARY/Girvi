@@ -22,7 +22,7 @@ export default function FileUpload({ value, onChange, label = 'Upload Photo' }) 
 
 	return (
 		<div className="space-y-2">
-			<label className="text-sm text-neutral-700 dark:text-neutral-300">{label}</label>
+			<label className="text-sm text-neutral-700">{label}</label>
 			<div className="flex items-center gap-3">
 				<input
 					type="file"

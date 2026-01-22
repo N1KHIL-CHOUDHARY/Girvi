@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccounts, createPawnTicket } from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext.jsx';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils.js';
 import { Input } from '../components/ui/Input.jsx';
@@ -28,7 +27,6 @@ export default function NewPawn() {
 
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
 
   const {
@@ -144,12 +142,12 @@ export default function NewPawn() {
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? 'dark' : ''}`}>
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+    <div className="w-full">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
+        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
           Create New Pawn Ticket
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
           Create a new loan for a customer.
         </p>
 
@@ -173,18 +171,18 @@ export default function NewPawn() {
             </LabelInputContainer>
 
             {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white dark:bg-neutral-800 shadow-lg border border-neutral-200 dark:border-neutral-700">
+              <div className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white bg-neutral-800 shadow-lg border border-neutral-200 border-neutral-700">
                 {loadingCustomers ? (
                   <div className="p-4 text-center text-sm text-neutral-500">Loading...</div>
                 ) : customers.length > 0 ? (
                   customers.map((customer) => (
                     <div
                       key={customer._id}
-                      className="p-3 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+                      className="p-3 hover:bg-neutral-100 hover:bg-neutral-700 cursor-pointer"
                       onClick={() => handleSelectCustomer(customer)}
                     >
-                      <p className="font-medium text-neutral-800 dark:text-neutral-200">{customer.full_name}</p>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">{customer.phone_number}</p>
+                      <p className="font-medium text-neutral-800 text-neutral-200">{customer.full_name}</p>
+                      <p className="text-sm text-neutral-500 text-neutral-400">{customer.phone_number}</p>
                     </div>
                   ))
                 ) : (
@@ -220,9 +218,9 @@ export default function NewPawn() {
             </LabelInputContainer>
           </div>
 
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
 
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200 mb-4">Item Details</h3>
+          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">Item Details</h3>
 
           <LabelInputContainer className="mb-4">
             <Label htmlFor="item_name">Item Name *</Label>
@@ -246,7 +244,7 @@ export default function NewPawn() {
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] bg-zinc-800 from-zinc-900 to-zinc-900 shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
             type="submit"
             disabled={createPawnMutation.isPending}
           >

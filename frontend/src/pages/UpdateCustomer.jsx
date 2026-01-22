@@ -6,13 +6,11 @@ import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { useTheme } from '../contexts/ThemeContext';
 import FileUpload from '../components/FileUpload';
 
 export default function UpdateCustomer() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState(null);
@@ -99,7 +97,7 @@ export default function UpdateCustomer() {
 
   if (loadingCustomer || !formData) {
     return (
-      <div className="text-center py-20 text-neutral-500 dark:text-neutral-400">
+      <div className="text-center py-20 text-neutral-500 text-neutral-400">
         Loading customer data...
       </div>
     );
@@ -117,12 +115,12 @@ export default function UpdateCustomer() {
   }
 
   return (
-    <div className={`w-full ${isDarkMode ? 'dark' : ''}`}>
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+    <div className="w-full">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
+        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
           Update Customer
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
           Editing details for {formData.full_name}.
         </p>
 
@@ -163,7 +161,7 @@ export default function UpdateCustomer() {
               onChange={handleChange}
               className={cn(
                 `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200`
+border-neutral-700 bg-neutral-800 text-neutral-200`
               )}
             >
               <option value="Male">Male</option>
@@ -220,7 +218,7 @@ export default function UpdateCustomer() {
           <div className="flex gap-4">
             <Link
               to="/app/customers"
-              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 text-center leading-10"
+              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-10"
             >
               Cancel
             </Link>

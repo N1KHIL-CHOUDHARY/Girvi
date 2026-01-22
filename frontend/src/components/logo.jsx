@@ -10,7 +10,7 @@ export const Logo = () => {
         animate={{ opacity: 1, x: 0 }}
         className="flex flex-col -space-y-1"
       >
-        <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors duration-200">
+        <span className="font-bold text-lg tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
           PawnManager
         </span>
       </motion.div>

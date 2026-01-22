@@ -1,61 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '/src/contexts/ThemeContext.jsx';
 import { useAuth } from '/src/contexts/AuthContext.jsx';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getShopDetails, updateShopDetails, changePassword } from '/src/services/api.js';
 import toast from 'react-hot-toast';
-import { IconDeviceDesktop, IconSun, IconMoon, IconBuildingStore, IconLock, IconBellRinging, IconSettings } from '@tabler/icons-react';
+import { IconBuildingStore, IconLock, IconSettings } from '@tabler/icons-react';
 import { Input } from '/src/components/ui/Input.jsx';
 import { Label } from '/src/components/ui/Label.jsx';
 import { cn } from '/src/lib/utils.js';
 
 const SettingsCard = ({ title, description, icon, children }) => (
-  <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 dark:bg-black">
+  <div className="shadow-input rounded-2xl bg-white p-6 md:p-8">
     <div className="flex items-center gap-3 mb-4">
-      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-neutral-600 dark:text-neutral-400">
+      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-neutral-600">
         {icon}
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">{title}</h3>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">{description}</p>
+        <h3 className="text-lg font-semibold text-neutral-800">{title}</h3>
+        <p className="text-sm text-neutral-600">{description}</p>
       </div>
     </div>
     <div className="mt-6 space-y-6">{children}</div>
   </div>
 );
 
-const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
-
-  const options = [
-    { name: 'Light', value: 'light', icon: <IconSun size={16} className="text-black dark:text-white" /> },
-    { name: 'Dark', value: 'dark', icon: <IconMoon size={16} className="text-black dark:text-white" /> },
-    { name: 'System', value: 'system', icon: <IconDeviceDesktop size={16} className="text-black dark:text-white" /> },
-  ];
-
-  return (
-    <div>
-      <Label>Theme</Label>
-      <div className="mt-2 grid grid-cols-3 gap-2 rounded-lg bg-gray-100 dark:bg-neutral-800 p-1">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setTheme(option.value)}
-            className={cn(
-              'flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-              theme === option.value
-                ? 'bg-white shadow-sm dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100'
-                : 'text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-900/50'
-            )}
-          >
-            {option.icon}
-            {option.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const LabelInputContainer = ({ children, className }) => (
   <div className={cn('flex flex-col space-y-2 w-full', className)}>{children}</div>
@@ -134,16 +101,15 @@ export default function Settings() {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
-      <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
+      <h1 className="text-3xl font-bold text-neutral-800">
         Settings
       </h1>
 
       <SettingsCard
         title="Preferences"
-        description="Manage your theme and app preferences."
-        icon={<IconSettings size={24} className="text-black dark:text-white" />}
+        description="Manage your app preferences."
+        icon={<IconSettings size={24} className="text-black" />}
       >
-        <ThemeToggle />
         <LabelInputContainer>
           <Label htmlFor="noticePeriod">Default Notice Period (Days)</Label>
           <Input
@@ -160,7 +126,7 @@ export default function Settings() {
       <SettingsCard
         title="Security"
         description="Manage your account security."
-        icon={<IconLock size={24} className="text-black dark:text-white" />}
+        icon={<IconLock size={24} className="text-black" />}
       >
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <LabelInputContainer>
@@ -197,7 +163,7 @@ export default function Settings() {
             />
           </LabelInputContainer>
           <button
-            className="group/btn relative block h-10 w-full max-w-xs rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+            className="group/btn relative block h-10 w-full max-w-xs rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]"
             type="submit"
             disabled={passwordMutation.isPending}
           >
@@ -211,7 +177,7 @@ export default function Settings() {
         <SettingsCard
           title="Shop"
           description="Manage your shop's details."
-          icon={<IconBuildingStore size={24} className="text-black dark:text-white" />}
+          icon={<IconBuildingStore size={24} className="text-black" />}
         >
           <form onSubmit={handleShopSave} className="space-y-4">
             <LabelInputContainer>
@@ -227,7 +193,7 @@ export default function Settings() {
               />
             </LabelInputContainer>
             <button
-              className="group/btn relative block h-10 w-full max-w-xs rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+              className="group/btn relative block h-10 w-full max-w-xs rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]"
               type="submit"
               disabled={shopMutation.isPending || isLoadingShop}
             >

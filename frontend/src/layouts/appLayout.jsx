@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/sidebar';
@@ -14,16 +13,10 @@ import { IconLogout } from '@tabler/icons-react';
 
 const AppLayout = () => {
   const { user, logout } = useAuth();
-  const { isDarkMode } = useTheme();
   const [open, setOpen] = useState(false);
 
   return (
-    <div
-      className={cn(
-        'mx-auto flex w-full flex-1 flex-col overflow-hidden md:flex-row h-screen',
-        isDarkMode && 'dark'
-      )}
-    >
+    <div className="mx-auto flex w-full flex-1 flex-col overflow-hidden md:flex-row h-screen">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
           {/* Top section */}
@@ -43,7 +36,7 @@ const AppLayout = () => {
 
               {user?.role === 'owner' && (
                 <>
-                  <div className="my-2 h-px w-full bg-neutral-200 dark:bg-neutral-800" />
+                  <div className="my-2 h-px w-full bg-neutral-200" />
                   <motion.span
                     animate={{
                       display: open ? 'inline-block' : 'none',

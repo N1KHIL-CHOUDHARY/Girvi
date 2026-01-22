@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, getPawnTicketsByAccountId, getAccountStats, updatePawnTicketStatus } from '../services/api';
-import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconPlus, IconEdit, IconCheck, IconCurrencyRupee, IconFileText } from '@tabler/icons-react';
@@ -21,22 +20,22 @@ import { usePermission } from '../hooks/usePermission';
 
 // ✅ StatCard
 const StatCard = ({ title, value }) => (
-  <div className="shadow-input rounded-2xl bg-white p-4 dark:bg-black">
-    <p className="text-sm text-neutral-600 dark:text-neutral-400">{title}</p>
-    <p className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">{value}</p>
+  <div className="shadow-input rounded-2xl bg-white p-4">
+    <p className="text-sm text-neutral-600">{title}</p>
+    <p className="text-2xl font-bold text-neutral-800">{value}</p>
   </div>
 );
 
 // ✅ Skeleton
 const CustomerDetailSkeleton = () => (
   <div className="p-4 md:p-6 min-h-screen animate-pulse">
-    <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 dark:bg-black mb-6">
+    <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 mb-6">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-        <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-neutral-800"></div>
+        <div className="w-32 h-32 rounded-full bg-gray-200"></div>
         <div className="flex-1 text-center md:text-left">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-neutral-800 rounded-md mb-2"></div>
-          <div className="h-4 w-32 bg-gray-200 dark:bg-neutral-800 rounded-md mb-2"></div>
-          <div className="h-4 w-64 bg-gray-200 dark:bg-neutral-800 rounded-md"></div>
+          <div className="h-8 w-48 bg-gray-200 rounded-md mb-2"></div>
+          <div className="h-4 w-32 bg-gray-200 rounded-md mb-2"></div>
+          <div className="h-4 w-64 bg-gray-200 rounded-md"></div>
         </div>
       </div>
     </div>
@@ -45,7 +44,6 @@ const CustomerDetailSkeleton = () => (
 
 export default function CustomerDetail() {
   const { id } = useParams();
-  const { isDarkMode } = useTheme();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -111,13 +109,13 @@ export default function CustomerDetail() {
   const statusClass = (status) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-green-100 text-green-800';
       case 'settled':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-blue-100 text-blue-800';
       case 'defaulted':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -130,7 +128,7 @@ export default function CustomerDetail() {
         key="customer-detail"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, transition: { duration: 0.5 } }}
-        className={`p-4 md:p-6 min-h-screen ${isDarkMode ? 'dark' : ''} pt-20 md:pt-4`}
+        className="p-4 md:p-6 min-h-screen pt-20 md:pt-4"
       >
         {/* Settle Modal */}
         <ConfirmationModal
@@ -142,17 +140,17 @@ export default function CustomerDetail() {
           confirmText="Yes, Settle"
         />
         {/* Customer Info */}
-        <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 dark:bg-black mb-6">
+        <div className="shadow-input rounded-2xl bg-white p-6 md:p-8 mb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <img
               src={customer.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${customer.full_name}`}
               alt={customer.full_name}
-              className="w-32 h-32 rounded-full object-cover border-4 border-neutral-200 dark:border-neutral-700"
+              className="w-32 h-32 rounded-full object-cover border-4 border-neutral-200"
             />
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">{customer.full_name}</h1>
-              <p className="text-neutral-600 dark:text-neutral-400 mt-1">{customer.phone_number}</p>
-              <p className="text-neutral-600 dark:text-neutral-400">
+              <h1 className="text-3xl font-bold text-neutral-800">{customer.full_name}</h1>
+              <p className="text-neutral-600 mt-1">{customer.phone_number}</p>
+              <p className="text-neutral-600">
                 {customer.address?.line1} {customer.address?.city}, {customer.address?.pincode}
               </p>
               <div className="mt-4">
@@ -160,7 +158,7 @@ export default function CustomerDetail() {
                   to={`/app/customer/update/${customer._id}`}
                   className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
                 >
-                  <IconEdit size={16} className="text-black dark:text-white" />
+                  <IconEdit size={16} className="text-black" />
                   <span>Edit Customer</span>
                 </Link>
               </div>
@@ -169,7 +167,7 @@ export default function CustomerDetail() {
         </div>
 
         {/* Analytics */}
-        <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200 mb-4">
+        <h2 className="text-2xl font-bold text-neutral-800 mb-4">
           Customer Analytics
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -180,14 +178,14 @@ export default function CustomerDetail() {
 
         {/* Pawn History */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
+          <h2 className="text-2xl font-bold text-neutral-800">
             Pawn Ticket History
           </h2>
           <Link
             to="/app/pawn/add"
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium text-neutral-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800"
+            className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium text-neutral-800 hover:bg-gray-100"
           >
-            <IconPlus className="text-black dark:text-white" />
+            <IconPlus className="text-black" />
             <span>New Ticket</span>
           </Link>
         </div>
@@ -195,7 +193,7 @@ export default function CustomerDetail() {
         {pawns?.length ? (
           <>
             {/* Desktop Table View */}
-            <div className="hidden md:block shadow-input rounded-2xl bg-white dark:bg-black text-base">
+            <div className="hidden md:block shadow-input rounded-2xl bg-white text-base">
               <Table>
                 <TableCaption>A list of all pawn tickets for {customer.full_name}.</TableCaption>
                 <TableHeader>
@@ -211,10 +209,10 @@ export default function CustomerDetail() {
                 <TableBody>
                   {pawns.map((pawn) => (
                     <TableRow key={pawn._id}>
-                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{pawn.ticket_number}</TableCell>
-                      <TableCell className="text-neutral-600 dark:text-neutral-400">{pawn.items[0]?.name}{pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}</TableCell>
-                      <TableCell className="font-medium text-neutral-800 dark:text-neutral-200">{`₹${pawn.loan_amount.toLocaleString('en-IN')}`}</TableCell>
-                      <TableCell className="text-neutral-600 dark:text-neutral-400">{new Date(pawn.pawned_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-medium text-neutral-800">{pawn.ticket_number}</TableCell>
+                      <TableCell className="text-neutral-600">{pawn.items[0]?.name}{pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}</TableCell>
+                      <TableCell className="font-medium text-neutral-800">{`₹${pawn.loan_amount.toLocaleString('en-IN')}`}</TableCell>
+                      <TableCell className="text-neutral-600">{new Date(pawn.pawned_date).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <span className={cn('px-2 py-1 text-xs font-medium rounded-full', statusClass(pawn.status))}>
                           {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
@@ -224,7 +222,7 @@ export default function CustomerDetail() {
                         <div className="flex items-center justify-center gap-2">
                           <Link
                             to={`/app/pawn/update/${pawn._id}`}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
                           >
                             <IconEdit size={16} />
                             <span>Edit</span>
@@ -233,7 +231,7 @@ export default function CustomerDetail() {
                             <button
                               onClick={() => openSettleModal(pawn._id)}
                               disabled={settleMutation.isLoading}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Mark as Settled"
                             >
                               <IconCheck size={16} />
@@ -242,7 +240,7 @@ export default function CustomerDetail() {
                           )}
                           <Link
                             to={`/app/pawns/${pawn._id}`}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
                           >
                             <IconCurrencyRupee size={16} />
                             <span>Payment</span>
@@ -258,7 +256,7 @@ export default function CustomerDetail() {
 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+              <p className="text-sm text-neutral-600 mb-4">
                 A list of all pawn tickets for {customer.full_name}.
               </p>
               {pawns.map((pawn) => (
@@ -266,12 +264,12 @@ export default function CustomerDetail() {
                   key={pawn._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="shadow-input rounded-xl bg-white dark:bg-black p-4 border border-neutral-200 dark:border-neutral-800"
+                  className="shadow-input rounded-xl bg-white p-4 border border-neutral-200"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg text-neutral-800 dark:text-neutral-200">
+                        <h3 className="font-semibold text-lg text-neutral-800">
                           {pawn.ticket_number}
                         </h3>
                         <span
@@ -283,7 +281,7 @@ export default function CustomerDetail() {
                           {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
                         </span>
                       </div>
-                      <div className="space-y-1 text-sm text-neutral-600 dark:text-neutral-400">
+                      <div className="space-y-1 text-sm text-neutral-600">
                         <p>
                           <span className="font-medium">Item:</span> {pawn.items[0]?.name}
                           {pawn.items.length > 1 && ` (+${pawn.items.length - 1} more)`}
@@ -291,16 +289,16 @@ export default function CustomerDetail() {
                         <p>
                           <span className="font-medium">Date:</span> {new Date(pawn.pawned_date).toLocaleDateString()}
                         </p>
-                        <p className="text-base font-semibold text-neutral-800 dark:text-neutral-200 mt-2">
+                        <p className="text-base font-semibold text-neutral-800 mt-2">
                           ₹{pawn.loan_amount.toLocaleString('en-IN')}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                  <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-200">
                     <Link
                       to={`/app/pawns/update/${pawn._id}`}
-                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm"
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-sm"
                     >
                       <IconEdit className="w-4 h-4"/>
                       <span>Edit</span>
@@ -310,14 +308,14 @@ export default function CustomerDetail() {
                         <button
                           onClick={() => openSettleModal(pawn._id)}
                           disabled={settleMutation.isLoading}
-                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <IconCheck className="w-4 h-4"/>
                           <span>Settle</span>
                         </button>
                         <Link
                           to={`/app/pawns/${pawn._id}`}
-                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors text-sm"
+                          className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                         >
                           <span>₹</span>
                           <span>Payment</span>
@@ -331,7 +329,7 @@ export default function CustomerDetail() {
             </div>
           </>
         ) : (
-          <div className="text-center py-10 text-neutral-500 dark:text-neutral-400 shadow-input rounded-2xl bg-white dark:bg-black">
+          <div className="text-center py-10 text-neutral-500 shadow-input rounded-2xl bg-white">
             This customer has no pawn tickets.
           </div>
         )}

@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/FileUpload';
 
@@ -24,7 +23,6 @@ const initialState = {
 
 export default function NewCustomer() {
   const [formData, setFormData] = useState(initialState);
-  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -79,12 +77,12 @@ export default function NewCustomer() {
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? 'dark' : ''}`}>
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+    <div className="w-full">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
+        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
           Create New Customer
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
           Add a new customer to your shop's records.
         </p>
 
@@ -126,7 +124,7 @@ export default function NewCustomer() {
               onChange={handleChange}
               className={cn(
                 `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200`
+border-neutral-700 bg-neutral-800 text-neutral-200`
               )}
             >
               <option value="Male">Male</option>
@@ -206,7 +204,7 @@ export default function NewCustomer() {
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] bg-zinc-800 from-zinc-900 to-zinc-900 shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
             type="submit"
             disabled={mutation.isPending}
           >
