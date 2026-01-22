@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   motion,
   useScroll,
@@ -145,12 +146,12 @@ export default function PawnManagerLanding() {
                 <button
                   className={`text-sm font-semibold hover:text-emerald-600 transition ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'}`}
                 >
-                  Login
+                  <Link to="/login">Login</Link>
                 </button>
                 <button
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-semibold"
                 >
-                  Get Started
+                  <Link to="/signup">Get Started</Link>
                 </button>
               </>
             )}
@@ -191,7 +192,7 @@ export default function PawnManagerLanding() {
                 </>
               ) : (
                 <>
-                  <button className="text-left text-base font-medium text-slate-700">Login</button>
+                  <button className="text-left text-base font-medium text-slate-700"><Link to="/login">Login</Link></button>
                   <button className="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg">Get Started</button>
                 </>
               )}
@@ -254,7 +255,7 @@ export default function PawnManagerLanding() {
               <button
                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all transform"
               >
-                Get Started Free
+                <Link to="/signup">Get Started Free</Link>
               </button>
 
               <button
