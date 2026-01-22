@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   motion,
   useScroll,
   useTransform,
   AnimatePresence,
   useSpring
-} from "motion/react"; // Ensure you have motion installed (or framer-motion)
+} from "motion/react";
 import {
   Users,
   BarChart3,
@@ -21,7 +20,10 @@ import {
   LayoutDashboard,
   Wallet,
   UserCircle,
-  LogOut
+  LogOut,
+  Zap,
+  Clock,
+  CheckCircle2
 } from "lucide-react";
 
 const heroImage = "https://res.cloudinary.com/ddgdcca86/image/upload/v1765437152/bussinessman_zqomrz.png";
@@ -40,10 +42,8 @@ export default function PawnManagerLanding() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
-  const [isScrolled, setIsScrolled] = useState(false); // New state for nav style
-  const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // --- 1. Auto-Play Tabs Logic ---
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTab((current) => {
@@ -51,11 +51,10 @@ export default function PawnManagerLanding() {
         const nextIndex = (currentIndex + 1) % tabs.length;
         return tabs[nextIndex].id;
       });
-    }, 4000); // Switch every 4 seconds
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
-  // --- 2. Scroll Detection for Navbar ---
   useEffect(() => {
     const handleScrollListener = () => {
       setIsScrolled(window.scrollY > 50);
@@ -64,22 +63,8 @@ export default function PawnManagerLanding() {
     return () => window.removeEventListener("scroll", handleScrollListener);
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    window.location.reload();
-  };
-
   const handleScroll = (id) => {
-    setIsMobileMenuOpen(false); // Close menu on click
+    setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -114,38 +99,43 @@ export default function PawnManagerLanding() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-white font-sans text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
 
-      {/* --- Navbar with Dynamic Background --- */}
+      {/* --- Navbar --- */}
       <nav 
-        className={`fixed top-0 left-0 w-full z-50 py-4 px-6 md:px-12 font-sans transition-all duration-300 ${
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
           isScrolled || isMobileMenuOpen 
-            ? "bg-blue-600/95 backdrop-blur-md shadow-lg py-4" 
-            : "bg-transparent py-6"
+            ? "bg-white/95 backdrop-blur-lg shadow-lg border-b border-slate-200" 
+            : "bg-transparent"
         }`}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-white">
-          <div className="text-2xl font-bold tracking-tight">PawnManager</div>
-
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8 font-medium text-sm/6 opacity-90">
-            <button onClick={() => handleScroll('features')} className="hover:opacity-100 transition hover:text-blue-200">Features</button>
-            <button onClick={() => handleScroll('faq')} className="hover:opacity-100 transition hover:text-blue-200">FAQ</button>
-            <button onClick={() => handleScroll('contact')} className="hover:opacity-100 transition hover:text-blue-200">Contact</button>
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-white" />
+            </div>
+            <span className={`text-xl font-bold ${isScrolled || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}>
+              PawnManager
+            </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          {/* Desktop Links */}
+          <div className={`hidden md:flex items-center gap-8 font-medium text-sm ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white/90'}`}>
+            <button onClick={() => handleScroll('features')} className="hover:text-emerald-600 transition">Features</button>
+            <button onClick={() => handleScroll('faq')} className="hover:text-emerald-600 transition">FAQ</button>
+            <button onClick={() => handleScroll('contact')} className="hover:text-emerald-600 transition">Contact</button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
               <>
                 <button
-                  onClick={() => navigate('/app/dashboard')}
-                  className="px-5 py-2 rounded-full bg-white text-blue-600 hover:bg-blue-50 transition text-sm font-bold flex items-center gap-2 shadow-sm"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-semibold flex items-center gap-2"
                 >
                   <LayoutDashboard size={16} /> Dashboard
                 </button>
                 <button
-                  onClick={handleLogout}
-                  className="text-sm font-semibold hover:opacity-80 transition flex items-center gap-2"
+                  className={`text-sm font-semibold hover:text-emerald-600 transition flex items-center gap-2 ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'}`}
                 >
                   <LogOut size={16} /> Logout
                 </button>
@@ -153,14 +143,12 @@ export default function PawnManagerLanding() {
             ) : (
               <>
                 <button
-                  onClick={() => navigate('/login')}
-                  className="text-sm font-semibold hover:opacity-80 transition"
+                  className={`text-sm font-semibold hover:text-emerald-600 transition ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'}`}
                 >
                   Login
                 </button>
                 <button
-                  onClick={() => navigate('/signup')}
-                  className="px-5 py-2 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-sm font-semibold"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-semibold"
                 >
                   Get Started
                 </button>
@@ -170,7 +158,7 @@ export default function PawnManagerLanding() {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden text-white z-50 relative"
+            className={`md:hidden z-50 relative ${isScrolled || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X /> : <Menu />}
@@ -184,27 +172,27 @@ export default function PawnManagerLanding() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-0 left-0 w-full bg-blue-700 pt-24 p-6 flex flex-col gap-6 text-white shadow-xl md:hidden z-40 h-screen"
+              className="absolute top-0 left-0 w-full bg-white pt-20 p-6 flex flex-col gap-5 shadow-xl md:hidden z-40 border-b border-slate-200"
             >
-              <button onClick={() => handleScroll('features')} className="text-left text-lg font-medium">Features</button>
-              <button onClick={() => handleScroll('faq')} className="text-left text-lg font-medium">FAQ</button>
-              <button onClick={() => handleScroll('contact')} className="text-left text-lg font-medium">Contact</button>
+              <button onClick={() => handleScroll('features')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">Features</button>
+              <button onClick={() => handleScroll('faq')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">FAQ</button>
+              <button onClick={() => handleScroll('contact')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">Contact</button>
 
-              <div className="h-px bg-white/20 my-2"></div>
+              <div className="h-px bg-slate-200 my-2"></div>
 
               {isLoggedIn ? (
                 <>
-                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/app/dashboard'); }} className="text-left text-lg font-medium flex items-center gap-2">
+                  <button className="text-left text-base font-medium text-slate-700 flex items-center gap-2">
                     <LayoutDashboard size={18} /> Go to Dashboard
                   </button>
-                  <button onClick={handleLogout} className="py-3 rounded-full bg-white/10 border border-white/30 text-white font-bold flex items-center justify-center gap-2">
+                  <button className="py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
                     <LogOut size={18} /> Logout
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }} className="text-left text-lg font-medium">Login</button>
-                  <button onClick={() => { setIsMobileMenuOpen(false); navigate('/signup'); }} className="py-3 rounded-full bg-white text-blue-600 font-bold">Get Started</button>
+                  <button className="text-left text-base font-medium text-slate-700">Login</button>
+                  <button className="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg">Get Started</button>
                 </>
               )}
             </motion.div>
@@ -213,29 +201,46 @@ export default function PawnManagerLanding() {
       </nav>
 
       {/* --- HERO --- */}
-      <header className="relative bg-blue-600 min-h-screen flex items-center pt-20 px-6 overflow-hidden">
-        {/* Decorative Circles */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
-          <div className="absolute top-20 left-20 w-2 h-2 bg-white rounded-full"></div>
-          <div className="absolute bottom-32 right-10 w-2 h-2 bg-white rounded-full"></div>
+      <header className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen flex items-center pt-20 px-6 overflow-hidden">
+        {/* Ambient Background Elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/30 rounded-full blur-[120px]"></div>
         </div>
+
+        {/* Decorative Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center w-full">
           <div className="text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6"
+            >
+              <Zap size={16} className="text-emerald-400" />
+              Cloud-Based Management System
+            </motion.div>
+
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
             >
-              Pawn Shop Management <br /> Simplified.
+              Pawn Shop<br />
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                Management
+              </span><br />
+              Simplified.
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-blue-100 text-lg md:text-xl max-w-xl mb-10 leading-relaxed"
+              className="text-slate-300 text-lg md:text-xl max-w-xl mb-10 leading-relaxed"
             >
               Grow your pawn business with a platform designed to handle loans, inventory, and customers in one secure cloud solution.
             </motion.p>
@@ -244,30 +249,41 @@ export default function PawnManagerLanding() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="flex flex-col sm:flex-row items-start gap-4"
+              className="flex flex-col sm:flex-row items-start gap-4 mb-12"
             >
-              {isLoggedIn ? (
-                <button
-                  onClick={() => navigate('/app/dashboard')}
-                  className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform flex items-center gap-2"
-                >
-                  <LayoutDashboard size={20} /> Open Dashboard
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/signup')}
-                  className="px-8 py-3.5 rounded-full bg-white text-blue-600 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition transform"
-                >
-                  Get Started Free
-                </button>
-              )}
+              <button
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all transform"
+              >
+                Get Started Free
+              </button>
 
               <button
                 onClick={() => handleScroll('demo-section')}
-                className="px-8 py-3.5 rounded-full border border-white/40 text-white font-semibold hover:bg-white/10 backdrop-blur-sm transition flex items-center gap-2"
+                className="px-8 py-4 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-800/50 backdrop-blur-sm transition flex items-center gap-2"
               >
                 <PlayCircle size={20} /> View Demo
               </button>
+            </motion.div>
+
+            {/* Trust Indicators */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="flex flex-wrap items-center gap-6 text-sm text-slate-400"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>Free 14-day trial</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>Cancel anytime</span>
+              </div>
             </motion.div>
           </div>
 
@@ -275,15 +291,14 @@ export default function PawnManagerLanding() {
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, type: "spring", stiffness: 120, damping: 18 }}
-            className="relative flex justify-center md:justify-end pointer-events-none"
+            className="relative flex justify-center md:justify-end"
           >
             <div className="relative">
-               {/* Soft organic blob background */}
-               <div className="absolute inset-0 bg-white/30 rounded-[58%_42%_35%_65%_/_60%_38%_62%_40%] blur-[90px] -z-10 scale-[1.35] opacity-80" />
+               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-[58%_42%_35%_65%_/_60%_38%_62%_40%] blur-[100px] -z-10 scale-[1.4]" />
                <motion.img
                  src={heroImage}
                  alt="3D Character Working"
-                 className="w-full max-w-[500px] h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
+                 className="w-full max-w-[500px] h-auto object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.35)]"
                  initial={{ scale: 0.9 }}
                  animate={{ scale: 1 }}
                  transition={{ duration: 0.9, type: "spring" }}
@@ -294,39 +309,48 @@ export default function PawnManagerLanding() {
       </header>
 
       {/* --- WORKFLOW TABS --- */}
-      <section id="demo-section" className="py-24 bg-slate-50 relative">
+      <section id="demo-section" className="py-24 bg-white relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-slate-900">Experience the Workflow</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
+            >
+              <Clock size={16} />
+              Interactive Demo
+            </motion.div>
+            <h2 className="text-4xl font-bold mb-4 text-slate-900">Experience the Workflow</h2>
             <p className="text-lg text-slate-600">Switch between views to see how PawnManager streamlines your operations.</p>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="flex border-b border-slate-200">
+          <div className="bg-slate-50 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex border-b border-slate-200 bg-white">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)} // Manual click sets tab (and effectively resets timer visually)
-                  className={`relative flex-1 py-6 px-4 text-center focus:outline-none transition-colors duration-300 ${
-                    activeTab === tab.id ? "text-blue-600 bg-blue-50/50" : "text-slate-500 hover:bg-slate-50"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex-1 py-6 px-4 text-center focus:outline-none transition-all duration-300 ${
+                    activeTab === tab.id ? "text-emerald-600 bg-emerald-50/50" : "text-slate-500 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2 font-bold text-lg md:text-xl">
-                    <tab.icon size={20} className={activeTab === tab.id ? "text-blue-600" : "text-slate-400"} />
+                  <div className="flex items-center justify-center gap-2 font-semibold text-base md:text-lg">
+                    <tab.icon size={20} className={activeTab === tab.id ? "text-emerald-600" : "text-slate-400"} />
                     <span className="hidden sm:inline">{tab.label}</span>
                   </div>
 
                   {activeTab === tab.id && (
                     <motion.div
                       layoutId="activeTabIndicator"
-                      className="absolute bottom-0 left-0 w-full h-1.5 bg-blue-600"
+                      className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-600"
                     />
                   )}
                 </button>
               ))}
             </div>
 
-            <div className="p-8 md:p-12 bg-white min-h-[500px] flex flex-col items-center justify-center">
+            <div className="p-8 md:p-12 bg-slate-50 min-h-[500px] flex flex-col items-center justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -337,9 +361,9 @@ export default function PawnManagerLanding() {
                   className="w-full text-center"
                 >
                   <div className="mb-8">
-                    <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">{tabs.find(t => t.id === activeTab).desc}</p>
+                    <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto">{tabs.find(t => t.id === activeTab).desc}</p>
                   </div>
-                  <div className="rounded-xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] border border-slate-100 inline-block">
+                  <div className="rounded-2xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] border border-slate-200 inline-block bg-white">
                     <img
                       src={tabs.find(t => t.id === activeTab).image}
                       alt={tabs.find(t => t.id === activeTab).label}
@@ -354,12 +378,21 @@ export default function PawnManagerLanding() {
       </section>
 
       {/* --- FEATURES --- */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto bg-white">
+      <section id="features" className="py-24 px-6 max-w-7xl mx-auto bg-slate-50">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Everything you need to run efficiently</h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
+          >
+            <Zap size={16} />
+            Features
+          </motion.div>
+          <h2 className="text-4xl font-bold tracking-tight mb-4 text-slate-900">Everything you need to run efficiently</h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">We've bundled all the essential tools into one cohesive platform.</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <FeatureCard
             icon={<Users />}
             title="Customer CRM"
@@ -394,14 +427,22 @@ export default function PawnManagerLanding() {
       </section>
 
       {/* --- FAQ --- */}
-      <section id="faq" className="py-24 px-6 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
+      <section id="faq" className="py-24 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-14 text-center">
-            <h2 className="text-3xl font-bold mb-4 text-slate-900">Common Questions</h2>
-            <p className="text-slate-600">Everything you need to know about the product.</p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
+            >
+              FAQs
+            </motion.div>
+            <h2 className="text-4xl font-bold mb-4 text-slate-900">Common Questions</h2>
+            <p className="text-slate-600 text-lg">Everything you need to know about the product.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 items-start">
+          <div className="space-y-4">
             {faqData.map((item, index) => (
               <FaqItem
                 key={index}
@@ -415,31 +456,60 @@ export default function PawnManagerLanding() {
         </div>
       </section>
 
+      {/* --- CTA Section --- */}
+      <section className="py-24 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/30 rounded-full blur-[120px]"></div>
+        </div>
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to transform your pawn shop?
+          </h2>
+          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+            Join hundreds of pawn shops already using PawnManager to streamline their operations.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all transform">
+              Start Free Trial
+            </button>
+            <button className="px-8 py-4 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-800/50 transition">
+              Schedule a Demo
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* --- FOOTER --- */}
-      <footer id="contact" className="bg-white border-t border-slate-100 pt-16 pb-8 px-6">
+      <footer id="contact" className="bg-slate-900 text-slate-300 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2">
-            <div className="text-xl font-bold text-blue-600 mb-4">PawnManager</div>
-            <p className="text-slate-500 text-sm max-w-xs">Modernizing the pawn industry with secure, cloud-based management solutions.</p>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <LayoutDashboard className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white">PawnManager</span>
+            </div>
+            <p className="text-slate-400 text-sm max-w-xs leading-relaxed">Modernizing the pawn industry with secure, cloud-based management solutions.</p>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 text-slate-900">Product</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><button onClick={() => handleScroll('features')} className="hover:text-blue-600 transition">Features</button></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Security</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Roadmap</a></li>
+            <h4 className="font-semibold mb-4 text-white">Product</h4>
+            <ul className="space-y-3 text-sm">
+              <li><button onClick={() => handleScroll('features')} className="hover:text-emerald-400 transition">Features</button></li>
+              <li><a href="#" className="hover:text-emerald-400 transition">Security</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition">Roadmap</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 text-slate-900">Company</h4>
-            <ul className="space-y-2 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-blue-600 transition">About Us</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Contact</a></li>
-              <li><a href="#" className="hover:text-blue-600 transition">Privacy Policy</a></li>
+            <h4 className="font-semibold mb-4 text-white">Company</h4>
+            <ul className="space-y-3 text-sm">
+              <li><a href="#" className="hover:text-emerald-400 transition">About Us</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition">Contact</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition">Privacy Policy</a></li>
             </ul>
           </div>
         </div>
-        <div className="text-center text-slate-400 text-sm border-t border-slate-50 pt-8">
+        <div className="text-center text-slate-500 text-sm border-t border-slate-800 pt-8">
           <p>© {new Date().getFullYear()} PawnManager Inc. All rights reserved.</p>
         </div>
       </footer>
@@ -450,14 +520,17 @@ export default function PawnManagerLanding() {
 function FeatureCard({ icon, title, desc }) {
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -8 }}
+      className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 group"
     >
-      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-        {React.cloneElement(icon, { className: "w-6 h-6 text-blue-600 group-hover:text-white transition-colors" })}
+      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center mb-6 group-hover:from-emerald-500 group-hover:to-teal-600 transition-all duration-300">
+        {React.cloneElement(icon, { className: "w-7 h-7 text-emerald-600 group-hover:text-white transition-colors" })}
       </div>
-      <h3 className="text-lg font-bold text-slate-900 mb-3">{title}</h3>
-      <p className="text-slate-500 leading-relaxed text-sm">{desc}</p>
+      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
+      <p className="text-slate-600 leading-relaxed">{desc}</p>
     </motion.div>
   );
 }
@@ -468,41 +541,41 @@ function FaqItem({ question, answer, isOpen, onClick }) {
       layout
       initial={false}
       onClick={onClick}
-      className={`bg-white rounded-xl overflow-hidden border cursor-pointer transition-all duration-300 ${
+      className={`bg-white rounded-2xl overflow-hidden border cursor-pointer transition-all duration-300 ${
         isOpen 
-          ? 'border-blue-500 shadow-md ring-1 ring-blue-100' 
-          : 'border-slate-200 hover:border-slate-300'
+          ? 'border-emerald-200 shadow-lg shadow-emerald-500/5' 
+          : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
       }`}
     >
       <button className="flex justify-between items-start w-full text-left p-6 focus:outline-none group">
-        <span className={`font-semibold text-base pr-4 transition-colors ${isOpen ? 'text-blue-700' : 'text-slate-800'}`}>
+        <span className={`font-semibold text-lg pr-4 transition-colors ${isOpen ? 'text-emerald-700' : 'text-slate-800'}`}>
           {question}
         </span>
         <motion.div
           layout
           transition={{ duration: 0.2 }}
-          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-            isOpen ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
+          className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+            isOpen ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
           }`}
         >
-          {isOpen ? <Minus size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+          {isOpen ? <Minus size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}
         </motion.div>
-      </button>
+        </button>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            <div className="px-6 pb-6 text-slate-600 text-sm leading-relaxed border-t border-slate-50 pt-4">
-              {answer}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+<AnimatePresence initial={false}>
+  {isOpen && (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: "auto", opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      <div className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-100 pt-4">
+        {answer}
+      </div>
     </motion.div>
-  );
+  )}
+</AnimatePresence>
+</motion.div>
+);
 }
