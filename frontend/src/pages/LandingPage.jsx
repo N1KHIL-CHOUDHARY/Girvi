@@ -166,7 +166,7 @@ export default function PawnManagerLanding() {
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -343,6 +343,7 @@ export default function PawnManagerLanding() {
                   {activeTab === tab.id && (
                     <motion.div
                       layoutId="activeTabIndicator"
+                      initial={false}
                       className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-600"
                     />
                   )}
@@ -351,7 +352,7 @@ export default function PawnManagerLanding() {
             </div>
 
             <div className="p-8 md:p-12 bg-slate-50 min-h-[500px] flex flex-col items-center justify-center">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0, y: 10 }}

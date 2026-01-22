@@ -37,10 +37,12 @@ const AppLayout = () => {
                 <>
                   <div className="my-2 h-px w-full bg-neutral-200" />
                   <motion.span
+                    initial={false}
                     animate={{
                       display: open ? 'inline-block' : 'none',
                       opacity: open ? 1 : 0,
                     }}
+                    style={{ willChange: 'opacity' }}
                     className="px-3 text-xs font-semibold uppercase text-neutral-500"
                   >
                     Admin
@@ -78,10 +80,12 @@ const AppLayout = () => {
             >
               <IconLogout className="h-5 w-5 shrink-0  text-app-primary" />
               <motion.span
+                initial={false}
                 animate={{
                   display: open ? 'inline-block' : 'none',
                   opacity: open ? 1 : 0,
                 }}
+                style={{ willChange: 'opacity' }}
                 className="text-sm text-app-primary"
               >
                 Logout
