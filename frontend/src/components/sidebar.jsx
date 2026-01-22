@@ -106,7 +106,6 @@ function DesktopSidebar({ className, children, ...props }) {
         "hidden md:flex md:flex-col h-full shrink-0 px-4 py-4 app-surface bg-app-surface",
         className
       )}
-      initial={false}
       animate={{
         width: animate
           ? open
@@ -160,7 +159,7 @@ function MobileSidebar({ className, children, ...props }) {
 
   return (
     <div className="md:hidden">
-      <AnimatePresence initial={false}>
+      <AnimatePresence>
         {open && (
           <>
             {/* Backdrop overlay */}
@@ -236,7 +235,6 @@ export function SidebarLink({ link, className, ...props }) {
           width: open ? "auto" : 0,
         }}
         transition={{ duration: 0.2 }}
-        style={{ willChange: 'opacity, width' }}
         className="text-sm text-app-primary whitespace-nowrap overflow-hidden"
       >
         {link.label}
