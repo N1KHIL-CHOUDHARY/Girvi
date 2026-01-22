@@ -21,7 +21,7 @@ const AppLayout = () => {
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
           {/* Top section */}
           <div className="flex flex-1 flex-col overflow-hidden shirnk-1">
-            <Logo /> 
+            
         
             <div className="mt-8 flex flex-col gap-2">
               {mainLinks.map((link) => (

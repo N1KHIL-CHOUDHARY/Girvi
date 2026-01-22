@@ -1,49 +1,49 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { IconHome, IconAlertCircle } from '@tabler/icons-react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Link } from "react-router-dom";
+import { IconHome, IconAlertTriangle } from "@tabler/icons-react";
+import { motion } from "framer-motion";
 
 export default function NotFound() {
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 px-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center px-4"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="max-w-md w-full text-center"
       >
-        <motion.div
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="mb-6 flex justify-center"
-        >
-          <div className="relative">
-            <IconAlertCircle className="h-24 w-24 text-neutral-400" />
-            <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-neutral-300">
-              404
-            </span>
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200">
+            <IconAlertTriangle className="w-10 h-10 text-slate-500" />
           </div>
-        </motion.div>
+        </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-neutral-800 mb-3">
-          Page Not Found
+        {/* 404 */}
+        <h1 className="text-6xl font-bold text-slate-900 tracking-tight mb-2">
+          404
         </h1>
-        
-        <p className="text-neutral-600 mb-8 max-w-md mx-auto">
-          The page you're looking for doesn't exist or has been moved.
+
+        <h2 className="text-xl font-semibold text-slate-800 mb-3">
+          Page not found
+        </h2>
+
+        <p className="text-sm text-slate-600 leading-relaxed mb-8">
+          The page you’re looking for doesn’t exist, was moved,
+          or you don’t have access to it.
         </p>
 
-        <Link
-          to="/app/dashboard"
-          className="group/btn relative inline-flex items-center justify-center gap-2 h-10 px-6 rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] hover:opacity-90 transition-opacity"
-        >
-          <IconHome className="h-4 w-4" />
-          Go to Dashboard
-          <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-        </Link>
+        {/* Action */}
+        <div className="flex justify-center">
+          <Link
+            to="/app/dashboard"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+          >
+            <IconHome size={16} />
+            Back to Dashboard
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
 }
-
