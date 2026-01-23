@@ -86,7 +86,7 @@ export default function NewCustomer() {
           Add a new customer to your shop's records.
         </p>
 
-        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+        <form className="my-8" onSubmit={handleSubmit}>
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer className="w-full">
               <Label htmlFor="full_name">Full Name</Label>
@@ -128,8 +128,8 @@ export default function NewCustomer() {
               value={formData.gender}
               onChange={handleChange}
               className={cn(
-                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-border-neutral-700 bg-neutral-800 text-neutral-200`
+                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-neutral-700 px-3 py-2 text-sm
+border-neutral-300 text-neutral-200`
               )}
             >
               <option value="Male">Male</option>

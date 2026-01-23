@@ -117,7 +117,7 @@
   }
 }
 
-=
+
 @supports (scroll-margin-top: 1rem) {
   input:focus,
   textarea:focus,

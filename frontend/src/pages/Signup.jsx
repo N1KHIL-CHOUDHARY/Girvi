@@ -49,7 +49,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <div className="shadow-input relative mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8">
         
         <h2 className="text-xl font-bold text-neutral-800">
@@ -59,7 +59,7 @@ export default function Signup() {
           Create your account to start managing your shop
         </p>
 
-        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+        <form className="my-8" onSubmit={handleSubmit}>
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="firstname">First name</Label>

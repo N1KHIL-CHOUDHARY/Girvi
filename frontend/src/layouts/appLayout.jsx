@@ -91,7 +91,18 @@ const AppLayout = () => {
         </SidebarBody>
       </Sidebar>
 
-      <main className="flex-1 overflow-y-auto bg-app-primary p-4 pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 md:pt-4 md:pb-6">
+      <main
+        className="
+          flex-1 overflow-y-auto
+          px-4 sm:px-6
+
+          pt-[calc(4rem+env(safe-area-inset-top))]
+          pb-[calc(5rem+env(safe-area-inset-bottom))]
+
+          md:pt-4
+          md:pb-6
+        "
+      >
         <Outlet />
       </main>
 

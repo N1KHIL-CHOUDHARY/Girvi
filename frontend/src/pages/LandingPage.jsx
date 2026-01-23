@@ -104,7 +104,7 @@ export default function PawnManagerLanding() {
 
       {/* --- Navbar --- */}
       <nav 
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
           isScrolled || isMobileMenuOpen 
             ? "bg-white/95 backdrop-blur-lg shadow-lg border-b border-slate-200" 
             : "bg-transparent"

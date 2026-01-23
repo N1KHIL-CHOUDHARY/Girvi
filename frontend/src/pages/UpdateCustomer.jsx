@@ -124,7 +124,7 @@ export default function UpdateCustomer() {
           Editing details for {formData.full_name}.
         </p>
 
-        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+        <form className="my-8" onSubmit={handleSubmit}>
           {/* Name + Phone */}
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer className="w-full">

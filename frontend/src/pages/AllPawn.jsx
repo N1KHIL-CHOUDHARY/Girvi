@@ -163,7 +163,7 @@ export default function AllPawns() {
   };
 
   return (
-    <div className="p-4 md:p-6 min-h-screen pt-20 md:pt-4">
+    <div className="min-h-screen">
       {/* Settle Modal */}
       <ConfirmationModal
         isOpen={isModalOpen}

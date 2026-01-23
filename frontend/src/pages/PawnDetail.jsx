@@ -83,7 +83,7 @@ export default function PawnDetail() {
   }, [ticket?.status]);
 
   return (
-    <div className="p-4 md:p-6 min-h-screen pt-20 md:pt-4">
+    <div className="min-h-screen">
       <div className="mb-4 flex items-center gap-2">
         <Link to="/app/pawns" className="inline-flex items-center text-sm text-blue-600 hover:underline">
           <IconArrowLeft className="h-4 w-4 mr-1" /> Back to Pawns
@@ -152,7 +152,7 @@ export default function PawnDetail() {
                 <IconCreditCardPay className="h-5 w-5 text-blue-600" />
                 <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">Add Payment</h3>
               </div>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-32 md:pb-0">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-500">Amount</label>
                   <input

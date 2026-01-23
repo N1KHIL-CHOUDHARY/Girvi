@@ -41,7 +41,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+    <div className="h-screen w-full flex items-center justify-center bg-gray-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <div className="shadow-input relative w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8">
         
         <h2 className="text-xl font-bold text-neutral-800">
@@ -51,7 +51,7 @@ export default function Login() {
           Log in to your PawnManager account
         </p>
 
-        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+        <form className="my-8" onSubmit={handleSubmit}>
           <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="email">Email Address</Label> 
             <Input id="email" name="email" placeholder="owner@citygold.com" type="email" inputMode="email" autoComplete="email" enterKeyHint="next" onChange={handleChange} required />
