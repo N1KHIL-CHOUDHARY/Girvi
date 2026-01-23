@@ -29,19 +29,21 @@ const generateToken = (user, permissions) =>
     { expiresIn: '7d' }
   );
 
-// Helper function to set HttpOnly cookie
-const setAuthCookie = (res, token) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+  const setAuthCookie = (res, token) => {
+    const isProduction = process.env.NODE_ENV === "production";
   
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true, 
-    sameSite: 'lax',
-    maxAge: maxAge,
-    path: '/',
-  });
-};
+    res.cookie("token", token, {
+      httpOnly: true,
+    
+        // 🔑 KEY FIX
+      secure: isProduction,                 
+      sameSite: isProduction ? "none" : "lax",
+  
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+  };
+  
 
 exports.signup = asyncHandler(async (req, res) => {
   const { shop_name, email, password, full_name } = req.body;
@@ -146,13 +148,15 @@ exports.login = asyncHandler(async (req, res) => {
 
 // Logout endpoint - clears the auth cookie
 exports.logout = asyncHandler(async (req, res) => {
-  res.cookie('token', '', {
+  
+  res.cookie("token", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 0, // Immediately expire
-    path: '/',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 0,
+    path: "/",
   });
+  
 
   return sendSuccess(res, {
     message: 'Logout successful.',
