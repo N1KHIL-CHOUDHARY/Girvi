@@ -74,7 +74,7 @@ const AppLayout = () => {
                 setOpen(false);
                 logout();
               }}
-              className="flex items-center justify-start gap-2 w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--color-surface-muted)]"
+              className="flex items-center justify-start gap-2 w-full rounded-md px-3 py-2.5 min-h-[44px] text-left transition-colors hover:bg-[var(--color-surface-muted)]"
             >
               <IconLogout className="h-5 w-5 shrink-0  text-app-primary" />
               <motion.span
@@ -91,7 +91,7 @@ const AppLayout = () => {
         </SidebarBody>
       </Sidebar>
 
-      <main className="flex-1 overflow-y-auto bg-app-primary p-4 pt-16 pb-20 md:p-6 md:pt-4 md:pb-6">
+      <main className="flex-1 overflow-y-auto bg-app-primary p-4 pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] md:p-6 md:pt-4 md:pb-6">
         <Outlet />
       </main>
 

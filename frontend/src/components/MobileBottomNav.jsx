@@ -25,7 +25,7 @@ const MobileBottomNav = ({ open, setOpen, onToggleMenu }) => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-slate-200 bg-white"
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]"
       aria-label="Bottom navigation"
     >
       <div className="grid grid-cols-5 items-end h-16 px-2">

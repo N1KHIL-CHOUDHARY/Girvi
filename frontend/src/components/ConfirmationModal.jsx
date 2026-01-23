@@ -34,7 +34,7 @@ export default function ConfirmationModal({
         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
           <button
             type="button"
-            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
+            className="inline-flex w-full justify-center items-center rounded-md bg-red-600 px-3 py-2.5 min-h-[44px] text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
             onClick={() => {
               onConfirm();
               onClose();
@@ -44,7 +44,7 @@ export default function ConfirmationModal({
           </button>
           <button
             type="button"
-            className="mt-3 inline-flex w-full justify-center rounded-md app-surface px-3 py-2 text-sm font-semibold text-app-primary shadow-sm ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-muted)] sm:mt-0 sm:w-auto"
+            className="mt-3 inline-flex w-full justify-center items-center rounded-md app-surface px-3 py-2.5 min-h-[44px] text-sm font-semibold text-app-primary shadow-sm ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-muted)] sm:mt-0 sm:w-auto"
             onClick={onClose}
           >
             {cancelText}

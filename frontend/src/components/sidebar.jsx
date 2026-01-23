@@ -183,7 +183,7 @@ function MobileSidebar({ className, children, ...props }) {
                 "bg-white rounded-t-3xl",
                 "border-t border-slate-200 shadow-xl",
                 "flex flex-col",
-                "p-4 pt-6",
+                "p-4 pt-6 pb-[calc(1rem+env(safe-area-inset-bottom))]",
                 className
               )}
               initial={{ y: "100%" }}
@@ -221,7 +221,7 @@ export function SidebarLink({ link, className, ...props }) {
       to={link.href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-[var(--color-surface-muted)]",
+        "flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-md transition-colors hover:bg-[var(--color-surface-muted)]",
         className
       )}
       {...props}
