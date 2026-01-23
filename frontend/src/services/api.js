@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Required for HttpOnly cookies to be sent with requests
+  withCredentials: true, 
 });
 
 api.interceptors.response.use(

@@ -1,7 +1,10 @@
 {
   "appId": "com.seervi.pawnmanger",
   "appName": "PawnManger",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "cleartext": true
+  }
 }
 
 

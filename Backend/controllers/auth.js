@@ -36,8 +36,8 @@ const setAuthCookie = (res, token) => {
   
   res.cookie('token', token, {
     httpOnly: true,
-    secure: isProduction, // Only send over HTTPS in production
-    sameSite: isProduction ? 'none' : 'lax', // 'none' for cross-domain in production, 'lax' for same-domain
+    secure: true, 
+    sameSite: 'lax',
     maxAge: maxAge,
     path: '/',
   });
