@@ -152,16 +152,18 @@ export default function PawnDetail() {
                 <IconCreditCardPay className="h-5 w-5 text-blue-600" />
                 <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">Add Payment</h3>
               </div>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-32 md:pb-0">
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-500">Amount</label>
                   <input
                     type="number"
                     min="0"
                     step="0.01"
+                    inputMode="decimal"
+                    enterKeyHint="next"
                     value={paymentForm.amount_paid}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount_paid: e.target.value }))}
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
                     placeholder="Enter amount"
                   />
                 </div>
@@ -170,7 +172,7 @@ export default function PawnDetail() {
                   <select
                     value={paymentForm.payment_for}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_for: e.target.value }))}
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
                   >
                     <option value="interest">Interest</option>
                     <option value="principal">Principal</option>
@@ -180,16 +182,17 @@ export default function PawnDetail() {
                   <label className="text-xs text-neutral-500">Payment Date</label>
                   <input
                     type="date"
+                    enterKeyHint="done"
                     value={paymentForm.payment_date}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_date: e.target.value }))}
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
                   />
                 </div>
                 <div className="md:col-span-3 flex justify-end">
                   <button
                     type="submit"
                     disabled={paymentMutation.isLoading}
-                    className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center min-h-[44px] rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {paymentMutation.isLoading ? 'Saving...' : 'Save Payment'}
                   </button>

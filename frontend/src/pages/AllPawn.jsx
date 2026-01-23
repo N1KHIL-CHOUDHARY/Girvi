@@ -185,8 +185,8 @@ export default function AllPawns() {
 
       {/* Payment Modal (Styled to match context file) */}
       {isPaymentOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-2xl md:rounded-2xl bg-white p-6 pb-32 md:pb-6">
             <h3 className="text-lg font-semibold text-neutral-800 mb-4">Add Payment</h3>
             <div className="space-y-3">
               <div>
@@ -195,9 +195,11 @@ export default function AllPawns() {
                   type="number"
                   min="0"
                   step="0.01"
+                  inputMode="decimal"
+                  enterKeyHint="next"
                   value={paymentForm.amount_paid}
                   onChange={(e) => setPaymentForm(prev => ({ ...prev, amount_paid: e.target.value }))}
-                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full min-h-[44px] rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 />
               </div>
               <div>
@@ -205,24 +207,24 @@ export default function AllPawns() {
                 <select
                   value={paymentForm.payment_for}
                   onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_for: e.target.value }))}
-                  className="w-full h-10 rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="w-full min-h-[44px] rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
                   <option value="interest">Interest</option>
                   <option value="principal">Principal</option>
                 </select>
               </div>
             </div>
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col md:flex-row justify-end gap-2">
               <button
                 onClick={() => setIsPaymentOpen(false)}
-                className="h-10 rounded-md px-4 text-neutral-800 hover:bg-gray-100"
+                className="min-h-[44px] w-full md:w-auto rounded-md px-4 text-neutral-800 hover:bg-gray-100"
                 disabled={paymentMutation.isLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreatePayment}
-                className="h-10 rounded-md px-4 bg-indigo-600 text-white disabled:opacity-60"
+                className="min-h-[44px] w-full md:w-auto rounded-md px-4 bg-indigo-600 text-white disabled:opacity-60"
                 disabled={paymentMutation.isLoading}
               >
                 {paymentMutation.isLoading ? 'Saving...' : 'Save Payment'}

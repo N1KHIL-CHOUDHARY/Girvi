@@ -129,37 +129,37 @@ export default function UpdatePawn() {
           Editing ticket {formData.ticket_number} for {customerName}.
         </p>
 
-        <form className="my-8" onSubmit={handleSubmit}>
-          <LabelInputContainer className="mb-4">
+        <form className="my-8 pb-40 md:pb-0" onSubmit={handleSubmit}>
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label>Customer</Label>
             <Input type="text" value={customerName} disabled className="bg-neutral-800" />
           </LabelInputContainer>
 
           {/* Ticket Info */}
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="ticket_number">Ticket Number *</Label>
-              <Input id="ticket_number" name="ticket_number" type="text" value={formData.ticket_number} onChange={handleChange} required />
+              <Input id="ticket_number" name="ticket_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pawned_date">Pawned Date *</Label>
-              <Input id="pawned_date" name="pawned_date" type="date" value={formData.pawned_date} onChange={handleChange} required />
+              <Input id="pawned_date" name="pawned_date" type="date" enterKeyHint="next" value={formData.pawned_date} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
           {/* Loan Info */}
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="loan_amount">Loan Amount (₹) *</Label>
-              <Input id="loan_amount" name="loan_amount" type="number" value={formData.loan_amount} onChange={handleChange} required />
+              <Input id="loan_amount" name="loan_amount" type="number" inputMode="decimal" enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="interest_rate">Interest Rate (%) *</Label>
-              <Input id="interest_rate" name="interest_rate" type="number" value={formData.interest_rate} onChange={handleChange} required />
+              <Input id="interest_rate" name="interest_rate" type="number" inputMode="decimal" enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="adv_amount">Advance Amount (₹) *</Label>
-              <Input id="adv_amount" name="adv_amount" type="number" value={formData.adv_amount} onChange={handleChange} required />
+              <Input id="adv_amount" name="adv_amount" type="number" inputMode="decimal" enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
@@ -170,37 +170,37 @@ export default function UpdatePawn() {
             Item Details
           </h3>
 
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="item_name">Item Name *</Label>
-            <Input id="item_name" name="item_name" type="text" value={formData.item_name} onChange={handleChange} required />
+            <Input id="item_name" name="item_name" type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="item_weight">Weight (grams) *</Label>
-              <Input id="item_weight" name="item_weight" type="number" value={formData.item_weight} onChange={handleChange} required />
+              <Input id="item_weight" name="item_weight" type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="item_purity">Purity (e.g., 22)</Label>
-              <Input id="item_purity" name="item_purity" type="number" value={formData.item_purity} onChange={handleChange} />
+              <Input id="item_purity" name="item_purity" type="number" inputMode="numeric" enterKeyHint="next" value={formData.item_purity} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
-          <LabelInputContainer className="mb-8">
+          <LabelInputContainer className="mb-8 md:mb-8">
             <Label htmlFor="item_description">Item Description</Label>
-            <Input id="item_description" name="item_description" type="text" value={formData.item_description} onChange={handleChange} />
+            <Input id="item_description" name="item_description" type="text" autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
           </LabelInputContainer>
 
           {/* Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <Link
               to="/app/pawns"
-              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-10"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-[44px] md:leading-10"
             >
               Cancel
             </Link>
             <button
-              className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-blue-600 to-blue-500 font-medium text-white shadow-lg"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-blue-600 to-blue-500 font-medium text-white shadow-lg"
               type="submit"
               disabled={updateMutation.isPending}
             >

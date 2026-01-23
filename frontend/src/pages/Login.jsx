@@ -51,15 +51,15 @@ export default function Login() {
           Log in to your PawnManager account
         </p>
 
-        <form className="my-8" onSubmit={handleSubmit}>
-          <LabelInputContainer className="mb-4">
+        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="email">Email Address</Label> 
-            <Input id="email" name="email" placeholder="owner@citygold.com" type="email" onChange={handleChange} required />
+            <Input id="email" name="email" placeholder="owner@citygold.com" type="email" inputMode="email" autoComplete="email" enterKeyHint="next" onChange={handleChange} required />
           </LabelInputContainer>
 
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" placeholder="••••••••" type="password" onChange={handleChange} required />
+            <Input id="password" name="password" placeholder="••••••••" type="password" autoComplete="current-password" enterKeyHint="done" onChange={handleChange} required />
           </LabelInputContainer>
 
           <button

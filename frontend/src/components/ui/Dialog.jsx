@@ -30,7 +30,9 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
       ref={ref}
       className={cn(
         "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 app-surface bg-app-surface border-app p-6 shadow-lg duration-200 sm:rounded-lg",
-        "max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] overflow-y-auto",
+        "max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-env(keyboard-inset-height,0px)-2rem)]",
+        "md:max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)]",
+        "overflow-y-auto",
         className
       )}
       {...props}

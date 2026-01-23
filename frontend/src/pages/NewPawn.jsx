@@ -151,9 +151,9 @@ export default function NewPawn() {
           Create a new loan for a customer.
         </p>
 
-        <form className="my-8" onSubmit={handleSubmit}>
+        <form className="my-8 pb-40 md:pb-0" onSubmit={handleSubmit}>
           <div className="relative" ref={dropdownRef}>
-            <LabelInputContainer className="mb-4">
+            <LabelInputContainer className="mb-6 md:mb-4">
               <Label htmlFor="customer_search">Search Customer</Label>
               <Input
                 id="customer_search"
@@ -167,11 +167,12 @@ export default function NewPawn() {
                 }}
                 required
                 autoComplete="off"
+                enterKeyHint="search"
               />
             </LabelInputContainer>
 
             {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white bg-neutral-800 shadow-lg border border-neutral-200 border-neutral-700">
+              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white bg-neutral-800 shadow-lg border border-neutral-200 border-neutral-700">
                 {loadingCustomers ? (
                   <div className="p-4 text-center text-sm text-neutral-500">Loading...</div>
                 ) : customers.length > 0 ? (
@@ -192,29 +193,29 @@ export default function NewPawn() {
             )}
           </div>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="ticket_number">Ticket Number</Label>
-              <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" value={formData.ticket_number} onChange={handleChange} required />
+              <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pawned_date">Pawned Date</Label>
-              <Input id="pawned_date" name="pawned_date" type="date" value={formData.pawned_date} onChange={handleChange} required />
+              <Input id="pawned_date" name="pawned_date" type="date" enterKeyHint="next" value={formData.pawned_date} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
-              <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" value={formData.loan_amount} onChange={handleChange} required />
+              <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" inputMode="decimal" enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="interest_rate">Interest Rate (%)</Label>
-              <Input id="interest_rate" name="interest_rate" placeholder="3" type="number" value={formData.interest_rate} onChange={handleChange} required />
+              <Input id="interest_rate" name="interest_rate" placeholder="3" type="number" inputMode="decimal" enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="adv_amount">Advance Amount (₹)</Label>
-              <Input id="adv_amount" name="adv_amount" placeholder="150" type="number" value={formData.adv_amount} onChange={handleChange} required />
+              <Input id="adv_amount" name="adv_amount" placeholder="150" type="number" inputMode="decimal" enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
@@ -222,25 +223,25 @@ export default function NewPawn() {
 
           <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">Item Details</h3>
 
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="item_name">Item Name *</Label>
-            <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" value={formData.item_name} onChange={handleChange} required />
+            <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="item_weight">Weight (grams) *</Label>
-              <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" value={formData.item_weight} onChange={handleChange} required />
+              <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="item_purity">Purity</Label>
-              <Input id="item_purity" name="item_purity" placeholder="22" type="number" value={formData.item_purity} onChange={handleChange} />
+              <Input id="item_purity" name="item_purity" placeholder="22" type="number" inputMode="numeric" enterKeyHint="next" value={formData.item_purity} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
-          <LabelInputContainer className="mb-8">
+          <LabelInputContainer className="mb-8 md:mb-8">
             <Label htmlFor="item_description">Item Description</Label>
-            <Input id="item_description" name="item_description" placeholder="22ct gold chain with small locket" type="text" value={formData.item_description} onChange={handleChange} />
+            <Input id="item_description" name="item_description" placeholder="22ct gold chain with small locket" type="text" autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
           </LabelInputContainer>
 
           <button

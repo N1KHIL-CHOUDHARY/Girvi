@@ -116,3 +116,12 @@
     border-color: var(--color-border);
   }
 }
+
+=
+@supports (scroll-margin-top: 1rem) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    scroll-margin-top: 8rem; /* Space for keyboard */
+  }
+}

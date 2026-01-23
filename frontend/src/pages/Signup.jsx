@@ -59,35 +59,35 @@ export default function Signup() {
           Create your account to start managing your shop
         </p>
 
-        <form className="my-8" onSubmit={handleSubmit}>
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="firstname">First name</Label>
-              <Input id="firstname" name="firstname" placeholder="John" type="text" onChange={handleChange} required />
+              <Input id="firstname" name="firstname" placeholder="John" type="text" autoComplete="given-name" enterKeyHint="next" onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="lastname">Last name</Label>
-              <Input id="lastname" name="lastname" placeholder="Doe" type="text" onChange={handleChange} required />
+              <Input id="lastname" name="lastname" placeholder="Doe" type="text" autoComplete="family-name" enterKeyHint="next" onChange={handleChange} required />
             </LabelInputContainer>
           </div>
           
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="shop_name">Shop Name</Label>
-            <Input id="shop_name" name="shop_name" placeholder="City Gold Pawn" type="text" onChange={handleChange} required />
+            <Input id="shop_name" name="shop_name" placeholder="City Gold Pawn" type="text" autoComplete="organization" enterKeyHint="next" onChange={handleChange} required />
           </LabelInputContainer>
 
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" name="email" placeholder="owner@citygold.com" type="email" onChange={handleChange} required />
+            <Input id="email" name="email" placeholder="owner@citygold.com" type="email" inputMode="email" autoComplete="email" enterKeyHint="next" onChange={handleChange} required />
           </LabelInputContainer>
 
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" placeholder="••••••••" type="password" onChange={handleChange} required />
+            <Input id="password" name="password" placeholder="••••••••" type="password" autoComplete="new-password" enterKeyHint="done" onChange={handleChange} required />
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]"
+            className="group/btn relative block min-h-[44px] w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]"
             type="submit"
             disabled={loading}
           >

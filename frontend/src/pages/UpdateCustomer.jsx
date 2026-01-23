@@ -124,15 +124,17 @@ export default function UpdateCustomer() {
           Editing details for {formData.full_name}.
         </p>
 
-        <form className="my-8" onSubmit={handleSubmit}>
+        <form className="my-8 pb-32 md:pb-0" onSubmit={handleSubmit}>
           {/* Name + Phone */}
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer className="w-full">
               <Label htmlFor="full_name">Full Name</Label>
               <Input
                 id="full_name"
                 name="full_name"
                 type="text"
+                autoComplete="name"
+                enterKeyHint="next"
                 value={formData.full_name}
                 onChange={handleChange}
                 required
@@ -144,6 +146,9 @@ export default function UpdateCustomer() {
                 id="phone_number"
                 name="phone_number"
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                enterKeyHint="next"
                 value={formData.phone_number}
                 onChange={handleChange}
                 required
@@ -152,7 +157,7 @@ export default function UpdateCustomer() {
           </div>
 
           {/* Gender */}
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="gender">Gender</Label>
             <select
               id="gender"
@@ -160,7 +165,7 @@ export default function UpdateCustomer() {
               value={formData.gender}
               onChange={handleChange}
               className={cn(
-                `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
+                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
 border-neutral-700 bg-neutral-800 text-neutral-200`
               )}
             >
@@ -171,37 +176,39 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
           </LabelInputContainer>
 
           {/* Address */}
-          <LabelInputContainer className="mb-4">
+          <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="line1">Address Line</Label>
             <Input
               id="line1"
               name="line1"
               type="text"
+              autoComplete="street-address"
+              enterKeyHint="next"
               value={formData.line1}
               onChange={handleChange}
             />
           </LabelInputContainer>
 
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" type="text" value={formData.city} onChange={handleChange} />
+              <Input id="city" name="city" type="text" autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pincode">Pincode</Label>
-              <Input id="pincode" name="pincode" type="text" value={formData.pincode} onChange={handleChange} />
+              <Input id="pincode" name="pincode" type="text" inputMode="numeric" autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
           {/* Aadhaar + PAN */}
-          <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
-              <Input id="aadhaar_number" name="aadhaar_number" type="text" value={formData.aadhaar_number} onChange={handleChange} />
+              <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="pan_number">PAN Number</Label>
-              <Input id="pan_number" name="pan_number" type="text" value={formData.pan_number} onChange={handleChange} />
+              <Input id="pan_number" name="pan_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
@@ -215,15 +222,15 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
           </LabelInputContainer>
 
           {/* Buttons */}
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <Link
               to="/app/customers"
-              className="group/btn relative block h-10 w-full rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-10"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-[44px] md:leading-10"
             >
               Cancel
             </Link>
             <button
-              className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
               type="submit"
               disabled={updateMutation.isPending}
             >
