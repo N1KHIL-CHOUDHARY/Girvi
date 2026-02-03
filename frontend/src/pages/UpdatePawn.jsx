@@ -121,18 +121,18 @@ export default function UpdatePawn() {
 
   return (
     <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
+        <h2 className="text-xl font-bold text-neutral-800 ">
           Update Pawn Ticket
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
           Editing ticket {formData.ticket_number} for {customerName}.
         </p>
 
         <form className="my-8 pb-40 md:pb-0" onSubmit={handleSubmit}>
           <LabelInputContainer className="mb-6 md:mb-4">
             <Label>Customer</Label>
-            <Input type="text" value={customerName} disabled className="bg-neutral-800" />
+            <Input type="text" value={customerName} disabled className="text-black" />
           </LabelInputContainer>
 
           {/* Ticket Info */}
@@ -195,7 +195,7 @@ export default function UpdatePawn() {
           <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <Link
               to="/app/pawns"
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-[44px] md:leading-10"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
             >
               Cancel
             </Link>

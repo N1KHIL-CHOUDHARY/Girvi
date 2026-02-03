@@ -116,11 +116,11 @@ export default function UpdateCustomer() {
 
   return (
     <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
+        <h2 className="text-xl font-bold text-neutral-800 ">
           Update Customer
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
           Editing details for {formData.full_name}.
         </p>
 
@@ -166,7 +166,7 @@ export default function UpdateCustomer() {
               onChange={handleChange}
               className={cn(
                 `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-border-neutral-700 bg-neutral-800 text-neutral-200`
+ text-black`
               )}
             >
               <option value="Male">Male</option>
@@ -225,7 +225,7 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
           <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <Link
               to="/app/customers"
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700 bg-neutral-800 text-neutral-200 text-center leading-[44px] md:leading-10"
+              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
             >
               Cancel
             </Link>
