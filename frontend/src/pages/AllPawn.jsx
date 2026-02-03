@@ -386,7 +386,7 @@ export default function AllPawns() {
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                                 <Link
-                                to={`/app/pawn/${pawn._id}`}
+                                to={`/app/pawns/${pawn._id}`}
                                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                               >
                                 <span>₹</span>
@@ -401,7 +401,7 @@ export default function AllPawns() {
                   </Table>
                 </div>
 
-                {/* Mobile Card View */}
+                
                 <div className="md:hidden space-y-4">
                   <p className="text-sm text-neutral-600 mb-4">
                     Showing {pawns.length} of {totalPawnTickets} total tickets.
