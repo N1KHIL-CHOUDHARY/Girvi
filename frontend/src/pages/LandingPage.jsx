@@ -1,582 +1,607 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  AnimatePresence,
-  useSpring
-} from "motion/react";
-import {
-  Users,
-  BarChart3,
-  Cloud,
-  Shield,
-  TrendingUp,
-  PlayCircle,
-  Menu,
-  X,
-  Plus,
-  Minus,
-  LayoutDashboard,
-  Wallet,
-  UserCircle,
-  LogOut,
-  Zap,
-  Clock,
-  CheckCircle2
-} from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const heroImage = "https://res.cloudinary.com/ddgdcca86/image/upload/v1765437152/bussinessman_zqomrz.png";
-const appScreenPayments ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436517/Payments_j0iapt.png";
-const appScreenCustomer ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Customers_rul5vq.png";
-const appScreenDashboard ="https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png";
+// Product screenshot URLs for showcase
+const DASHBOARD_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png';
+const PAYMENTS_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436517/Payments_j0iapt.png';
+const CUSTOMERS_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Customers_rul5vq.png';
 
-const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, image: appScreenDashboard, desc: "Get a bird's eye view of your daily performance, recent loans, and inventory alerts." },
-  { id: "customer", label: "Customers", icon: UserCircle, image: appScreenCustomer, desc: "Manage detailed client profiles, view history, and track pawn limits instantly." },
-  { id: "payments", label: "Payments", icon: Wallet, image: appScreenPayments, desc: "Process loans, buy-backs, and retail sales with a streamlined, secure checkout." },
-];
-
-export default function PawnManagerLanding() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(tabs[0].id);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+const LandingPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
+  const [activeDemoTab, setActiveDemoTab] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTab((current) => {
-        const currentIndex = tabs.findIndex(t => t.id === current);
-        const nextIndex = (currentIndex + 1) % tabs.length;
-        return tabs[nextIndex].id;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const handleScrollListener = () => {
-      setIsScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScrollListener);
-    return () => window.removeEventListener("scroll", handleScrollListener);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleScroll = (id) => {
-    setIsMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
   };
 
-  const faqData = [
-    {
-      question: "Is PawnManager compliant with local regulations?",
-      answer: "Yes. PawnManager supports customizable interest rules, grace periods, and reporting formats so you can align the system with your state's regulatory requirements."
-    },
-    {
-      question: "Does PawnManager work offline?",
-      answer: "Offline support is currently in development. We're actively working on enabling essential features to function during temporary internet outages, with automatic data syncing once you're back online."
-    },
-    {
-      question: "How secure is my data?",
-      answer: "Your data is protected with 256-bit SSL encryption and hosted on secure AWS infrastructure with automated daily backups and strict access controls."
-    },
-    {
-      question: "Do you offer onboarding support?",
-      answer: "Yes. We offer self-serve onboarding with step-by-step setup guides, video tutorials, and in-app tooltips designed to help your team get comfortable quickly."
-    },
-    {
-      question: "Does PawnManager work with barcode scanners and printers?",
-      answer: "Yes. PawnManager is plug-and-play compatible with most standard USB and Bluetooth barcode scanners, receipt printers, and label printers."
-    },
-    {
-      question: "Can I manage multiple store locations?",
-      answer: "Yes. Our multi-store system lets you manage inventory transfers, permissions, financial reports, and user access across all your locations from one dashboard."
-    }
-  ];
-
   return (
-    <div className="min-h-screen w-full bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
-
-      {/* --- Navbar --- */}
-      <nav 
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] ${
-          isScrolled || isMobileMenuOpen 
-            ? "bg-white/95 backdrop-blur-lg shadow-lg border-b border-slate-200" 
-            : "bg-transparent"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-white">
+      {/* NAVBAR */}
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-sm">P</span>
+              </div>
+              <span className={`font-semibold text-lg ${
+                isScrolled ? 'text-slate-900' : 'text-white'
+              }`}>
+                PawnManager
+              </span>
             </div>
-            <span className={`text-xl font-bold ${isScrolled || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}>
-              PawnManager
-            </span>
+            
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#demo" className={`font-medium transition-colors ${
+                isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
+              }`}>
+                Demo
+              </a>
+              <a href="#features" className={`font-medium transition-colors ${
+                isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
+              }`}>
+                Features
+              </a>
+              <a href="#faq" className={`font-medium transition-colors ${
+                isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
+              }`}>
+                FAQ
+              </a>
+              <a href="#contact" className={`font-medium transition-colors ${
+                isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
+              }`}>
+                Contact
+              </a>
+              <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors inline-block">
+                Get Started
+              </Link>
+            </div>
           </div>
-
-          {/* Desktop Links */}
-          <div className={`hidden md:flex items-center gap-8 font-medium text-sm ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white/90'}`}>
-            <button onClick={() => handleScroll('features')} className="hover:text-emerald-600 transition">Features</button>
-            <button onClick={() => handleScroll('faq')} className="hover:text-emerald-600 transition">FAQ</button>
-            <button onClick={() => handleScroll('contact')} className="hover:text-emerald-600 transition">Contact</button>
-          </div>
-
-          <div className="hidden md:flex items-center gap-3">
-            {isLoggedIn ? (
-              <>
-                <button
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-semibold flex items-center gap-2"
-                >
-                  <LayoutDashboard size={16} /> Dashboard
-                </button>
-                <button
-                  className={`text-sm font-semibold hover:text-emerald-600 transition flex items-center gap-2 ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'}`}
-                >
-                  <LogOut size={16} /> Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className={`text-sm font-semibold hover:text-emerald-600 transition ${isScrolled || isMobileMenuOpen ? 'text-slate-700' : 'text-white'}`}
-                >
-                  <Link to="/login">Login</Link>
-                </button>
-                <button
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-semibold"
-                >
-                  <Link to="/signup">Get Started</Link>
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Toggle */}
-          <button
-            className={`md:hidden z-50 relative ${isScrolled || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X /> : <Menu />}
-          </button>
         </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute top-0 left-0 w-full bg-white pt-20 p-6 flex flex-col gap-5 shadow-xl md:hidden z-40 border-b border-slate-200"
-            >
-              <button onClick={() => handleScroll('features')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">Features</button>
-              <button onClick={() => handleScroll('faq')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">FAQ</button>
-              <button onClick={() => handleScroll('contact')} className="text-left text-base font-medium text-slate-700 hover:text-emerald-600 transition">Contact</button>
-
-              <div className="h-px bg-slate-200 my-2"></div>
-
-              {isLoggedIn ? (
-                <>
-                  <button className="text-left text-base font-medium text-slate-700 flex items-center gap-2">
-                    <LayoutDashboard size={18} /> Go to Dashboard
-                  </button>
-                  <button className="py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
-                    <LogOut size={18} /> Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button className="text-left text-base font-medium text-slate-700"><Link to="/login">Login</Link></button>
-                  <button className="py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg">Get Started</button>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
 
-      {/* --- HERO --- */}
-      <header className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen flex items-center pt-20 px-6 overflow-hidden">
-        {/* Ambient Background Elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/30 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/30 rounded-full blur-[120px]"></div>
-        </div>
-
-        {/* Decorative Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
-
-        <div className="max-w-7xl mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center w-full">
-          <div className="text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6"
+      {/* HERO SECTION */}
+      <section className="relative bg-slate-900 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+          >
+            <motion.h1 
+              className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
+              variants={fadeInUp}
             >
-              <Zap size={16} className="text-emerald-400" />
-              Cloud-Based Management System
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
-            >
-              Pawn Shop<br />
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                Management
-              </span><br />
-              Simplified.
+              Manage pawn loans, customers, and payments in one place
             </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-slate-300 text-lg md:text-xl max-w-xl mb-10 leading-relaxed"
+            
+            <motion.p 
+              className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
+              variants={fadeInUp}
             >
-              Grow your pawn business with a platform designed to handle loans, inventory, and customers in one secure cloud solution.
+              The complete pawn shop management platform for loans, customer records, inventory, and payments.
             </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="flex flex-col sm:flex-row items-start gap-4 mb-12"
+            
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8"
+              variants={fadeInUp}
             >
-              <button
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all transform"
-              >
-                <Link to="/signup">Get Started Free</Link>
-              </button>
-
-              <button
-                onClick={() => handleScroll('demo-section')}
-                className="px-8 py-4 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-800/50 backdrop-blur-sm transition flex items-center gap-2"
-              >
-                <PlayCircle size={20} /> View Demo
+              <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors inline-block">
+                Start Free Trial
+              </Link>
+              <button className="border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors">
+                Watch Demo
               </button>
             </motion.div>
-
-            {/* Trust Indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-              className="flex flex-wrap items-center gap-6 text-sm text-slate-400"
+            
+            <motion.div 
+              className="text-sm text-slate-400 space-x-6"
+              variants={fadeInUp}
             >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>Free 14-day trial</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>Cancel anytime</span>
-              </div>
+              <span>✓ 14-day free trial</span>
+              <span>✓ No credit card required</span>
+              <span>✓ Cancel anytime</span>
             </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, type: "spring", stiffness: 120, damping: 18 }}
-            className="relative flex justify-center md:justify-end"
-          >
-            <div className="relative">
-               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-[58%_42%_35%_65%_/_60%_38%_62%_40%] blur-[100px] -z-10 scale-[1.4]" />
-               <motion.img
-                 src={heroImage}
-                 alt="3D Character Working"
-                 className="w-full max-w-[500px] h-auto object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.35)]"
-                 initial={{ scale: 0.9 }}
-                 animate={{ scale: 1 }}
-                 transition={{ duration: 0.9, type: "spring" }}
-               />
-            </div>
           </motion.div>
-        </div>
-      </header>
-
-      {/* --- WORKFLOW TABS --- */}
-      <section id="demo-section" className="py-24 bg-white relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
-            >
-              <Clock size={16} />
-              Interactive Demo
-            </motion.div>
-            <h2 className="text-4xl font-bold mb-4 text-slate-900">Experience the Workflow</h2>
-            <p className="text-lg text-slate-600">Switch between views to see how PawnManager streamlines your operations.</p>
-          </div>
-
-          <div className="bg-slate-50 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="flex border-b border-slate-200 bg-white">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex-1 py-6 px-4 text-center focus:outline-none transition-all duration-300 ${
-                    activeTab === tab.id ? "text-emerald-600 bg-emerald-50/50" : "text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2 font-semibold text-base md:text-lg">
-                    <tab.icon size={20} className={activeTab === tab.id ? "text-emerald-600" : "text-slate-400"} />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </div>
-
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTabIndicator"
-                      className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-600"
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-8 md:p-12 bg-slate-50 min-h-[500px] flex flex-col items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="w-full text-center"
-                >
-                  <div className="mb-8">
-                    <p className="text-slate-600 text-lg md:text-xl max-w-2xl mx-auto">{tabs.find(t => t.id === activeTab).desc}</p>
-                  </div>
-                  <div className="rounded-2xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] border border-slate-200 inline-block bg-white">
-                    <img
-                      src={tabs.find(t => t.id === activeTab).image}
-                      alt={tabs.find(t => t.id === activeTab).label}
-                      className="max-w-full h-auto object-cover"
-                    />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- FEATURES --- */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto bg-slate-50">
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
+          
+          {/* Hero: Real dashboard screenshot for immediate product credibility */}
+          <motion.div 
+            className="mt-16 max-w-5xl mx-auto px-4"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
           >
-            <Zap size={16} />
-            Features
-          </motion.div>
-          <h2 className="text-4xl font-bold tracking-tight mb-4 text-slate-900">Everything you need to run efficiently</h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">We've bundled all the essential tools into one cohesive platform.</p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FeatureCard
-            icon={<Users />}
-            title="Customer CRM"
-            desc="Keep track of customer history, loan limits, and personal details in one secure database."
-          />
-          <FeatureCard
-            icon={<BarChart3 />}
-            title="Inventory Management"
-            desc="Real-time tracking of items, automated categorization, and aging inventory alerts."
-          />
-          <FeatureCard
-            icon={<TrendingUp />}
-            title="Loan Tracking"
-            desc="Automated interest calculations and due date reminders for all active loans."
-          />
-          <FeatureCard
-            icon={<BarChart3 />}
-            title="Financial Reporting"
-            desc="Generate profit/loss statements, audit reports, and daily transaction summaries instantly."
-          />
-          <FeatureCard
-            icon={<Shield />}
-            title="Secure Data"
-            desc="Bank-grade encryption ensures your business and customer data is never compromised."
-          />
-          <FeatureCard
-            icon={<Cloud />}
-            title="Cloud-Based Access"
-            desc="Manage your shop from anywhere. Works seamlessly on desktop, tablet, and mobile."
-          />
-        </div>
-      </section>
-
-      {/* --- FAQ --- */}
-      <section id="faq" className="py-24 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-14 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6"
-            >
-              FAQs
-            </motion.div>
-            <h2 className="text-4xl font-bold mb-4 text-slate-900">Common Questions</h2>
-            <p className="text-slate-600 text-lg">Everything you need to know about the product.</p>
-          </div>
-
-          <div className="space-y-4">
-            {faqData.map((item, index) => (
-              <FaqItem
-                key={index}
-                question={item.question}
-                answer={item.answer}
-                isOpen={openFaqIndex === index}
-                onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+            <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl shadow-black/30 bg-white/5 p-2 sm:p-4">
+              <img
+                src={DASHBOARD_IMG}
+                alt="PawnManager dashboard showing loans overview, recent activity, and key metrics"
+                className="w-full h-auto rounded-lg object-contain aspect-video sm:aspect-[16/10] object-top"
+                loading="eager"
+                width={1200}
+                height={720}
               />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* WORKFLOW / DEMO: Tabbed screenshots to show Dashboard, Customers, Payments */}
+      <section id="demo" className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              See PawnManager in action
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Dashboard, customers, and payments—all in one place.
+            </p>
+          </motion.div>
+
+          {/* Tab buttons */}
+          <motion.div 
+            className="flex justify-center gap-2 mb-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            {['Dashboard', 'Customers', 'Payments'].map((label, idx) => (
+              <button
+                key={label}
+                onClick={() => setActiveDemoTab(idx)}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  activeDemoTab === idx
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </motion.div>
+
+          {/* Tab content: Screenshots with smooth transitions */}
+          <motion.div 
+            className="rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-white p-2 sm:p-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeDemoTab}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="relative"
+              >
+                {activeDemoTab === 0 && (
+                  <img
+                    src={DASHBOARD_IMG}
+                    alt="PawnManager dashboard with loans overview and metrics"
+                    className="w-full h-auto rounded-lg object-contain aspect-video object-top"
+                    width={1200}
+                    height={675}
+                  />
+                )}
+                {activeDemoTab === 1 && (
+                  <img
+                    src={CUSTOMERS_IMG}
+                    alt="PawnManager customers list and management view"
+                    className="w-full h-auto rounded-lg object-contain aspect-video object-top"
+                    width={1200}
+                    height={675}
+                  />
+                )}
+                {activeDemoTab === 2 && (
+                  <img
+                    src={PAYMENTS_IMG}
+                    alt="PawnManager payments and transaction history"
+                    className="w-full h-auto rounded-lg object-contain aspect-video object-top"
+                    width={1200}
+                    height={675}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF */}
+      <section className="py-16 bg-slate-50">
+        <motion.div 
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+        >
+          <p className="text-slate-600 mb-8">Trusted by pawn shops nationwide</p>
+          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+            {['Quick Cash', 'Value Pawn', 'Ace Loans', 'Gold Standard', 'Pro Pawn'].map((company) => (
+              <div key={company} className="bg-slate-200 px-6 py-3 rounded-full">
+                <span className="font-medium text-slate-700">{company}</span>
+              </div>
             ))}
           </div>
+        </motion.div>
+      </section>
+
+      {/* WHY THIS PRODUCT */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Why choose PawnManager?
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Stop juggling spreadsheets and paper. Manage loans, customers, and payments in one purpose-built platform.
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            className="grid md:grid-cols-3 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {[
+              {
+                title: "All-in-one platform",
+                description: "Loans, customer records, inventory, and payments in one place. No more spreadsheets or disjointed systems."
+              },
+              {
+                title: "Built for pawn shops",
+                description: "Designed specifically for pawn workflows. Track every loan, renewal, and payment with ease."
+              },
+              {
+                title: "Stay organized",
+                description: "Never lose track of items or deadlines. Clear dashboards and reports keep your shop running smoothly."
+              }
+            ].map((item, index) => (
+              <motion.div 
+                key={index}
+                className="text-center p-8"
+                variants={fadeInUp}
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-4">{item.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{item.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* --- CTA Section --- */}
-      <section className="py-24 px-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/30 rounded-full blur-[120px]"></div>
-        </div>
-        
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to transform your pawn shop?
-          </h2>
-          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Join hundreds of pawn shops already using PawnManager to streamline their operations.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all transform">
-              Start Free Trial
-            </button>
-            <button className="px-8 py-4 rounded-xl border border-slate-600 text-white font-semibold hover:bg-slate-800/50 transition">
-              Schedule a Demo
-            </button>
-          </div>
+      {/* FEATURES */}
+      <section id="features" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Everything you need to run your pawn shop
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Powerful features for loans, customers, inventory, and payments.
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {[
+              {
+                title: "Loan Management",
+                description: "Track every pawn loan from intake to redemption. Set terms, due dates, and interest with ease."
+              },
+              {
+                title: "Customer Records",
+                description: "Centralize customer data, contact info, and loan history in one searchable database."
+              },
+              {
+                title: "Payments & Transactions",
+                description: "Record payments, extensions, and redemptions. Keep a clear audit trail of all transactions."
+              },
+              {
+                title: "Inventory Tracking",
+                description: "Know exactly what's in your shop. Tag items to loans and track status at a glance."
+              },
+              {
+                title: "Dashboards & Reports",
+                description: "See active loans, revenue, and key metrics at a glance. Export reports when you need them."
+              },
+              {
+                title: "Secure & Reliable",
+                description: "Your data is protected. Built for reliability so you can focus on running your shop."
+              }
+            ].map((feature, index) => (
+              <motion.div 
+                key={index}
+                className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300"
+                variants={fadeInUp}
+                whileHover={{ y: -2 }}
+              >
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                  <div className="w-6 h-6 bg-blue-600 rounded-md"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-4">{feature.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer id="contact" className="bg-slate-900 text-slate-300 pt-16 pb-8 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-white" />
+      {/* HOW IT WORKS */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Get started in minutes
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Simple setup process that gets you up and running without the complexity.
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            className="grid md:grid-cols-3 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {[
+              {
+                step: "1",
+                title: "Sign up",
+                description: "Create your account in minutes. No credit card required to get started."
+              },
+              {
+                step: "2",
+                title: "Add your data",
+                description: "Import customers and loans, or start fresh. The interface is built for pawn shop workflows."
+              },
+              {
+                step: "3",
+                title: "Run your shop",
+                description: "Manage loans, customers, and payments in one place. PawnManager keeps everything organized."
+              }
+            ].map((item, index) => (
+              <motion.div 
+                key={index}
+                className="text-center relative"
+                variants={fadeInUp}
+              >
+                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
+                  {item.step}
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-4">{item.title}</h3>
+                <p className="text-slate-600 leading-relaxed">{item.description}</p>
+                
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-8 left-full w-full h-px bg-slate-200 transform -translate-y-1/2"></div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 bg-slate-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-16"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Frequently asked questions
+            </h2>
+            <p className="text-xl text-slate-600">
+              Everything you need to know about PawnManager.
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            className="space-y-4"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {[
+              {
+                question: "How long does it take to set up PawnManager?",
+                answer: "Most pawn shops are up and running within 30 minutes. Add your first customer and loan, and you're ready to go."
+              },
+              {
+                question: "Can I import my existing customer and loan data?",
+                answer: "Yes. You can import data from spreadsheets or enter it manually. We can help with larger migrations if needed."
+              },
+              {
+                question: "What happens if I need to cancel?",
+                answer: "You can cancel anytime with no penalties. We'll help you export your data, and you'll retain access until the end of your billing period."
+              },
+              {
+                question: "Is my pawn shop data secure?",
+                answer: "Absolutely. Your data is encrypted and stored securely. We take privacy seriously—your customer and loan information is protected."
+              },
+              {
+                question: "Do you offer support?",
+                answer: "Yes, all plans include email support. We're here to help you get the most out of PawnManager."
+              }
+            ].map((faq, index) => (
+              <motion.div 
+                key={index}
+                className="bg-white rounded-xl shadow-sm"
+                variants={fadeInUp}
+              >
+                <button
+                  className="w-full px-8 py-6 text-left flex justify-between items-center focus:outline-none"
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                >
+                  <span className="font-semibold text-slate-900">{faq.question}</span>
+                  <span className={`text-blue-600 transform transition-transform ${
+                    openFaq === index ? 'rotate-45' : ''
+                  }`}>
+                    +
+                  </span>
+                </button>
+                
+                <AnimatePresence>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-8 pb-6 text-slate-600 leading-relaxed">
+                        {faq.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-20 bg-slate-900">
+        <motion.div 
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-white mb-6"
+            variants={fadeInUp}
+          >
+            Ready to run your pawn shop better?
+          </motion.h2>
+          
+          <motion.p 
+            className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
+            variants={fadeInUp}
+          >
+            Join pawn shops nationwide using PawnManager to manage loans, customers, and payments.
+          </motion.p>
+          
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6"
+            variants={fadeInUp}
+          >
+            <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors inline-block">
+              Start Your Free Trial
+            </Link>
+            <button className="border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors">
+              Schedule Demo
+            </button>
+          </motion.div>
+          
+          <motion.p 
+            className="text-sm text-slate-400"
+            variants={fadeInUp}
+          >
+            No credit card required • Cancel anytime • 14-day free trial
+          </motion.p>
+        </motion.div>
+      </section>
+
+      {/* FOOTER */}
+      <footer id="contact" className="bg-slate-800 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-sm">P</span>
               </div>
-              <span className="text-xl font-bold text-white">PawnManager</span>
+              <span className="font-semibold text-lg text-white">PawnManager</span>
             </div>
-            <p className="text-slate-400 text-sm max-w-xs leading-relaxed">Modernizing the pawn industry with secure, cloud-based management solutions.</p>
+            
+            <div className="flex space-x-8 mb-4 md:mb-0">
+              <a href="#features" className="text-slate-400 hover:text-white transition-colors">Features</a>
+              <a href="#demo" className="text-slate-400 hover:text-white transition-colors">Demo</a>
+              <a href="#faq" className="text-slate-400 hover:text-white transition-colors">FAQ</a>
+              <a href="mailto:support@pawnmanager.com" className="text-slate-400 hover:text-white transition-colors">Contact</a>
+            </div>
+            
+            <p className="text-slate-400 text-sm">
+              © 2025 PawnManager. All rights reserved.
+            </p>
           </div>
-          <div>
-            <h4 className="font-semibold mb-4 text-white">Product</h4>
-            <ul className="space-y-3 text-sm">
-              <li><button onClick={() => handleScroll('features')} className="hover:text-emerald-400 transition">Features</button></li>
-              <li><a href="#" className="hover:text-emerald-400 transition">Security</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition">Roadmap</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-4 text-white">Company</h4>
-            <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-emerald-400 transition">About Us</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition">Contact</a></li>
-              <li><a href="#" className="hover:text-emerald-400 transition">Privacy Policy</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="text-center text-slate-500 text-sm border-t border-slate-800 pt-8">
-          <p>© {new Date().getFullYear()} PawnManager Inc. All rights reserved.</p>
         </div>
       </footer>
     </div>
   );
-}
+};
 
-function FeatureCard({ icon, title, desc }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -8 }}
-      className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 group"
-    >
-      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center mb-6 group-hover:from-emerald-500 group-hover:to-teal-600 transition-all duration-300">
-        {React.cloneElement(icon, { className: "w-7 h-7 text-emerald-600 group-hover:text-white transition-colors" })}
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-      <p className="text-slate-600 leading-relaxed">{desc}</p>
-    </motion.div>
-  );
-}
-
-function FaqItem({ question, answer, isOpen, onClick }) {
-  return (
-    <motion.div
-      layout
-      initial={false}
-      onClick={onClick}
-      className={`bg-white rounded-2xl overflow-hidden border cursor-pointer transition-all duration-300 ${
-        isOpen 
-          ? 'border-emerald-200 shadow-lg shadow-emerald-500/5' 
-          : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
-      }`}
-    >
-      <button className="flex justify-between items-start w-full text-left p-6 focus:outline-none group">
-        <span className={`font-semibold text-lg pr-4 transition-colors ${isOpen ? 'text-emerald-700' : 'text-slate-800'}`}>
-          {question}
-        </span>
-        <motion.div
-          layout
-          transition={{ duration: 0.2 }}
-          className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
-            isOpen ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
-          }`}
-        >
-          {isOpen ? <Minus size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}
-        </motion.div>
-        </button>
-
-<AnimatePresence initial={false}>
-  {isOpen && (
-    <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-    >
-      <div className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-100 pt-4">
-        {answer}
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
-</motion.div>
-);
-}
+export default LandingPage;
