@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const DASHBOARD_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png';
 const PAYMENTS_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436517/Payments_j0iapt.png';
 const CUSTOMERS_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Customers_rul5vq.png';
+const logo_IMG ='https://res.cloudinary.com/ddgdcca86/image/upload/v1770195946/logo_imxhzo.png';
 
 const LandingPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -38,16 +39,14 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* NAVBAR */}
+      
       <nav className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
-              </div>
+              <h1 className='h-7 w-7'><img src={logo_IMG} /></h1>
               <span className={`font-semibold text-lg ${
                 isScrolled ? 'text-slate-900' : 'text-white'
               }`}>
