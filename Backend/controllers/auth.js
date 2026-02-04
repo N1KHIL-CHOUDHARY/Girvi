@@ -29,20 +29,7 @@ const generateToken = (user, permissions) =>
     { expiresIn: '7d' }
   );
 
-  const setAuthCookie = (res, token) => {
-    const isProduction = process.env.NODE_ENV === "production";
   
-    res.cookie("token", token, {
-      httpOnly: true,
-    
-        // 🔑 KEY FIX
-      secure: isProduction,                 
-      sameSite: isProduction ? "none" : "lax",
-  
-      maxAge: 1 * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
-  };
   
 
 exports.signup = asyncHandler(async (req, res) => {
@@ -87,14 +74,12 @@ exports.signup = asyncHandler(async (req, res) => {
     session.endSession();
 
     const token = generateToken(newUser, ownerRole.permissions);
-    
-    // Set HttpOnly cookie instead of returning token
-    setAuthCookie(res, token);
 
     return sendSuccess(res, {
       status: 201,
       message: 'Signup successful.',
       data: {
+        token,
         user: {
           id: newUser._id,
           shopId: newUser.shop_id,
@@ -127,13 +112,11 @@ exports.login = asyncHandler(async (req, res) => {
   }
 
   const token = generateToken(user, role.permissions);
-  
-  // Set HttpOnly cookie instead of returning token
-  setAuthCookie(res, token);
 
   return sendSuccess(res, {
     message: 'Login successful.',
     data: {
+      token,
       user: {
         id: user._id,
         shopId: user.shop_id,
@@ -146,18 +129,7 @@ exports.login = asyncHandler(async (req, res) => {
   });
 });
 
-// Logout endpoint - clears the auth cookie
 exports.logout = asyncHandler(async (req, res) => {
-  
-  res.cookie("token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 0,
-    path: "/",
-  });
-  
-
   return sendSuccess(res, {
     message: 'Logout successful.',
   });

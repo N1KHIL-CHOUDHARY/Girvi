@@ -5,7 +5,6 @@ const errorHandler = (err, req, res, next) => {
   const message = err.message || 'Unexpected server error.';
 
   if (statusCode >= 500) {
-    // eslint-disable-next-line no-console
     console.error(err);
   }
 

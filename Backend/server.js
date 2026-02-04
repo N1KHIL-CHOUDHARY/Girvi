@@ -6,7 +6,6 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const v1ApiRoutes = require('./routes/api/v1/index');
 const errorHandler = require('./middlewares/errorHandler');
@@ -24,31 +23,22 @@ const allowedOrigins = [
 
   app.use(
     cors({
-      origin: function (origin, callback) {
+      origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-  
-        if (allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-  
-        return callback(new Error("Not allowed by CORS: " + origin));
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS: ' + origin));
       },
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: false,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
-  
-  // ✅ REQUIRED for preflight
-  app.options("*", cors());
-  
 
-app.options("*", cors());
+app.options('*', cors());
 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 app.use('/api/v1', v1ApiRoutes);
 

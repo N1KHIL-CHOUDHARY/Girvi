@@ -1,11 +1,29 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const TOKEN_KEY = 'auth_token';
+
+export const getStoredToken = () => localStorage.getItem(TOKEN_KEY);
+export const setStoredToken = (token) => {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+};
 
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, 
+  withCredentials: false,
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = getStoredToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (err) => Promise.reject(err)
+);
 
 api.interceptors.response.use(
   (response) => {
@@ -31,6 +49,12 @@ api.interceptors.response.use(
         error.response.meta = payload.meta;
         error.response.error = payload.error;
         error.response.data = payload.data;
+      }
+    }
+    if (error.response?.status === 401) {
+      setStoredToken(null);
+      if (typeof window !== 'undefined' && !error.config?.url?.includes('/auth/login') && !error.config?.url?.includes('/auth/signup')) {
+        window.location.replace('/login');
       }
     }
     return Promise.reject(error);

@@ -161,7 +161,7 @@ graph TD
 
 ## 🛡️ Security Features
 Data Encryption: Sensitive fields like Aadhaar and PAN numbers are encrypted using AES-256-GCM before storage and decrypted only upon retrieval.
-Authentication: Secure JWT-based authentication with HTTP-only cookies.
+Authentication: Stateless JWT-based authentication via Authorization: Bearer token (no cookies).
 Authorization: Middleware ensures users can only access data belonging to their specific ShopID.
 Permission Guard: Frontend routes and UI elements are protected by a PermissionGuard component that checks the user's role capabilities.
 
