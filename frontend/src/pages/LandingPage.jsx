@@ -40,7 +40,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      <nav className={`fixed w-dvw z-50 transition-all duration-300 ${
         isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -241,25 +241,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
-      <section className="py-16 bg-slate-50">
-        <motion.div 
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeInUp}
-        >
-          <p className="text-slate-600 mb-8">Trusted by pawn shops nationwide</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            {['Quick Cash', 'Value Pawn', 'Ace Loans', 'Gold Standard', 'Pro Pawn'].map((company) => (
-              <div key={company} className="bg-slate-200 px-6 py-3 rounded-full">
-                <span className="font-medium text-slate-700">{company}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
+     
 
       {/* WHY THIS PRODUCT */}
       <section className="py-20">
@@ -428,7 +410,7 @@ const LandingPage = () => {
             ].map((item, index) => (
               <motion.div 
                 key={index}
-                className="text-center relative"
+                className="text-center relative overflow-hidden"
                 variants={fadeInUp}
               >
                 <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl">
@@ -437,8 +419,9 @@ const LandingPage = () => {
                 <h3 className="text-xl font-semibold text-slate-900 mb-4">{item.title}</h3>
                 <p className="text-slate-600 leading-relaxed">{item.description}</p>
                 
+                
                 {index < 2 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-px bg-slate-200 transform -translate-y-1/2"></div>
+                  <div className="hidden md:block absolute top-8 left-full w-1/2 h-px bg-slate-200 transform -translate-y-1/2"></div>
                 )}
               </motion.div>
             ))}

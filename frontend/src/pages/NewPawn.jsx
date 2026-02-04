@@ -172,18 +172,18 @@ export default function NewPawn() {
             </LabelInputContainer>
 
             {isDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white bg-neutral-800 shadow-lg border border-neutral-200 border-neutral-700">
+              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white shadow-lg border border-neutral-200 ">
                 {loadingCustomers ? (
                   <div className="p-4 text-center text-sm text-neutral-500">Loading...</div>
                 ) : customers.length > 0 ? (
                   customers.map((customer) => (
                     <div
                       key={customer._id}
-                      className="p-3 hover:bg-neutral-100 hover:bg-neutral-700 cursor-pointer"
+                      className="p-3 hover:bg-neutral-100 cursor-pointer"
                       onClick={() => handleSelectCustomer(customer)}
                     >
-                      <p className="font-medium text-neutral-800 text-neutral-200">{customer.full_name}</p>
-                      <p className="text-sm text-neutral-500 text-neutral-400">{customer.phone_number}</p>
+                      <p className="font-medium text-neutral-800 ">{customer.full_name}</p>
+                      <p className="text-sm text-neutral-500 ">{customer.phone_number}</p>
                     </div>
                   ))
                 ) : (
@@ -224,13 +224,13 @@ export default function NewPawn() {
           <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">Item Details</h3>
 
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="item_name">Item Name *</Label>
+            <Label htmlFor="item_name">Item Name  </Label>
             <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="item_weight">Weight (grams) *</Label>
+              <Label htmlFor="item_weight">Weight (grams)  </Label>
               <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>

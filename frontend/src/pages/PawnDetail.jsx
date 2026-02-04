@@ -98,44 +98,44 @@ export default function PawnDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left column: Ticket info */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-xs text-neutral-500">Ticket</p>
-                  <p className="text-lg font-semibold text-neutral-900 text-neutral-100">{ticket.ticket_number}</p>
+                  <p className="text-lg font-semibold text-neutral-900 ">{ticket.ticket_number}</p>
                 </div>
                 <span className={statusBadge}>{ticket.status}</span>
               </div>
-              <div className="space-y-2 text-sm text-neutral-700 text-neutral-200">
+              <div className="space-y-2 text-sm text-neutral-700 ">
                 <p><span className="text-neutral-500">Customer:</span> {ticket.customer_id?.full_name || 'Unknown'}</p>
                 <p><span className="text-neutral-500">Pawned Date:</span> {formatDate(ticket.pawned_date)}</p>
                 <p><span className="text-neutral-500">Interest Rate:</span> {ticket.interest_rate}%</p>
                 <p><span className="text-neutral-500">Advance:</span> ₹{ticket.adv_amount}</p>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-neutral-50 p-3 bg-neutral-800">
+                <div className="rounded-xl bg-neutral-50 p-3">
                   <p className="text-xs text-neutral-500">Original Loan</p>
-                  <p className="text-lg font-semibold text-neutral-900 text-neutral-100 flex items-center gap-1">
+                  <p className="text-lg font-semibold text-neutral-900 flex flex-row items-center gap-1">
                     <IconCurrencyRupee className="h-4 w-4" /> {ticket.original_loan_amount ?? ticket.loan_amount}
                   </p>
                 </div>
-                <div className="rounded-xl bg-green-50 p-3 bg-neutral-800">
+                <div className="rounded-xl bg-green-100 p-3">
                   <p className="text-xs text-neutral-500">Current Balance</p>
-                  <p className="text-lg font-semibold text-green-800 text-green-200 flex items-center gap-1">
+                  <p className="text-lg font-semibold text-green-800 flex items-center gap-1">
                     <IconCurrencyRupee className="h-4 w-4" /> {ticket.loan_amount}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
-              <p className="text-sm font-semibold text-neutral-900 text-neutral-100 mb-2">Items</p>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm  ">
+              <p className="text-sm font-semibold text-neutral-900 mb-2">Items</p>
               <div className="space-y-3">
                 {(ticket.items || []).map((item, idx) => (
-                  <div key={idx} className="rounded-xl border border-neutral-200 p-3 text-sm border-neutral-800">
-                    <p className="font-semibold text-neutral-900 text-neutral-100">{item.name}</p>
-                    <p className="text-neutral-600 text-neutral-300">{item.type}</p>
-                    <p className="text-neutral-600 text-neutral-300">{item.weight_grams} g · {item.purity || 'N/A'} purity</p>
+                  <div key={idx} className="rounded-xl border border-neutral-200 p-3 text-sm ">
+                    <p className="font-semibold text-neutral-900 ">{item.name}</p>
+                    <p className="text-neutral-600 ">{item.type}</p>
+                    <p className="text-neutral-600">{item.weight_grams} g · {item.purity || 'N/A'} purity</p>
                   </div>
                 ))}
                 {!ticket.items?.length && (
@@ -147,10 +147,10 @@ export default function PawnDetail() {
 
           {/* Right column: Payment form and history */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
+            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <IconCreditCardPay className="h-5 w-5 text-blue-600" />
-                <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">Add Payment</h3>
+                <h3 className="text-base font-semibold text-neutral-900 ">Add Payment</h3>
               </div>
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
@@ -163,7 +163,7 @@ export default function PawnDetail() {
                     enterKeyHint="next"
                     value={paymentForm.amount_paid}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount_paid: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
                     placeholder="Enter amount"
                   />
                 </div>
@@ -172,7 +172,7 @@ export default function PawnDetail() {
                   <select
                     value={paymentForm.payment_for}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_for: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
                   >
                     <option value="interest">Interest</option>
                     <option value="principal">Principal</option>
@@ -185,7 +185,7 @@ export default function PawnDetail() {
                     enterKeyHint="done"
                     value={paymentForm.payment_date}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_date: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-neutral-700 bg-neutral-800 text-neutral-100"
+                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
                   />
                 </div>
                 <div className="md:col-span-3 flex justify-end">

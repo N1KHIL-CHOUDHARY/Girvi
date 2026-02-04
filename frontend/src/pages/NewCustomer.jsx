@@ -73,12 +73,12 @@ export default function NewCustomer() {
       customer_photo_url: formData.customer_photo_url || undefined,
     };
 
-    mutation.mutate(payload); // 🚀 triggers the POST request
+    mutation.mutate(payload); 
   };
 
   return (
     <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
+      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
         <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
           Create New Customer
         </h2>
@@ -128,8 +128,8 @@ export default function NewCustomer() {
               value={formData.gender}
               onChange={handleChange}
               className={cn(
-                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-neutral-700 px-3 py-2 text-sm
-border-neutral-300 text-neutral-200`
+                `flex min-h-[44px] w-full  rounded-md border border-neutral-300 px-3 py-2 text-sm
+border-neutral-300 text-black`
               )}
             >
               <option value="Male">Male</option>
@@ -220,7 +220,7 @@ border-neutral-300 text-neutral-200`
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] bg-zinc-800 from-zinc-900 to-zinc-900 shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] bg-neutral-800 from-neutral-900 to-neutral-900 shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
             type="submit"
             disabled={mutation.isPending}
           >
