@@ -42,6 +42,8 @@
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
   }
+
+  /* When adding @font-face, use font-display: swap to avoid blocking LCP */
 }
 
 /* =========================================================

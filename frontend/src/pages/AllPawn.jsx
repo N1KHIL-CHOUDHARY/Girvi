@@ -43,7 +43,7 @@ import PawnTableSkeleton from "../components/PawnTableSkeleton";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { cn } from "../lib/utils";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
 export default function AllPawns() {
   const queryClient = useQueryClient();
@@ -60,14 +60,15 @@ export default function AllPawns() {
 
   const { hasPermission } = usePermission();
 
-  // FETCH PAWN TICKETS
   const { data, isLoading } = useQuery({
     queryKey: ["pawns", page, search, status],
     queryFn: () => getPawnTickets(page, search, status),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     onError: (err) => {
       toast.error('Failed to load pawn tickets: ' + err.message);
-    }
+    },
   });
 
   const pawns = data?.data?.tickets || [];
@@ -287,18 +288,18 @@ export default function AllPawns() {
         {isLoading ? (
           <motion.div
             key="loader"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            className="shadow-input rounded-2xl bg-white p-4"
+            initial={false}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            className="shadow-input rounded-2xl bg-white p-4 min-h-[320px]"
           >
             <PawnTableSkeleton />
           </motion.div>
         ) : (
           <motion.div
-            key={status + page + search} // Animate when data changes
-            initial={{ opacity: 0, y: 10 }}
+            key={status + page + search}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.25 }}
           >
             {pawns.length === 0 ? (
               <div className="text-center py-10 text-neutral-500">
@@ -409,7 +410,7 @@ export default function AllPawns() {
                   {pawns.map((pawn) => (
                     <motion.div
                       key={pawn._id}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={false}
                       animate={{ opacity: 1, y: 0 }}
                       className="shadow-input rounded-xl bg-white p-4 border border-neutral-200"
                     >

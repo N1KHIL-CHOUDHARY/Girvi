@@ -1,10 +1,14 @@
-import CommandPalette from './components/CommandPalette';
+import { lazy, Suspense } from 'react';
 import AppRoutes from './Routes/appRoutes';
+
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
 
 function App() {
   return (
     <>
-      <CommandPalette />
+      <Suspense fallback={null}>
+        <CommandPalette />
+      </Suspense>
       <AppRoutes />
     </>
   );

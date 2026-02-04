@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { lazy, Suspense, memo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/api';
 import toast from 'react-hot-toast';
-import GenderPieChart from '../components/GenderPieChart';
-import AreaBarChart from '../components/AreaPieChart';
 import { useQuery } from '@tanstack/react-query';
 
-// Skeleton loader for stat cards
+const GenderPieChart = lazy(() => import('../components/GenderPieChart'));
+const AreaBarChart = lazy(() => import('../components/AreaPieChart'));
+
 const StatCardSkeleton = () => (
   <div className="shadow-input rounded-2xl app-surface p-4 animate-pulse">
     <div className="h-4 bg-gray-300 rounded w-2/3 mb-3"></div>
@@ -14,27 +14,23 @@ const StatCardSkeleton = () => (
   </div>
 );
 
-// Enhanced stat card with animation and icon support
-const StatCard = ({ title, value, icon, trend, isLoading }) => {
+const StatCard = memo(function StatCard({ title, value, icon, trend, isLoading }) {
   if (isLoading) return <StatCardSkeleton />;
-  
   return (
     <div className="shadow-input rounded-2xl app-surface p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border border-transparent hover:border-blue-500/20">
       <div className="flex items-start justify-between mb-3">
         <p className="text-sm font-medium text-app-secondary">{title}</p>
-        {icon && (
-          <span className="text-blue-500 text-xl">{icon}</span>
-        )}
+        {icon && <span className="text-blue-500 text-xl">{icon}</span>}
       </div>
       <p className="text-3xl font-bold text-app-primary mb-1">{value}</p>
-      {trend && (
+      {trend != null && (
         <p className={`text-xs font-medium ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from last month
         </p>
       )}
     </div>
   );
-};
+});
 
 // List skeleton loader
 const ListSkeleton = () => (
@@ -48,7 +44,8 @@ const ListSkeleton = () => (
   </div>
 );
 
-const RecentActivity = ({ activities, isLoading }) => (
+const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
+  return (
   <div className="shadow-input rounded-2xl app-surface p-5 transition-all duration-300 hover:shadow-lg">
     <h3 className="text-lg font-semibold text-app-primary mb-4 flex items-center gap-2">
       <span className="text-xl">📋</span>
@@ -77,9 +74,11 @@ const RecentActivity = ({ activities, isLoading }) => (
       )}
     </div>
   </div>
-);
+  );
+});
 
-const TopCustomers = ({ customers, isLoading }) => (
+const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
+  return (
   <div className="shadow-input rounded-2xl app-surface p-5 transition-all duration-300 hover:shadow-lg">
     <h3 className="text-lg font-semibold text-app-primary mb-4 flex items-center gap-2">
       <span className="text-xl">👥</span>
@@ -113,7 +112,8 @@ const TopCustomers = ({ customers, isLoading }) => (
       )}
     </div>
   </div>
-);
+  );
+});
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -129,9 +129,9 @@ export default function Dashboard() {
       const res = await getDashboardStats();
       return res.data;
     },
-    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
     onError: () => toast.error('Failed to load dashboard data'),
   });
 
@@ -236,13 +236,29 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts */}
+      {/* Charts: fixed height to prevent CLS, lazy-loaded */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="transition-all duration-300 hover:scale-[1.01]">
-          <GenderPieChart data={gender_data || []} />
+        <div className="min-h-[320px] w-full transition-all duration-300 hover:scale-[1.01]">
+          <Suspense
+            fallback={
+              <div className="shadow-input w-full rounded-2xl app-surface p-4 min-h-[320px] flex items-center justify-center">
+                <div className="h-[250px] w-full max-w-sm rounded bg-gray-200 animate-pulse" />
+              </div>
+            }
+          >
+            <GenderPieChart data={gender_data || []} />
+          </Suspense>
         </div>
-        <div className="transition-all duration-300 hover:scale-[1.01]">
-          <AreaBarChart data={area_data || []} />
+        <div className="min-h-[320px] w-full transition-all duration-300 hover:scale-[1.01]">
+          <Suspense
+            fallback={
+              <div className="shadow-input w-full rounded-2xl app-surface p-4 min-h-[320px] flex items-center justify-center">
+                <div className="h-[250px] w-full max-w-sm rounded bg-gray-200 animate-pulse" />
+              </div>
+            }
+          >
+            <AreaBarChart data={area_data || []} />
+          </Suspense>
         </div>
       </div>
 

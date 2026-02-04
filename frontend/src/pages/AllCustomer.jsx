@@ -17,7 +17,7 @@ import {
   IconX,
   IconDotsVertical
 } from '@tabler/icons-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -43,8 +43,10 @@ export default function AllCustomers() {
 
   const { data: queryData, isLoading, isError } = useQuery({
     queryKey: ['customers', page, search],
-    queryFn: () => getAccounts(page, search), 
-    keepPreviousData: true, 
+    queryFn: () => getAccounts(page, search),
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
   
   const accounts = queryData?.data?.customers || [];
@@ -183,17 +185,17 @@ export default function AllCustomers() {
           {isLoading ? (
             <motion.div
               key="loader"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              className="shadow-input rounded-2xl bg-white p-4"
+              initial={false}
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
+              className="shadow-input rounded-2xl bg-white p-4 min-h-[320px]"
             >
               <TableSkeleton />
             </motion.div>
           ) : (
             <motion.div
               key="data"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.3 } }}
+              initial={false}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
             >
               {isError ? (
                 <div className="text-center py-16">
@@ -242,11 +244,13 @@ export default function AllCustomers() {
                         {accounts.map((account) => (
                           <TableRow key={account._id} className="hover:bg-gray-50">
                             <TableCell>
-                              <img
-                                src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
-                                alt={account.full_name}
-                                className="h-10 w-10 rounded-full object-cover"
-                              />
+                            <img
+                              src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                              alt={account.full_name}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
                             </TableCell>
                             <TableCell className="font-medium text-black">
                               {account.full_name}
@@ -296,7 +300,7 @@ export default function AllCustomers() {
                     {accounts.map((account) => (
                       <motion.div
                         key={account._id}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={false}
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                       >
@@ -306,6 +310,8 @@ export default function AllCustomers() {
                             <img
                               src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
                               alt={account.full_name}
+                              width={48}
+                              height={48}
                               className="h-12 w-12 rounded-full object-cover flex-shrink-0 ring-2 ring-gray-100"
                             />
                             <div className="flex-1 min-w-0">

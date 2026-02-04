@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, memo } from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFinancialReport } from '../services/api';
 import toast from 'react-hot-toast';
@@ -9,6 +9,23 @@ import { cn } from '../lib/utils';
 
 const currency = (value = 0) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
 
+const PaymentsTableSkeleton = () => (
+  <div className="min-h-[320px] rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <div className="space-y-3">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <div key={i} className="flex gap-4 border-b border-neutral-100 pb-3 last:border-0">
+          <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-32 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-16 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export default function Payments() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -16,7 +33,9 @@ export default function Payments() {
   const { data, isLoading } = useQuery({
     queryKey: ['financial-report', page, search],
     queryFn: () => getFinancialReport(page, search),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     onError: (err) => toast.error(err.message || 'Failed to load financial report'),
   });
 
@@ -74,7 +93,7 @@ export default function Payments() {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm min-h-[320px]">
         <div className="overflow-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -92,7 +111,9 @@ export default function Payments() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="py-4 text-center text-neutral-500">Loading...</td>
+                  <td colSpan={8} className="p-0">
+                    <div className="min-h-[280px] flex items-center justify-center text-neutral-400">Loading...</div>
+                  </td>
                 </tr>
               ) : !rows.length ? (
                 <tr>
@@ -141,9 +162,7 @@ export default function Payments() {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {isLoading ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
-            Loading...
-          </div>
+          <PaymentsTableSkeleton />
         ) : !rows.length ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
             {search ? `No tickets found matching "${search}".` : 'No data.'}
@@ -242,14 +261,16 @@ export default function Payments() {
   );
 }
 
-const SummaryCard = ({ title, value }) => (
-  <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-    <p className="text-xs text-neutral-500">{title}</p>
-    <p className="mt-2 text-lg font-semibold text-neutral-800">{value}</p>
-  </div>
-);
+const SummaryCard = memo(function SummaryCard({ title, value }) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm min-h-[80px]">
+      <p className="text-xs text-neutral-500">{title}</p>
+      <p className="mt-2 text-lg font-semibold text-neutral-800">{value}</p>
+    </div>
+  );
+});
 
-const StatusPill = ({ status }) => {
+const StatusPill = memo(function StatusPill({ status }) {
   const styles = {
     active: 'bg-green-100 text-green-800',
     settled: 'bg-blue-100 text-blue-800',
@@ -262,5 +283,5 @@ const StatusPill = ({ status }) => {
       {status || '—'}
     </span>
   );
-};
+});
 

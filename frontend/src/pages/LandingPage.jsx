@@ -90,7 +90,7 @@ const LandingPage = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
           <motion.div 
             className="text-center max-w-4xl mx-auto"
-            initial="hidden"
+            initial={false}
             animate="visible"
             variants={staggerContainer}
           >
@@ -133,9 +133,9 @@ const LandingPage = () => {
           {/* Hero: Real dashboard screenshot for immediate product credibility */}
           <motion.div 
             className="mt-16 max-w-5xl mx-auto px-4"
-            initial={{ opacity: 0, y: 40 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ duration: 0.3 }}
           >
             <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl shadow-black/30 bg-white/5 p-2 sm:p-4">
               <img

@@ -28,10 +28,15 @@ const Employees = lazy(() => import('@/pages/Employee'));
 const Roles = lazy(() => import('@/pages/Roles'));
 const Settings = lazy(() => import('@/pages/Setting'));
 
-// 🔹 Loader used only for lazy pages
 const PageLoader = () => (
-  <div className="flex h-full items-center justify-center text-app-primary">
-    Loading…
+  <div className="p-4 md:p-6 space-y-6 min-h-[320px]" aria-hidden="true">
+    <div className="h-10 w-64 rounded bg-gray-200 animate-pulse" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="h-24 rounded-2xl bg-gray-200 animate-pulse" />
+      <div className="h-24 rounded-2xl bg-gray-200 animate-pulse" />
+      <div className="h-24 rounded-2xl bg-gray-200 animate-pulse" />
+    </div>
+    <div className="h-64 rounded-2xl bg-gray-200 animate-pulse" />
   </div>
 );
 
