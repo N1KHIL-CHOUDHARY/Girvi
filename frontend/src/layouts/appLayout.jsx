@@ -15,7 +15,7 @@ const AppLayout = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mx-auto flex w-full flex-1 flex-col overflow-hidden md:flex-row h-screen">
+    <div className="mx-auto flex w-full flex-1 flex-col md:flex-row min-h-[100dvh]">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
           {/* Top section */}
@@ -95,7 +95,7 @@ const AppLayout = () => {
 
       <main
         className="
-          flex-1 overflow-y-auto
+          flex-1
           px-4 sm:px-6
 
           pt-[calc(4rem+env(safe-area-inset-top))]

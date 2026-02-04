@@ -28,7 +28,7 @@ const StatCard = ({ title, value, className }) => (
 
 // ✅ Enhanced Skeleton
 const CustomerDetailSkeleton = () => (
-  <div className="min-h-screen bg-gray-50 md:bg-white">
+  <div className="min-h-[100dvh] bg-gray-50 md:bg-white">
     <div className="p-4 md:p-6 animate-pulse">
       {/* Header skeleton */}
       <div className="bg-white rounded-2xl p-6 mb-4 shadow-sm">
@@ -134,7 +134,7 @@ export default function CustomerDetail() {
 
   if (loading) return <CustomerDetailSkeleton />;
   if (error || !customer) return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] flex items-center justify-center p-4">
       <div className="text-center">
         <p className="text-red-600 font-semibold text-lg">Failed to load customer data</p>
         <p className="text-gray-500 text-sm mt-2">Please try again later</p>
@@ -143,7 +143,7 @@ export default function CustomerDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 md:bg-white pb-6">
+    <div className="min-h-[100dvh] bg-gray-50 md:bg-white pb-6">
       <AnimatePresence>
         <motion.div
           key="customer-detail"

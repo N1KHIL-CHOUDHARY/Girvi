@@ -41,7 +41,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gray-50 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <div className="shadow-input relative w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8">
         
         <h2 className="text-xl font-bold text-neutral-800">

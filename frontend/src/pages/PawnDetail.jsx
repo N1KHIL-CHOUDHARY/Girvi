@@ -83,7 +83,7 @@ export default function PawnDetail() {
   }, [ticket?.status]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <div className="mb-4 flex items-center gap-2">
         <Link to="/app/pawns" className="inline-flex items-center text-sm text-blue-600 hover:underline">
           <IconArrowLeft className="h-4 w-4 mr-1" /> Back to Pawns

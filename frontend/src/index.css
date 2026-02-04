@@ -38,9 +38,30 @@
     @apply antialiased;
   }
 
+  html,
   body {
+    max-width: 100%;
+    overflow-x: hidden;
+
+    min-height: 100dvh;
+    height: 100%;
+
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    margin: 0;
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Prevent iOS auto-zoom on form controls */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 
   /* When adding @font-face, use font-display: swap to avoid blocking LCP */
@@ -117,8 +138,12 @@
   .border-app {
     border-color: var(--color-border);
   }
-}
 
+  /* Contained scroll areas (lists, menus, dialogs) */
+  .scroll-contain {
+    overscroll-behavior: contain;
+  }
+}
 
 @supports (scroll-margin-top: 1rem) {
   input:focus,

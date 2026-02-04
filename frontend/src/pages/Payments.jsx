@@ -66,7 +66,7 @@ export default function Payments() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <div className="mb-6 flex items-center gap-2">
         <IconReportMoney className="h-6 w-6 text-blue-600" />
         <h1 className="text-xl font-semibold text-neutral-900">Payments & Loan Portfolio</h1>

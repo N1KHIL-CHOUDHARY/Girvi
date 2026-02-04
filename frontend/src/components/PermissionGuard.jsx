@@ -11,7 +11,7 @@ const PermissionGuard = ({ children, requiredPermission }) => {
   }
 
   return (
-    <div className="relative w-full h-[calc(100vh-100px)] flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-app bg-app-primary">
+    <div className="relative w-full h-[calc(100dvh-100px)] flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-app bg-app-primary">
       <div className="absolute inset-0 backdrop-blur-sm app-overlay opacity-50 z-10" />
 
       <motion.div

@@ -134,7 +134,7 @@ export default function Employees() {
 
   return (
     <>
-    <div className="p-4 md:p-6 min-h-screen">
+    <div className="p-4 md:p-6 min-h-[100dvh]">
       <h1 className="text-3xl font-bold text-neutral-800 text-neutral-200 mb-6">
         Manage Employees
       </h1>

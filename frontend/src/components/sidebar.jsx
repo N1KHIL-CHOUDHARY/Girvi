@@ -195,9 +195,9 @@ function MobileSidebar({ className, children, ...props }) {
                 damping: 30,
               }}
               {...props}
-            >
+              >
               {/* Content area */}
-              <div className="flex-1 overflow-y-auto">{children}</div>
+              <div className="flex-1 overflow-y-auto scroll-contain">{children}</div>
             </motion.nav>
           </>
         )}

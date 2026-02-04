@@ -89,7 +89,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gray-50 p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <div className="shadow-input relative mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8">
         <h2 className="text-xl font-bold text-neutral-800">
           Welcome to PawnManager
@@ -104,7 +104,7 @@ export default function Signup() {
             <span>{step === 1 ? 'Basic details' : 'Account security'}</span>
           </div>
 
-          {/* Step 1 - Name & shop (always visible on desktop) */}
+          
           <div
             className={cn(
               'md:mb-4',

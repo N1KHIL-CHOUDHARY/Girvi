@@ -42,7 +42,7 @@ const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Recent Activity
       </h3>
-      <div className="space-y-3 max-h-80 overflow-y-auto">
+      <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
         {isLoading ? (
           <ListSkeleton />
         ) : activities.length === 0 ? (
@@ -75,7 +75,7 @@ const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Top Customers
       </h3>
-      <div className="space-y-3 max-h-80 overflow-y-auto">
+      <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
         {isLoading ? (
           <ListSkeleton />
         ) : customers.length === 0 ? (
@@ -156,7 +156,7 @@ export default function Dashboard() {
 
   if (isError || !dashboardData) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex items-center justify-center min-h-[100dvh] p-4">
         <div className="text-center p-8 rounded-lg bg-white border border-gray-200 shadow-sm max-w-md w-full">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
             <svg 
@@ -193,13 +193,7 @@ export default function Dashboard() {
   const { stats, gender_data, area_data, top_customers, recent_activity } = dashboardData;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      <style>{`
-        html, body {
-          overflow-x: hidden;
-        }
-      `}</style>
-
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">

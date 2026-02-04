@@ -172,7 +172,7 @@ export default function NewPawn() {
             </LabelInputContainer>
 
             {isDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto rounded-md bg-white shadow-lg border border-neutral-200 ">
+              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto scroll-contain rounded-md bg-white shadow-lg border border-neutral-200 ">
                 {loadingCustomers ? (
                   <div className="p-4 text-center text-sm text-neutral-500">Loading...</div>
                 ) : customers.length > 0 ? (

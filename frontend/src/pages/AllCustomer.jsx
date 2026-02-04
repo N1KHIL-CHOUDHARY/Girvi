@@ -92,7 +92,7 @@ export default function AllCustomers() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 md:bg-white">
+    <div className="min-h-[100dvh] bg-gray-50 md:bg-white">
       {/* Mobile Header - Fixed */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40">
         <div className="px-4 py-3">

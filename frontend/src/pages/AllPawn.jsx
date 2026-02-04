@@ -164,7 +164,7 @@ export default function AllPawns() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       {/* Settle Modal */}
       <ConfirmationModal
         isOpen={isModalOpen}
@@ -187,7 +187,7 @@ export default function AllPawns() {
       {/* Payment Modal (Styled to match context file) */}
       {isPaymentOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
-          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-2xl md:rounded-2xl bg-white p-6 pb-32 md:pb-6">
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto scroll-contain rounded-t-2xl md:rounded-2xl bg-white p-6 pb-32 md:pb-6">
             <h3 className="text-lg font-semibold text-neutral-800 mb-4">Add Payment</h3>
             <div className="space-y-3">
               <div>

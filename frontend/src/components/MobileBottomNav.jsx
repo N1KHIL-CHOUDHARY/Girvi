@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 
 
 const MobileBottomNav = ({ open, setOpen, onToggleMenu }) => {
-  // Primary nav items (5-item layout with center action button)
   const leftItems = [
     { label: 'Dashboard', href: '/app/dashboard', icon: IconHome },
     { label: 'Pawns', href: '/app/pawns', icon: IconFileText },
@@ -25,7 +24,7 @@ const MobileBottomNav = ({ open, setOpen, onToggleMenu }) => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)]"
       aria-label="Bottom navigation"
     >
       <div className="grid grid-cols-5 items-end h-16 px-2">

@@ -122,7 +122,7 @@ export default function Roles() {
 
   return (
     <>
-    <div className="p-4 md:p-6 min-h-screen">
+    <div className="p-4 md:p-6 min-h-[100dvh]">
       <h1 className="text-3xl font-bold text-neutral-800 mb-6">
         Roles & Permissions
       </h1>
@@ -142,7 +142,7 @@ export default function Roles() {
               
               <div className="space-y-2">
                 <Label>Permissions</Label>
-                <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-60 overflow-y-auto scroll-contain space-y-2 pr-2">
                   {Object.keys(permissions).map((key) => (
                     <div key={key} className="flex items-center justify-between">
                       <Label htmlFor={key} className="font-normal">{formatLabel(key)}</Label>
@@ -234,7 +234,7 @@ export default function Roles() {
             </LabelInputContainer>
             <div className="space-y-2">
               <Label>Permissions</Label>
-              <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+              <div className="max-h-60 overflow-y-auto scroll-contain space-y-2 pr-2">
                 {Object.keys(editPermissions).map((key) => (
                   <div key={key} className="flex items-center justify-between">
                     <Label htmlFor={`edit_${key}`} className="font-normal">{formatLabel(key)}</Label>
