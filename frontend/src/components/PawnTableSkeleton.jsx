@@ -2,9 +2,10 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 export default function PawnTableSkeleton() {
-  const skeletonRows = [1, 2, 3, 4, 5];
+  const skeletonRows = [1, 2, 3, 4, 5, 6, 7, 8];
 
   return (
+    <div className="min-h-[320px]" aria-hidden="true">
     <Table>
       <TableHeader>
         <TableRow>
@@ -41,5 +42,6 @@ export default function PawnTableSkeleton() {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }

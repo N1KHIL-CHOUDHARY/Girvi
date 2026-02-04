@@ -29,7 +29,7 @@ export default function GenderPieChart({ data }) {
   }));
 
   return (
-    <div className="shadow-input w-full rounded-2xl app-surface p-4">
+    <div className="shadow-input w-full rounded-2xl app-surface p-4 min-h-[320px]">
       <h3 className="text-lg font-semibold text-app-primary mb-4">
         Customer Gender
       </h3>

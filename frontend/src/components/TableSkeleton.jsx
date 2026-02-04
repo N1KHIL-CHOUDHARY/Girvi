@@ -2,9 +2,10 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 export default function TableSkeleton() {
-  const skeletonRows = [1, 2, 3, 4, 5]; // Create 5 skeleton rows
+  const skeletonRows = [1, 2, 3, 4, 5, 6, 7, 8];
 
   return (
+    <div className="min-h-[320px]" aria-hidden="true">
     <Table>
       <TableHeader>
         <TableRow>
@@ -37,5 +38,6 @@ export default function TableSkeleton() {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }
