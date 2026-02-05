@@ -103,7 +103,7 @@ function DesktopSidebar({ className, children, ...props }) {
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex md:flex-col h-full shrink-0 px-4 py-4 app-surface bg-app-surface",
+        "hidden md:fixed lg:flex lg:flex-col h-screen shrink-0 px-3 py- app-surface bg-app-surface z-100 ",
         className
       )}
       animate={{

@@ -18,7 +18,7 @@ const AppLayout = () => {
     <div className="mx-auto flex w-full flex-1 flex-col md:flex-row min-h-[100dvh]">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
-          {/* Top section */}
+          {/*  */}
           <div className="flex flex-1 flex-col overflow-hidden shirnk-1">
             
         
