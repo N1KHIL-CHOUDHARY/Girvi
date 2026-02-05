@@ -56,7 +56,7 @@ const MobileBottomNav = ({ open, setOpen, onToggleMenu }) => {
           );
         })}
 
-        {/* Center circular action button (More / X) */}
+        
         <div className="flex items-end justify-center">
           <button
             type="button"

@@ -11,10 +11,8 @@ import React, {
 import { AnimatePresence, motion } from "motion/react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
+import { X, Menu } from "lucide-react";
 
-/* =========================
-   CONSTANTS
-========================= */
 const SIDEBAR_EXPANDED = 300;
 const SIDEBAR_COLLAPSED = 64;
 
@@ -31,9 +29,6 @@ export function useSidebar() {
   return ctx;
 }
 
-/* =========================
-   PROVIDER
-========================= */
 export function SidebarProvider({
   children,
   open: controlledOpen,
@@ -58,7 +53,7 @@ export function SidebarProvider({
 }
 
 /* =========================
-   ROOT WRAPPER
+   ROOT
 ========================= */
 export function Sidebar({ children, open, setOpen, animate }) {
   return (
@@ -81,29 +76,46 @@ export function SidebarBody(props) {
 }
 
 /* =========================
-   DESKTOP SIDEBAR
+   DESKTOP + TABLET SIDEBAR
 ========================= */
 function DesktopSidebar({ className, children, ...props }) {
   const { open, setOpen, animate } = useSidebar();
   const timeoutRef = useRef(null);
+  const [canHover, setCanHover] = useState(false);
+
+  // Detect hover capability
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover)");
+    setCanHover(mq.matches);
+
+    const handler = (e) => setCanHover(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
 
   const handleEnter = () => {
+    if (!canHover) return;
     clearTimeout(timeoutRef.current);
     setOpen(true);
   };
 
   const handleLeave = () => {
+    if (!canHover) return;
     timeoutRef.current = setTimeout(() => setOpen(false), 200);
   };
 
   return (
     <motion.aside
       className={cn(
-        "hidden md:fixed lg:flex lg:flex-col h-screen shrink-0 px-3 py- app-surface bg-app-surface z-100 ",
+        "hidden lg:flex lg:flex-col shrink-0",
+        "min-h-[100dvh]",
+        "bg-app-surface border-r border-app",
+        "px-3 py-4",
+        "z-30",
         className
       )}
       animate={{
@@ -118,20 +130,32 @@ function DesktopSidebar({ className, children, ...props }) {
       onMouseLeave={handleLeave}
       {...props}
     >
+      {/* Header with toggle (TABLET / TOUCH) */}
+      {!canHover && (
+        <div className="flex items-center justify-end mb-2">
+          <button
+            onClick={() => setOpen(!open)}
+            className="p-2 rounded-md hover:bg-[var(--color-surface-muted)]"
+            aria-label={open ? "Close sidebar" : "Open sidebar"}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+      )}
+
       {children}
     </motion.aside>
   );
 }
 
 /* =========================
-   MOBILE SIDEBAR (Bottom Sheet)
+   MOBILE SIDEBAR (UNCHANGED)
 ========================= */
 function MobileSidebar({ className, children, ...props }) {
   const { open, setOpen } = useSidebar();
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
 
-  // Close sidebar on route change
   useEffect(() => {
     if (open && prevPathRef.current !== location.pathname) {
       setOpen(false);
@@ -139,13 +163,11 @@ function MobileSidebar({ className, children, ...props }) {
     prevPathRef.current = location.pathname;
   }, [location.pathname, open, setOpen]);
 
-  // Handle ESC key and prevent body scroll
   useEffect(() => {
     const onEsc = (e) => e.key === "Escape" && setOpen(false);
-    
+
     if (open) {
       window.addEventListener("keydown", onEsc);
-      // Prevent body scroll when sidebar is open on mobile
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -158,46 +180,50 @@ function MobileSidebar({ className, children, ...props }) {
   }, [open, setOpen]);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop overlay */}
             <motion.div
               className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              aria-hidden="true"
             />
 
-            {/* Bottom sheet */}
             <motion.nav
               role="dialog"
               aria-modal="true"
-              aria-label="Navigation menu"
               className={cn(
                 "fixed bottom-0 left-0 right-0 z-50",
-                "h-[85vh] max-h-[90vh]",
+                "min-h-[100dvh]",
                 "bg-white rounded-t-3xl",
                 "border-t border-slate-200 shadow-xl",
                 "flex flex-col",
-                "p-4 pt-6 pb-[calc(1rem+env(safe-area-inset-bottom))]",
+                "p-4 pt-6 pb-[calc(4rem+env(safe-area-inset-bottom))]",
                 className
               )}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               {...props}
-              >
-              {/* Content area */}
-              <div className="flex-1 overflow-y-auto scroll-contain">{children}</div>
+            >
+              {/* Close button */}
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-2 rounded-md hover:bg-slate-100"
+                  aria-label="Close menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto overscroll-contain">
+                {children}
+              </div>
             </motion.nav>
           </>
         )}
@@ -207,13 +233,13 @@ function MobileSidebar({ className, children, ...props }) {
 }
 
 /* =========================
-   SIDEBAR LINK
+   LINK
 ========================= */
 export function SidebarLink({ link, className, ...props }) {
   const { open, setOpen } = useSidebar();
 
   const handleClick = () => {
-    if (window.innerWidth < 768) setOpen(false);
+    if (window.innerWidth < 1024) setOpen(false);
   };
 
   return (
@@ -221,7 +247,8 @@ export function SidebarLink({ link, className, ...props }) {
       to={link.href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-md transition-colors hover:bg-[var(--color-surface-muted)]",
+        "flex items-center gap-3 px-3 min-h-[44px]",
+        "rounded-md transition-colors hover:bg-[var(--color-surface-muted)]",
         className
       )}
       {...props}

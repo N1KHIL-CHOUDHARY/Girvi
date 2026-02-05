@@ -10,6 +10,8 @@ import HybridNavigation from '@/components/HybridNavigation';
 import { mainLinks, adminLinks, settingsLink } from '@/config/sidebarLinks';
 import { IconLogout } from '@tabler/icons-react';
 
+
+
 const AppLayout = () => {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -18,9 +20,11 @@ const AppLayout = () => {
     <div className="mx-auto flex w-full flex-1 flex-col md:flex-row min-h-[100dvh]">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
-          {/*  */}
-          <div className="flex flex-1 flex-col overflow-hidden shirnk-1">
+
+          <div className="flex flex-1 flex-col overflow-hidden shrink-1">
             
+
+           
         
             <div className="mt-8 flex flex-col gap-2">
               {mainLinks.map((link) => (
@@ -61,7 +65,7 @@ const AppLayout = () => {
             </div>
           </div>
 
-          {/* Bottom section */}
+          
           <div>
             <SidebarLink
               link={{
@@ -92,6 +96,11 @@ const AppLayout = () => {
           </div>
         </SidebarBody>
       </Sidebar>
+
+      {open && <div
+           className="fixed inset-0 z-40 bg-black/30 md:hidden"
+        onClick={() => setOpen(false)}
+      />}
 
       <main
         className="
