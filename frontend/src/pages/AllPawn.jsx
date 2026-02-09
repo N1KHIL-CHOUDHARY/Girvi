@@ -1,11 +1,3 @@
-// FIXED React Query version of AllPawns.jsx
-// Includes:
-// - working pagination
-// - correct goToPage()
-// - proper loading state
-// - cleaned logic
-// - consistent API response usage
-// - optimized re-fetching behavior
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +10,8 @@ import {
 } from "../services/api";
 import { usePermission } from "../hooks/usePermission";
 import toast from "react-hot-toast";
+
+import {useDebounce} from '../hooks/useDebounce';
 
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -51,7 +45,7 @@ export default function AllPawns() {
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+ 
   const [status, setStatus] = useState("active");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,11 +54,17 @@ export default function AllPawns() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount_paid: "", payment_for: "interest" });
 
+
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 400);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+
   const { hasPermission } = usePermission();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["pawns", page, search, status],
-    queryFn: () => getPawnTickets(page, search, status),
+    queryKey: ["pawns", page, debouncedSearch, status],
+    queryFn: () => getPawnTickets(page, debouncedSearch, status),
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
@@ -81,9 +81,8 @@ export default function AllPawns() {
   const deleteMutation = useMutation({
     mutationFn: deletePawnTicket,
     onSuccess: () => {
-      toast.success(t("loans.ticketDeleted"));
-      // When a delete happens, refetch the current page
-      queryClient.invalidateQueries(["pawns", page, search, status]);
+      toast.success("Pawn ticket deleted");
+      queryClient.invalidateQueries(["pawns", page, searchInput, status]);
     },
     onError: (err) => toast.error(err.response?.data?.message || t("loans.failedToDeleteTicket"))
   });
@@ -92,8 +91,7 @@ export default function AllPawns() {
   const settleMutation = useMutation({
     mutationFn: (id) => updatePawnTicketStatus(id, "settled"),
     onSuccess: () => {
-      toast.success(t("loans.ticketSettled"));
-      // Refetch all pawn queries as this might affect other views
+      toast.success("Ticket settled");
       queryClient.invalidateQueries(["pawns"]);
     },
     onError: (err) => toast.error(err.response?.data?.message || t("loans.failedToSettle"))
@@ -243,46 +241,53 @@ export default function AllPawns() {
           {t("loans.pawnTickets")}
         </h1>
         <div className="flex w-full sm:w-auto gap-2">
-          <Input
-            type="text"
-            placeholder={t("loans.searchByTicketOrItem")}
-            value={search}
-            onChange={(e) => {
-              setPage(1);
-              setSearch(e.target.value);
-            }}
-            className="w-full md:w-64"
-          />
-          <div className="relative">
-            <select
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-              className={cn(
-                `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-                
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
-                 pr-8 appearance-none`
-              )}
-            >
-              <option value="active">{t("loans.active")}</option>
-              <option value="settled">{t("loans.settled")}</option>
-              <option value="defaulted">{t("loans.defaulted")}</option>
-              <option value="all">{t("loans.allStatuses")}</option>
-            </select>
-          </div>
-          {hasPermission('can_create_tickets') && (
-            <Link
-              to="/app/pawn/add"
-              className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 hover:bg-gray-100"
-            >
-              <IconPlus className="text-neutral-800" />
-              <span>{t("loans.newTicket")}</span>
-            </Link>
-          )}
-        </div>
+  <Input
+    type="text"
+    placeholder="Search by Ticket # or Item..."
+    value={searchInput}
+    onChange={(e) => {
+      setPage(1);
+      setSearchInput(e.target.value);
+    }}
+    className="w-full md:w-64"
+  />
+
+  {/* Desktop dropdown stays same */}
+  <div className="relative hidden md:block">
+    <select
+      value={status}
+      onChange={(e) => {
+        setPage(1);
+        setStatus(e.target.value);
+      }}
+      className="flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 pr-8 appearance-none"
+    >
+      <option value="active">Active</option>
+      <option value="settled">Settled</option>
+      <option value="defaulted">Defaulted</option>
+      <option value="all">All Statuses</option>
+    </select>
+  </div>
+
+  {/* 🔥 Mobile filter button */}
+  <button
+    onClick={() => setIsFilterOpen(true)}
+    className="md:hidden min-h-[44px] px-4 rounded-md border bg-white text-sm"
+  >
+    Filter
+  </button>
+
+  {hasPermission("can_create_tickets") && (
+    <Link
+      to="/app/pawn/add"
+      className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 hover:bg-gray-100"
+    >
+      <IconPlus />
+      <span>New Ticket</span>
+    </Link>
+  )}
+</div>
+
       </div>
 
       {/* Main Content */}
@@ -298,20 +303,19 @@ export default function AllPawns() {
           </motion.div>
         ) : (
           <motion.div
-            key={status + page + search}
+            key={status + page + searchInput}
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
             {pawns.length === 0 ? (
               <div className="text-center py-10 text-neutral-500">
-                {search
-                  ? t("loans.noTicketsMatching", { status, search })
-                  : status === 'all' ? t("loans.noPawnTicketsFoundAll") : t("loans.noPawnTicketsFound", { status })}
+                {searchInput
+                  ? `No ${status} tickets found matching "${searchInput}".`
+                  : `No ${status !== 'all' ? status : ''} pawn tickets found.`}
               </div>
             ) : (
               <>
-                {/* Desktop Table View */}
                 <div className="hidden md:block shadow-input rounded-2xl bg-white overflow-hidden">
                   <Table>
                     <TableCaption className="pb-4">
@@ -534,6 +538,39 @@ export default function AllPawns() {
           </button>
         </div>
       )}
+        {isFilterOpen && (
+  <div className="fixed inset-0 z-50 bg-black/40 flex items-end md:hidden">
+    <div className="w-full bg-white rounded-t-2xl p-4 pb-[env(safe-area-inset-bottom)]">
+      <h3 className="text-lg font-semibold mb-3">Filter by status</h3>
+
+      {["active", "settled", "defaulted", "all"].map((s) => (
+        <button
+          key={s}
+          onClick={() => {
+            setStatus(s);
+            setPage(1);
+            setIsFilterOpen(false);
+          }}
+          className={cn(
+            "w-full min-h-[44px] rounded-md border px-3 text-left mb-2",
+            status === s && "bg-indigo-50 border-indigo-500"
+          )}
+        >
+          {s === "all" ? "All tickets" : s}
+        </button>
+      ))}
+
+      <button
+        onClick={() => setIsFilterOpen(false)}
+        className="w-full min-h-[44px] rounded-md bg-gray-100 mt-2"
+      >
+        Close
+      </button>
     </div>
+  </div>
+)}
+
+    </div>
+    
   );
 }

@@ -7,7 +7,7 @@
 
 ## 🚀 Live Demo
 
-- **Frontend Deployed URL:** [pawn_manager.onrender.com]  
+[Link](https://pawn-manager.vercel.app)  
 
 
 ---
