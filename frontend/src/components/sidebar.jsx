@@ -112,14 +112,14 @@ function DesktopSidebar({ className, children, ...props }) {
 
   return (
     <motion.aside
-      className={cn(
-        "hidden lg:flex lg:flex-col shrink-0",
-        "min-h-dvh",
-        "bg-app-surface border-r border-app",
-        "px-3 py-4",
-        "z-30",
-        className
-      )}
+  className={cn(
+    "hidden lg:flex lg:flex-col shrink-0",
+    "h-dvh overflow-hidden",
+    "bg-app-surface border-r border-app",
+    "px-3 py-4",
+    "z-30",
+    className
+  )}
       animate={{
         width: animate
           ? open
