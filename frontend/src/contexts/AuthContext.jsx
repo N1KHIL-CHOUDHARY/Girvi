@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, signup as apiSignup, logout as apiLogout, getProfile, setStoredToken } from '../services/api';
+import { login as apiLogin, signup as apiSignup, logout as apiLogout, getProfile, setStoredToken, setStoredLanguage } from '../services/api';
+import i18n from 'i18next';
 
 const AuthContext = createContext(null);
 
@@ -28,7 +29,12 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       const res = await getProfile();
-      setUser(res.data.user);
+      const userData = res.data.user;
+      setUser(userData);
+      if (userData?.language) {
+        setStoredLanguage(userData.language);
+        i18n.changeLanguage(userData.language);
+      }
     } catch (err) {
       setUser(null);
     } finally {
@@ -44,6 +50,10 @@ export const AuthProvider = ({ children }) => {
       if (token && userData) {
         setStoredToken(token);
         setUser(userData);
+        if (userData.language) {
+          setStoredLanguage(userData.language);
+          i18n.changeLanguage(userData.language);
+        }
         return { success: true };
       }
       return { success: false, message: res.data?.message || 'Login failed' };
@@ -63,6 +73,10 @@ export const AuthProvider = ({ children }) => {
       if (token && userFromRes) {
         setStoredToken(token);
         setUser(userFromRes);
+        if (userFromRes.language) {
+          setStoredLanguage(userFromRes.language);
+          i18n.changeLanguage(userFromRes.language);
+        }
         return { success: true };
       }
       return { success: false, message: res.data?.message || 'Signup failed' };
@@ -87,6 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    setUser,
     loading,
     isAuthenticated: !!user,
     login,

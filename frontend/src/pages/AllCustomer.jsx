@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getAccounts, deleteAccount } from '../services/api';
 import { usePermission } from '../hooks/usePermission';
@@ -32,6 +33,7 @@ import TableSkeleton from "../components/TableSkeleton";
 import ConfirmationModal from "../components/ConfirmationModal";
 
 export default function AllCustomers() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -56,13 +58,13 @@ export default function AllCustomers() {
   const deleteMutation = useMutation({
     mutationFn: deleteAccount,
     onSuccess: () => {
-      toast.success('Customer deleted successfully');
+      toast.success(t('customers.deletedSuccess'));
       queryClient.invalidateQueries(['customers']); 
       setDeleteTarget(null);
       setOpenMenuId(null);
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to delete customer');
+      toast.error(err.response?.data?.message || t('customers.failedToDelete'));
     },
   });
 
@@ -97,7 +99,7 @@ export default function AllCustomers() {
       <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h1>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -115,7 +117,7 @@ export default function AllCustomers() {
                   className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
                 >
                   <IconPlus className="w-4 h-4" />
-                  Add
+                  {t('customers.add')}
                 </Link>
               )}
             </div>
@@ -133,7 +135,7 @@ export default function AllCustomers() {
               >
                 <Input
                   type="text"
-                  placeholder="Search by name..."
+                  placeholder={t('customers.searchByName')}
                   value={search}
                   onChange={handleSearch}
                   className="w-full"
@@ -148,7 +150,7 @@ export default function AllCustomers() {
         {!isLoading && accounts.length > 0 && (
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
             <p className="text-xs text-gray-600">
-              {totalCustomers} {totalCustomers === 1 ? 'customer' : 'customers'} total
+              {t('customers.totalCount', { count: totalCustomers })}
             </p>
           </div>
         )}
@@ -157,11 +159,11 @@ export default function AllCustomers() {
       {/* Desktop Header */}
       <div className="hidden md:block p-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <h1 className="text-3xl font-bold text-black">Customers</h1>
+          <h1 className="text-3xl font-bold text-black">{t('customers.title')}</h1>
           <div className="flex w-full sm:w-auto gap-2">
             <Input
               type="text"
-              placeholder="Search by name..."
+              placeholder={t('customers.searchByName')}
               value={search}
               onChange={handleSearch}
               className="w-full md:w-64"
@@ -172,7 +174,7 @@ export default function AllCustomers() {
                 className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-black hover:bg-gray-100"
               >
                 <IconPlus className="text-black" />
-                <span>New Customer</span>
+                <span>{t('customers.newCustomer')}</span>
               </Link>
             )}
           </div>
@@ -202,8 +204,8 @@ export default function AllCustomers() {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
                     <IconX className="w-8 h-8 text-red-600" />
                   </div>
-                  <p className="text-red-600 font-medium">Failed to load customers</p>
-                  <p className="text-gray-500 text-sm mt-1">Please try again later</p>
+                  <p className="text-red-600 font-medium">{t('customers.failedToLoad')}</p>
+                  <p className="text-gray-500 text-sm mt-1">{t('customers.tryAgainLater')}</p>
                 </div>
               ) : accounts.length === 0 ? (
                 <div className="text-center py-16">
@@ -211,7 +213,7 @@ export default function AllCustomers() {
                     <IconSearch className="w-8 h-8 text-gray-400" />
                   </div>
                   <p className="text-gray-600 font-medium">
-                    {search ? `No customers found matching "${search}"` : "No customers yet"}
+                    {search ? t('customers.noCustomersMatching', { search }) : t('customers.noCustomersYet')}
                   </p>
                   {!search && hasPermission('can_create_customers') && (
                     <Link
@@ -219,7 +221,7 @@ export default function AllCustomers() {
                       className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                       <IconPlus className="w-4 h-4" />
-                      Add your first customer
+                      {t('customers.addFirstCustomer')}
                     </Link>
                   )}
                 </div>
@@ -229,15 +231,15 @@ export default function AllCustomers() {
                   <div className="hidden md:block shadow-input rounded-2xl bg-white p-4">
                     <Table>
                       <TableCaption className="pb-4">
-                        {`Showing ${accounts.length} of ${totalCustomers} customers`}
+                        {t('customers.showingOf', { shown: accounts.length, total: totalCustomers })}
                       </TableCaption>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Photo</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Address</TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
+                          <TableHead>{t('customers.photo')}</TableHead>
+                          <TableHead>{t('customers.name')}</TableHead>
+                          <TableHead>{t('customers.phone')}</TableHead>
+                          <TableHead>{t('customers.address')}</TableHead>
+                          <TableHead className="text-center">{t('customers.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -364,7 +366,7 @@ export default function AllCustomers() {
                                         className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
                                       >
                                         <IconEye className="w-4 h-4 text-indigo-500" />
-                                        <span className="text-sm font-medium">View</span>
+                                        <span className="text-sm font-medium">{t('customers.view')}</span>
                                       </Link>
                                       
                                       {hasPermission('can_edit_customers') && (
@@ -374,7 +376,7 @@ export default function AllCustomers() {
                                           className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
                                         >
                                           <IconEdit className="w-4 h-4 text-blue-500" />
-                                          <span className="text-sm font-medium">Edit</span>
+                                          <span className="text-sm font-medium">{t('customers.edit')}</span>
                                         </Link>
                                       )}
                                       
@@ -390,7 +392,7 @@ export default function AllCustomers() {
                                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-600 w-full disabled:opacity-50"
                                           >
                                             <IconTrashFilled className="w-4 h-4" />
-                                            <span className="text-sm font-medium">Delete</span>
+                                            <span className="text-sm font-medium">{t('customers.delete')}</span>
                                           </button>
                                         </>
                                       )}
@@ -407,7 +409,7 @@ export default function AllCustomers() {
                           to={`/app/customer/${account._id}`}
                           className="block px-4 py-3 bg-gray-50 border-t border-gray-100 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                          View Details
+                          {t('customers.viewDetails')}
                         </Link>
                       </motion.div>
                     ))}
@@ -430,12 +432,12 @@ export default function AllCustomers() {
                 <IconCircleArrowLeftFilled 
                   className={`h-8 w-8 ${page === 1 ? 'text-gray-300' : 'text-gray-700'}`}
                 />
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">Previous</span>
+                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.previous')}</span>
               </button>
               
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">
-                  Page {page} of {totalPages}
+                  {t('customers.pageOf', { page, total: totalPages })}
                 </span>
               </div>
               
@@ -444,7 +446,7 @@ export default function AllCustomers() {
                 disabled={page === totalPages}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-30 transition-opacity"
               >
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">Next</span>
+                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.next')}</span>
                 <IconCircleArrowRightFilled 
                   className={`h-8 w-8 ${page === totalPages ? 'text-gray-300' : 'text-gray-700'}`}
                 />
@@ -459,9 +461,9 @@ export default function AllCustomers() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Delete customer?"
-        message="This action will soft-delete the customer and hide them from lists."
-        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
+        title={t('customers.deleteConfirmTitle')}
+        message={t('customers.deleteConfirmMessage')}
+        confirmText={deleteMutation.isLoading ? t('customers.deleting') : t('customers.delete')}
       />
     </div>
   );

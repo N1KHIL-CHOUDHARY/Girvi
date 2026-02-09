@@ -1,4 +1,5 @@
 import { useState, useMemo, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFinancialReport } from '../services/api';
@@ -27,6 +28,7 @@ const PaymentsTableSkeleton = () => (
 );
 
 export default function Payments() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
@@ -36,7 +38,7 @@ export default function Payments() {
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
-    onError: (err) => toast.error(err.message || 'Failed to load financial report'),
+    onError: (err) => toast.error(err.message || t('payments.failedToLoadReport')),
   });
 
   const rows = data?.data || [];
@@ -69,13 +71,13 @@ export default function Payments() {
     <div className="min-h-[100dvh]">
       <div className="mb-6 flex items-center gap-2">
         <IconReportMoney className="h-6 w-6 text-blue-600" />
-        <h1 className="text-xl font-semibold text-neutral-900">Payments & Loan Portfolio</h1>
+        <h1 className="text-xl font-semibold text-neutral-900">{t('payments.title')}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <SummaryCard title="Total Outstanding Balance" value={currency(totals.outstanding)} />
-        <SummaryCard title="Total Principal Collected" value={currency(totals.principal)} />
-        <SummaryCard title="Total Interest Collected" value={currency(totals.interest)} />
+        <SummaryCard title={t('payments.totalOutstanding')} value={currency(totals.outstanding)} />
+        <SummaryCard title={t('payments.totalPrincipalCollected')} value={currency(totals.principal)} />
+        <SummaryCard title={t('payments.totalInterestCollected')} value={currency(totals.interest)} />
       </div>
 
       {/* Search Bar */}
@@ -84,7 +86,7 @@ export default function Payments() {
           <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <Input
             type="text"
-            placeholder="Search by ticket number..."
+            placeholder={t('payments.searchByTicket')}
             value={search}
             onChange={handleSearchChange}
             className="pl-10"
@@ -98,13 +100,13 @@ export default function Payments() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="text-left text-neutral-500 border-b border-neutral-200">
-                <th className="py-2 pr-4">Ticket #</th>
-                <th className="py-2 pr-4">Customer</th>
-                <th className="py-2 pr-4">Status</th>
-                <th className="py-2 pr-4">Original Loan</th>
-                <th className="py-2 pr-4">Principal Paid</th>
-                <th className="py-2 pr-4">Interest Paid</th>
-                <th className="py-2 pr-4">Balance Due</th>
+                <th className="py-2 pr-4">{t('loans.ticketNumber')}</th>
+                <th className="py-2 pr-4">{t('loans.customer')}</th>
+                <th className="py-2 pr-4">{t('loans.status')}</th>
+                <th className="py-2 pr-4">{t('payments.originalLoan')}</th>
+                <th className="py-2 pr-4">{t('payments.principalPaid')}</th>
+                <th className="py-2 pr-4">{t('payments.interestPaid')}</th>
+                <th className="py-2 pr-4">{t('payments.balanceDue')}</th>
                 <th className="py-2 pr-4"></th>
               </tr>
             </thead>
@@ -112,13 +114,13 @@ export default function Payments() {
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="p-0">
-                    <div className="min-h-[280px] flex items-center justify-center text-neutral-400">Loading...</div>
+                    <div className="min-h-[280px] flex items-center justify-center text-neutral-400">{t('common.loading')}</div>
                   </td>
                 </tr>
               ) : !rows.length ? (
                 <tr>
                   <td colSpan={8} className="py-4 text-center text-neutral-500">
-                    {search ? `No tickets found matching "${search}".` : 'No data.'}
+                    {search ? t('payments.noTicketsMatchingSearch', { search }) : t('payments.noData')}
                   </td>
                 </tr>
               ) : (
@@ -143,7 +145,7 @@ export default function Payments() {
                         to={`/app/pawns/${row._id}`}
                         className="text-blue-600 hover:underline text-sm font-semibold"
                       >
-                        View
+                        {t('customers.view')}
                       </Link>
                     </td>
                   </tr>
@@ -154,7 +156,7 @@ export default function Payments() {
         </div>
         {!isLoading && totalItems > 0 && (
           <div className="mt-4 pt-4 border-t border-neutral-200 text-sm text-neutral-500">
-            Showing {rows.length} of {totalItems} total tickets.
+            {t('payments.showingOfTotal', { shown: rows.length, total: totalItems })}
           </div>
         )}
       </div>
@@ -165,14 +167,14 @@ export default function Payments() {
           <PaymentsTableSkeleton />
         ) : !rows.length ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
-            {search ? `No tickets found matching "${search}".` : 'No data.'}
+            {search ? t('payments.noTicketsMatchingSearch', { search }) : t('payments.noData')}
           </div>
         ) : (
           rows.map((row) => (
             <div key={row._id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-neutral-500">Ticket</p>
+                  <p className="text-xs text-neutral-500">{t('loans.ticketNumberLabel')}</p>
                   <p className="text-lg font-semibold text-neutral-900">{row.ticket_number}</p>
                   <p className="mt-1 text-sm text-neutral-600">
                     {Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}
@@ -183,19 +185,19 @@ export default function Payments() {
 
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600">
                 <div>
-                  <p className="text-xs text-neutral-500">Original Loan</p>
+                  <p className="text-xs text-neutral-500">{t('payments.originalLoan')}</p>
                   <p className="font-semibold text-neutral-900">{currency(row.original_loan_amount)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500">Principal Paid</p>
+                  <p className="text-xs text-neutral-500">{t('payments.principalPaid')}</p>
                   <p className="font-semibold text-neutral-900">{currency(row.total_principal_paid)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500">Interest Paid</p>
+                  <p className="text-xs text-neutral-500">{t('payments.interestPaid')}</p>
                   <p className="font-semibold text-neutral-900">{currency(row.total_interest_paid)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500">Balance Due</p>
+                  <p className="text-xs text-neutral-500">{t('payments.balanceDue')}</p>
                   <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
                     <IconCurrencyRupee className="h-4 w-4" />
                     {Number(row.loan_amount || 0).toLocaleString('en-IN')}
@@ -208,7 +210,7 @@ export default function Payments() {
                   to={`/app/pawns/${row._id}`}
                   className="text-sm font-semibold text-blue-600 hover:underline"
                 >
-                  View
+                  {t('customers.view')}
                 </Link>
               </div>
             </div>
@@ -216,7 +218,7 @@ export default function Payments() {
         )}
         {!isLoading && totalItems > 0 && (
           <div className="text-sm text-neutral-500 text-center">
-            Showing {rows.length} of {totalItems} total tickets.
+            {t('payments.showingOfTotal', { shown: rows.length, total: totalItems })}
           </div>
         )}
       </div>
@@ -239,7 +241,7 @@ export default function Payments() {
             />
           </button>
           <span className="text-sm text-neutral-600">
-            Page {page} of {totalPages}
+            {t('customers.pageOf', { page, total: totalPages })}
           </span>
           <button
             onClick={() => goToPage(page + 1)}

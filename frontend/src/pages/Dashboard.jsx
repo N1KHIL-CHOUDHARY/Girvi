@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/api';
 import toast from 'react-hot-toast';
@@ -37,17 +38,18 @@ const ListSkeleton = () => (
 );
 
 const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Recent Activity
+        {t('dashboard.recentActivity')}
       </h3>
       <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
         {isLoading ? (
           <ListSkeleton />
         ) : activities.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500">No recent activity.</p>
+            <p className="text-sm text-gray-500">{t('dashboard.noRecentActivity')}</p>
           </div>
         ) : (
           activities.map((activity) => (
@@ -70,17 +72,18 @@ const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
 });
 
 const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Top Customers
+        {t('dashboard.topCustomers')}
       </h3>
       <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
         {isLoading ? (
           <ListSkeleton />
         ) : customers.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500">No customer data yet.</p>
+            <p className="text-sm text-gray-500">{t('dashboard.noCustomerDataYet')}</p>
           </div>
         ) : (
           customers.map((customer, idx) => (
@@ -108,6 +111,7 @@ const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
 });
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const {
@@ -124,7 +128,7 @@ export default function Dashboard() {
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    onError: () => toast.error('Failed to load dashboard data'),
+    onError: () => toast.error(t('dashboard.failedToLoadDashboard')),
   });
 
   if (isLoading) {
@@ -174,16 +178,16 @@ export default function Dashboard() {
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Something went wrong
+            {t('dashboard.somethingWentWrong')}
           </h3>
           <p className="text-gray-600 mb-6">
-            Could not load dashboard data. Please try again.
+            {t('dashboard.couldNotLoadDashboard')}
           </p>
           <button
             onClick={() => refetch()}
             className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            Retry
+            {t('dashboard.retry')}
           </button>
         </div>
       </div>
@@ -197,25 +201,25 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
-          Welcome back, {user?.full_name}
+          {t('dashboard.welcomeBack', { name: user?.full_name })}
         </h1>
         <p className="text-sm text-gray-600">
-          Here's what's happening with your business today
+          {t('dashboard.whatsHappening')}
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Total Active Loan"
+          title={t('dashboard.totalActiveLoan')}
           value={`₹${(stats?.total_loan_active || 0).toLocaleString('en-IN')}`}
         />
         <StatCard
-          title="Loan Given (Last 30 Days)"
+          title={t('dashboard.loanGivenLast30Days')}
           value={`₹${(stats?.monthly_loan_given || 0).toLocaleString('en-IN')}`}
         />
         <StatCard
-          title="Active Pawn Tickets"
+          title={t('dashboard.activePawnTickets')}
           value={stats?.total_active_tickets ?? 0}
         />
       </div>

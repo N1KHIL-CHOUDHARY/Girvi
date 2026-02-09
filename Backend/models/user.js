@@ -20,12 +20,12 @@ const userSchema = new Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    index: true, // Speeds up queries by email
+    index: true, 
   },
   password: {
     type: String,
     required: true,
-    minlength: 6, // Enforce a minimum password length
+    minlength: 6, 
   },
   full_name: {
     type: String,
@@ -34,9 +34,14 @@ const userSchema = new Schema({
   role: {
     type: String,
     required: true,
-    enum: ['owner', 'worker'], // For now, we'll use a simple string
+    enum: ['owner', 'worker'], 
     default: 'worker',
   },
+  language: {
+    type: String,
+    enum: ["en", "hi", "ta"],
+    default: "en"
+  },  
 }, {
   timestamps: true
 });

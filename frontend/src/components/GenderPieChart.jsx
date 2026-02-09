@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 const COLORS = [
   'var(--color-chart-1)',
@@ -9,10 +10,11 @@ const COLORS = [
 
 // Custom Tooltip for Theming
 const CustomTooltip = ({ active, payload }) => {
+  const { t } = useTranslation();
   if (active && payload && payload.length) {
     return (
       <div className="p-2 app-surface shadow-lg rounded-md border border-app">
-        <p className="text-sm text-app-primary">{`${payload[0].name} : ${payload[0].value} customers`}</p>
+        <p className="text-sm text-app-primary">{t('dashboard.customersTooltip', { name: payload[0].name, value: payload[0].value })}</p>
       </div>
     );
   }
@@ -21,17 +23,18 @@ const CustomTooltip = ({ active, payload }) => {
 
 // This component now accepts a 'data' prop
 export default function GenderPieChart({ data }) {
+  const { t } = useTranslation();
   // data from API: [{ gender: 'Male', count: 1 }]
   // We rename 'gender' to 'name' and 'count' to 'value' for the chart
   const chartData = data.map(item => ({
-    name: item.gender || 'Not Set',
+    name: item.gender || t('common.notSet'),
     value: item.count,
   }));
 
   return (
     <div className="shadow-input w-full rounded-2xl app-surface p-4 min-h-[320px]">
       <h3 className="text-lg font-semibold text-app-primary mb-4">
-        Customer Gender
+        {t('dashboard.customerGender')}
       </h3>
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>

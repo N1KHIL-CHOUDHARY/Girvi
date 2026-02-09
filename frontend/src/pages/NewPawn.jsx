@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccounts, createPawnTicket } from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,7 @@ const initialState = {
 };
 
 export default function NewPawn() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(initialState);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerSearch, setCustomerSearch] = useState('');
@@ -40,7 +42,7 @@ export default function NewPawn() {
     },
     enabled: customerSearch.trim().length > 0,
     staleTime: 1000 * 60,
-    onError: () => toast.error('Failed to search customers'),
+    onError: () => toast.error(t('errors.failedToSearchCustomers')),
   });
 
   const customers = customersData || [];
@@ -48,7 +50,7 @@ export default function NewPawn() {
   const createPawnMutation = useMutation({
     mutationFn: (payload) => createPawnTicket(payload),
     onSuccess: () => {
-      toast.success('Pawn ticket created successfully!');
+      toast.success(t('loans.createSuccess'));
       queryClient.invalidateQueries(['pawnTickets']);
       setFormData(initialState);
       setSelectedCustomer(null);
@@ -59,7 +61,7 @@ export default function NewPawn() {
       const message = 
         error.response?.data?.error || 
         error.response?.data?.message || 
-        'Failed to create pawn ticket';
+        t('loans.createFailed');
         
     
       toast.error(message.replace(/"/g, ''));
@@ -117,7 +119,7 @@ export default function NewPawn() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedCustomer) {
-      toast.error('Please select a customer before creating a ticket');
+      toast.error(t('loans.pleaseSelectCustomer'));
       return;
     }
 
@@ -145,20 +147,20 @@ export default function NewPawn() {
     <div className="w-full">
       <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
         <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
-          Create New Pawn Ticket
+          {t('common.createNewPawnTicket')}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
-          Create a new loan for a customer.
+          {t('common.createPawnDescription')}
         </p>
 
         <form className="my-8 pb-40 md:pb-0" onSubmit={handleSubmit}>
           <div className="relative" ref={dropdownRef}>
             <LabelInputContainer className="mb-6 md:mb-4">
-              <Label htmlFor="customer_search">Search Customer</Label>
+              <Label htmlFor="customer_search">{t('loans.searchCustomer')}</Label>
               <Input
                 id="customer_search"
                 type="text"
-                placeholder="Start typing a customer's name..."
+                placeholder={t('loans.searchCustomerPlaceholder')}
                 value={customerSearch}
                 onChange={(e) => {
                   setCustomerSearch(e.target.value);
@@ -174,7 +176,7 @@ export default function NewPawn() {
             {isDropdownOpen && (
               <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto scroll-contain rounded-md bg-white shadow-lg border border-neutral-200 ">
                 {loadingCustomers ? (
-                  <div className="p-4 text-center text-sm text-neutral-500">Loading...</div>
+                  <div className="p-4 text-center text-sm text-neutral-500">{t('loans.loading')}</div>
                 ) : customers.length > 0 ? (
                   customers.map((customer) => (
                     <div
@@ -187,7 +189,7 @@ export default function NewPawn() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-sm text-neutral-500">No customers found.</div>
+                  <div className="p-4 text-center text-sm text-neutral-500">{t('loans.noCustomersFound')}</div>
                 )}
               </div>
             )}
@@ -195,53 +197,53 @@ export default function NewPawn() {
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="ticket_number">Ticket Number</Label>
-              <Input id="ticket_number" name="ticket_number" placeholder="TICKET-1001" type="text" autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
+              <Label htmlFor="ticket_number">{t('loans.ticketNumberLabel')}</Label>
+              <Input id="ticket_number" name="ticket_number" placeholder={t('common.placeholderTicket')} type="text" autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pawned_date">Pawned Date</Label>
+              <Label htmlFor="pawned_date">{t('loans.pawnedDate')}</Label>
               <Input id="pawned_date" name="pawned_date" type="date" enterKeyHint="next" value={formData.pawned_date} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="loan_amount">Loan Amount (₹)</Label>
-              <Input id="loan_amount" name="loan_amount" placeholder="5000" type="number" inputMode="decimal" enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
+              <Label htmlFor="loan_amount">{t('loans.loanAmountLabel')}</Label>
+              <Input id="loan_amount" name="loan_amount" placeholder={t('common.placeholderLoan')} type="number" inputMode="decimal" enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="interest_rate">Interest Rate (%)</Label>
-              <Input id="interest_rate" name="interest_rate" placeholder="3" type="number" inputMode="decimal" enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
+              <Label htmlFor="interest_rate">{t('loans.interestRate')}</Label>
+              <Input id="interest_rate" name="interest_rate" placeholder={t('common.placeholderInterest')} type="number" inputMode="decimal" enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="adv_amount">Advance Amount (₹)</Label>
-              <Input id="adv_amount" name="adv_amount" placeholder="150" type="number" inputMode="decimal" enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
+              <Label htmlFor="adv_amount">{t('loans.advanceAmount')}</Label>
+              <Input id="adv_amount" name="adv_amount" placeholder={t('common.placeholderAdvance')} type="number" inputMode="decimal" enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
 
-          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">Item Details</h3>
+          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">{t('loans.itemDetails')}</h3>
 
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="item_name">Item Name  </Label>
-            <Input id="item_name" name="item_name" placeholder="Gold Chain" type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
+            <Label htmlFor="item_name">{t('loans.itemName')}  </Label>
+            <Input id="item_name" name="item_name" placeholder={t('common.placeholderItemName')} type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
           </LabelInputContainer>
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="item_weight">Weight (grams)  </Label>
-              <Input id="item_weight" name="item_weight" placeholder="10.5" type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
+              <Label htmlFor="item_weight">{t('loans.weightGrams')}</Label>
+              <Input id="item_weight" name="item_weight" placeholder={t('common.placeholderWeight')} type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="item_purity">Purity</Label>
+              <Label htmlFor="item_purity">{t('loans.purity')}</Label>
               <Input id="item_purity" name="item_purity" placeholder="22" type="number" inputMode="numeric" enterKeyHint="next" value={formData.item_purity} onChange={handleChange} />
             </LabelInputContainer>
           </div>
 
           <LabelInputContainer className="mb-8 md:mb-8">
-            <Label htmlFor="item_description">Item Description</Label>
-            <Input id="item_description" name="item_description" placeholder="22ct gold chain with small locket" type="text" autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
+            <Label htmlFor="item_description">{t('loans.itemDescription')}</Label>
+            <Input id="item_description" name="item_description" placeholder={t('common.placeholderItemDesc')} type="text" autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
           </LabelInputContainer>
 
           <button
@@ -249,7 +251,7 @@ export default function NewPawn() {
             type="submit"
             disabled={createPawnMutation.isPending}
           >
-            {createPawnMutation.isPending ? 'Saving...' : 'Save Pawn Ticket'}
+            {createPawnMutation.isPending ? t('buttons.saving') : t('loans.savePawnTicket')}
             <BottomGradient />
           </button>
         </form>

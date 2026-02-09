@@ -8,6 +8,7 @@
 // - optimized re-fetching behavior
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   getPawnTickets,
@@ -46,6 +47,7 @@ import { cn } from "../lib/utils";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
 export default function AllPawns() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
@@ -67,7 +69,7 @@ export default function AllPawns() {
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
     onError: (err) => {
-      toast.error('Failed to load pawn tickets: ' + err.message);
+      toast.error(t('loans.failedToLoad', { message: err.message }));
     },
   });
 
@@ -79,34 +81,34 @@ export default function AllPawns() {
   const deleteMutation = useMutation({
     mutationFn: deletePawnTicket,
     onSuccess: () => {
-      toast.success("Pawn ticket deleted");
+      toast.success(t("loans.ticketDeleted"));
       // When a delete happens, refetch the current page
       queryClient.invalidateQueries(["pawns", page, search, status]);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to delete ticket")
+    onError: (err) => toast.error(err.response?.data?.message || t("loans.failedToDeleteTicket"))
   });
 
   // SETTLE
   const settleMutation = useMutation({
     mutationFn: (id) => updatePawnTicketStatus(id, "settled"),
     onSuccess: () => {
-      toast.success("Ticket settled");
+      toast.success(t("loans.ticketSettled"));
       // Refetch all pawn queries as this might affect other views
       queryClient.invalidateQueries(["pawns"]);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to settle ticket")
+    onError: (err) => toast.error(err.response?.data?.message || t("loans.failedToSettle"))
   });
 
   // PAYMENT
   const paymentMutation = useMutation({
     mutationFn: createPayment,
     onSuccess: () => {
-      toast.success("Payment recorded");
+      toast.success(t("loans.paymentRecorded"));
       // Refetch all pawn queries as payments might affect ticket status/reports
       queryClient.invalidateQueries(["pawns"]);
       setIsPaymentOpen(false);
     },
-    onError: (err) => toast.error(err.response?.data?.message || "Failed to save payment")
+    onError: (err) => toast.error(err.response?.data?.message || t("loans.failedToSavePayment"))
   });
 
   const openSettleModal = (id) => {
@@ -142,7 +144,7 @@ export default function AllPawns() {
     if (!ticket) return;
 
     const amount = Number(paymentForm.amount_paid);
-    if (!amount || amount <= 0) return toast.error("Enter valid amount");
+    if (!amount || amount <= 0) return toast.error(t("loans.enterValidAmount"));
 
     paymentMutation.mutate({
       ticket_id: selectedTicketId,
@@ -170,28 +172,28 @@ export default function AllPawns() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmSettle}
-        title="Settle Pawn Ticket"
-        message="Are you sure this ticket is settled and the loan is closed?"
-        confirmText="Yes, Settle"
+        title={t("loans.settlePawnTicket")}
+        message={t("loans.settleConfirmMessage")}
+        confirmText={t("loans.yesSettle")}
       />
       {/* Delete Modal */}
       <ConfirmationModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Pawn Ticket"
-        message="This will permanently remove the pawn ticket. You can't undo this action."
-        confirmText="Delete"
+        title={t("loans.deletePawnTicket")}
+        message={t("loans.deleteTicketMessage")}
+        confirmText={t("buttons.delete")}
       />
 
       {/* Payment Modal (Styled to match context file) */}
       {isPaymentOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
           <div className="w-full max-w-md max-h-[85vh] overflow-y-auto scroll-contain rounded-t-2xl md:rounded-2xl bg-white p-6 pb-32 md:pb-6">
-            <h3 className="text-lg font-semibold text-neutral-800 mb-4">Add Payment</h3>
+            <h3 className="text-lg font-semibold text-neutral-800 mb-4">{t("loans.addPayment")}</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm text-neutral-700 mb-1">Amount</label>
+                <label className="block text-sm text-neutral-700 mb-1">{t("loans.amount")}</label>
                 <input
                   type="number"
                   min="0"
@@ -204,14 +206,14 @@ export default function AllPawns() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-neutral-700 mb-1">Payment For</label>
+                <label className="block text-sm text-neutral-700 mb-1">{t("loans.paymentFor")}</label>
                 <select
                   value={paymentForm.payment_for}
                   onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_for: e.target.value }))}
                   className="w-full min-h-[44px] rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 >
-                  <option value="interest">Interest</option>
-                  <option value="principal">Principal</option>
+                  <option value="interest">{t("loans.interest")}</option>
+                  <option value="principal">{t("loans.principal")}</option>
                 </select>
               </div>
             </div>
@@ -221,29 +223,29 @@ export default function AllPawns() {
                 className="min-h-[44px] w-full md:w-auto rounded-md px-4 text-neutral-800 hover:bg-gray-100"
                 disabled={paymentMutation.isLoading}
               >
-                Cancel
+                {t("buttons.cancel")}
               </button>
               <button
                 onClick={handleCreatePayment}
                 className="min-h-[44px] w-full md:w-auto rounded-md px-4 bg-indigo-600 text-white disabled:opacity-60"
                 disabled={paymentMutation.isLoading}
               >
-                {paymentMutation.isLoading ? 'Saving...' : 'Save Payment'}
+                {paymentMutation.isLoading ? t("buttons.saving") : t("loans.savePayment")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Header (Styled to match context file) */}
+      
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800">
-          Pawn Tickets
+          {t("loans.pawnTickets")}
         </h1>
         <div className="flex w-full sm:w-auto gap-2">
           <Input
             type="text"
-            placeholder="Search by Ticket # or Item..."
+            placeholder={t("loans.searchByTicketOrItem")}
             value={search}
             onChange={(e) => {
               setPage(1);
@@ -265,10 +267,10 @@ export default function AllPawns() {
                  pr-8 appearance-none`
               )}
             >
-              <option value="active">Active</option>
-              <option value="settled">Settled</option>
-              <option value="defaulted">Defaulted</option>
-              <option value="all">All Statuses</option>
+              <option value="active">{t("loans.active")}</option>
+              <option value="settled">{t("loans.settled")}</option>
+              <option value="defaulted">{t("loans.defaulted")}</option>
+              <option value="all">{t("loans.allStatuses")}</option>
             </select>
           </div>
           {hasPermission('can_create_tickets') && (
@@ -277,7 +279,7 @@ export default function AllPawns() {
               className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-neutral-800 hover:bg-gray-100"
             >
               <IconPlus className="text-neutral-800" />
-              <span>New Ticket</span>
+              <span>{t("loans.newTicket")}</span>
             </Link>
           )}
         </div>
@@ -304,8 +306,8 @@ export default function AllPawns() {
             {pawns.length === 0 ? (
               <div className="text-center py-10 text-neutral-500">
                 {search
-                  ? `No ${status} tickets found matching "${search}".`
-                  : `No ${status !== 'all' ? status : ''} pawn tickets found.`}
+                  ? t("loans.noTicketsMatching", { status, search })
+                  : status === 'all' ? t("loans.noPawnTicketsFoundAll") : t("loans.noPawnTicketsFound", { status })}
               </div>
             ) : (
               <>
@@ -313,16 +315,16 @@ export default function AllPawns() {
                 <div className="hidden md:block shadow-input rounded-2xl bg-white overflow-hidden">
                   <Table>
                     <TableCaption className="pb-4">
-                      Showing {pawns.length} of {totalPawnTickets} total tickets.
+                      {t("loans.showingOfTickets", { shown: pawns.length, total: totalPawnTickets })}
                     </TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Ticket #</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Item(s)</TableHead>
-                        <TableHead>Loan Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead>{t("loans.ticketNumber")}</TableHead>
+                        <TableHead>{t("loans.customer")}</TableHead>
+                        <TableHead>{t("loans.items")}</TableHead>
+                        <TableHead>{t("loans.loanAmount")}</TableHead>
+                        <TableHead>{t("loans.status")}</TableHead>
+                        <TableHead className="text-center">{t("customers.actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -358,7 +360,7 @@ export default function AllPawns() {
                                 <Link
                                   to={`/app/pawns/update/${pawn._id}`}
                                   className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
-                                  title="Edit Ticket"
+                                  title={t("loans.editTicket")}
                                 >
                                   <IconEdit className="text-blue-500 w-5 h-5" />
                                 </Link>
@@ -368,7 +370,7 @@ export default function AllPawns() {
                                   onClick={() => openDeleteModal(pawn._id)}
                                   disabled={deleteMutation.isLoading}
                                   className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
-                                  title="Delete Ticket"
+                                  title={t("common.delete")}
                                 >
                                   <IconTrashFilled className="text-red-500 w-5 h-5" />
                                 </button>
@@ -379,10 +381,10 @@ export default function AllPawns() {
                                 onClick={() => openSettleModal(pawn._id)}
                                 disabled={settleMutation.isLoading}
                                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Mark as Settled"
+                                title={t("loans.markSettled")}
                               >
                                 <IconCheck size={16} />
-                                <span>Settle</span>
+                                <span>{t("loans.settle")}</span>
                               </button>
                               )}
                               {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
@@ -391,7 +393,7 @@ export default function AllPawns() {
                                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                               >
                                 <span>₹</span>
-                                <span>Payment</span>
+                                <span>{t("loans.payment")}</span>
                               </Link>
                               )}
                             </div>
@@ -405,7 +407,7 @@ export default function AllPawns() {
                 
                 <div className="md:hidden space-y-4">
                   <p className="text-sm text-neutral-600 mb-4">
-                    Showing {pawns.length} of {totalPawnTickets} total tickets.
+                    {t("loans.showingOfTickets", { shown: pawns.length, total: totalPawnTickets })}
                   </p>
                   {pawns.map((pawn) => (
                     <motion.div
@@ -430,10 +432,10 @@ export default function AllPawns() {
                             </span>
                           </div>
                           <p className="text-sm text-neutral-600 mb-1">
-                            <span className="font-medium">Customer:</span> {pawn.customer_id?.full_name || 'N/A'}
+                            <span className="font-medium">{t("loans.customer")}:</span> {pawn.customer_id?.full_name || 'N/A'}
                           </p>
                           <p className="text-sm text-neutral-600 mb-1">
-                            <span className="font-medium">Item:</span> {pawn.items[0]?.name}
+                            <span className="font-medium">{t("loans.itemName")}:</span> {pawn.items[0]?.name}
                             {pawn.items.length > 1 && ` (+${pawn.items.length - 1} more)`}
                           </p>
                           <p className="text-base font-semibold text-neutral-800 mt-2">
@@ -447,7 +449,7 @@ export default function AllPawns() {
                           className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors text-sm"
                         >
                           <IconEye className="w-4 h-4"/>
-                          <span>View</span>
+                          <span>{t("customers.view")}</span>
                         </Link>
                         {hasPermission('can_edit_tickets') && (
                           <Link
@@ -455,7 +457,7 @@ export default function AllPawns() {
                             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors text-sm"
                           >
                             <IconEdit className="w-4 h-4"/>
-                            <span>Edit</span>
+                            <span>{t("customers.edit")}</span>
                           </Link>
                         )}
                         {hasPermission('can_delete_tickets') && (
@@ -465,7 +467,7 @@ export default function AllPawns() {
                             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-sm disabled:opacity-50"
                           >
                             <IconTrashFilled className="w-4 h-4"/>
-                            <span>Delete</span>
+                            <span>{t("customers.delete")}</span>
                           </button>
                         )}
                         
@@ -477,14 +479,14 @@ export default function AllPawns() {
                               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors text-sm disabled:opacity-50"
                             >
                       
-                              Settle
+                              {t("loans.settle")}
                             </button>
                             <Link
                               to={`/app/pawns/${pawn._id}`}
                               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors text-sm"
                             >
                               <span>₹</span>
-                              <span>Payment</span>
+                              <span>{t("loans.payment")}</span>
                             </Link>
                           </>
                         )}
@@ -515,7 +517,7 @@ export default function AllPawns() {
             />
           </button>
           <span className="text-sm text-neutral-600">
-            Page {page} of {totalPages}
+            {t("customers.pageOf", { page, total: totalPages })}
           </span>
           <button
             onClick={() => goToPage(page + 1)}

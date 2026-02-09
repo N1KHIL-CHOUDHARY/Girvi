@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -14,10 +15,11 @@ import { IconLogout } from '@tabler/icons-react';
 
 const AppLayout = () => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mx-auto flex w-full flex-1 flex-col md:flex-row min-h-[100dvh]">
+    <div className="mx-auto flex w-full flex-1 flex-col md:flex-row min-h-dvh">
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10 app-surface border-r border-app">
 
@@ -48,7 +50,7 @@ const AppLayout = () => {
                     }}
                     className="px-3 text-xs font-semibold uppercase text-neutral-500"
                   >
-                    Admin
+                    {t('nav.admin')}
                   </motion.span>
 
                   {adminLinks.map((link) => (
@@ -90,7 +92,7 @@ const AppLayout = () => {
                 }}
                 className="text-sm text-app-primary"
               >
-                Logout
+                {t('auth.logout')}
               </motion.span>
             </button>
           </div>

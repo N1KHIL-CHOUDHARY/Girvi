@@ -33,7 +33,7 @@ const generateToken = (user, permissions) =>
   
 
 exports.signup = asyncHandler(async (req, res) => {
-  const { shop_name, email, password, full_name } = req.body;
+  const { shop_name, email, password, full_name,language } = req.body;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -62,6 +62,7 @@ exports.signup = asyncHandler(async (req, res) => {
       full_name,
       role: 'owner',
       role_id: ownerRole._id,
+      language: language && ['en', 'hi', 'ta'].includes(language) ? language : 'en',
     });
 
     newShop.owner_id = newUser._id;
@@ -86,6 +87,7 @@ exports.signup = asyncHandler(async (req, res) => {
           role: newUser.role,
           full_name: newUser.full_name,
           email: newUser.email,
+          language: newUser.language || 'en',
           permissions: ownerRole.permissions,
         },
       },
@@ -123,6 +125,7 @@ exports.login = asyncHandler(async (req, res) => {
         role: user.role,
         full_name: user.full_name,
         email: user.email,
+        language: user.language || 'en',
         permissions: role.permissions,
       },
     },

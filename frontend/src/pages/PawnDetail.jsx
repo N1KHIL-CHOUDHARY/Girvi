@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -11,6 +12,7 @@ const formatDate = (value) => {
 };
 
 export default function PawnDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const queryClient = useQueryClient();
 
@@ -27,7 +29,7 @@ export default function PawnDetail() {
     queryKey: ['pawn', id],
     queryFn: () => getPawnTicketById(id),
     enabled: !!id,
-    onError: (err) => toast.error(err.message || 'Failed to load ticket'),
+    onError: (err) => toast.error(err.message || t('loans.failedToLoadTicket')),
   });
 
   const {
@@ -37,7 +39,7 @@ export default function PawnDetail() {
     queryKey: ['payments', id],
     queryFn: () => getPaymentsForTicket(id),
     enabled: !!id,
-    onError: (err) => toast.error(err.message || 'Failed to load payments'),
+    onError: (err) => toast.error(err.message || t('loans.failedToLoadPayments')),
   });
 
   const ticket = ticketRes?.data;
@@ -46,7 +48,7 @@ export default function PawnDetail() {
   const paymentMutation = useMutation({
     mutationFn: createPayment,
     onSuccess: () => {
-      toast.success('Payment recorded');
+      toast.success(t('loans.paymentRecorded'));
       queryClient.invalidateQueries(['pawn', id]);
       queryClient.invalidateQueries(['payments', id]);
       setPaymentForm((prev) => ({
@@ -55,14 +57,14 @@ export default function PawnDetail() {
         payment_for: 'interest',
       }));
     },
-    onError: (err) => toast.error(err.message || 'Failed to save payment'),
+    onError: (err) => toast.error(err.message || t('loans.failedToSavePayment')),
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const amount = Number(paymentForm.amount_paid);
     if (!amount || amount <= 0) {
-      toast.error('Enter a valid amount');
+      toast.error(t('loans.enterValidAmountShort'));
       return;
     }
 
@@ -86,14 +88,14 @@ export default function PawnDetail() {
     <div className="min-h-[100dvh]">
       <div className="mb-4 flex items-center gap-2">
         <Link to="/app/pawns" className="inline-flex items-center text-sm text-blue-600 hover:underline">
-          <IconArrowLeft className="h-4 w-4 mr-1" /> Back to Pawns
+          <IconArrowLeft className="h-4 w-4 mr-1" /> {t('loans.backToPawns')}
         </Link>
       </div>
 
       {isTicketLoading ? (
-        <div className="text-sm text-neutral-500">Loading ticket...</div>
+        <div className="text-sm text-neutral-500">{t('loans.loadingTicket')}</div>
       ) : !ticket ? (
-        <div className="text-sm text-red-600">Ticket not found.</div>
+        <div className="text-sm text-red-600">{t('loans.ticketNotFound')}</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left column: Ticket info */}
@@ -101,7 +103,7 @@ export default function PawnDetail() {
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-xs text-neutral-500">Ticket</p>
+                  <p className="text-xs text-neutral-500">{t('loans.ticketNumberLabel')}</p>
                   <p className="text-lg font-semibold text-neutral-900 ">{ticket.ticket_number}</p>
                 </div>
                 <span className={statusBadge}>{ticket.status}</span>
@@ -114,13 +116,13 @@ export default function PawnDetail() {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-neutral-50 p-3">
-                  <p className="text-xs text-neutral-500">Original Loan</p>
+                  <p className="text-xs text-neutral-500">{t('loans.originalLoan')}</p>
                   <p className="text-lg font-semibold text-neutral-900 flex flex-row items-center gap-1">
                     <IconCurrencyRupee className="h-4 w-4" /> {ticket.original_loan_amount ?? ticket.loan_amount}
                   </p>
                 </div>
                 <div className="rounded-xl bg-green-100 p-3">
-                  <p className="text-xs text-neutral-500">Current Balance</p>
+                  <p className="text-xs text-neutral-500">{t('loans.currentBalance')}</p>
                   <p className="text-lg font-semibold text-green-800 flex items-center gap-1">
                     <IconCurrencyRupee className="h-4 w-4" /> {ticket.loan_amount}
                   </p>
@@ -129,7 +131,7 @@ export default function PawnDetail() {
             </div>
 
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm  ">
-              <p className="text-sm font-semibold text-neutral-900 mb-2">Items</p>
+              <p className="text-sm font-semibold text-neutral-900 mb-2">{t('common.itemsLabel')}</p>
               <div className="space-y-3">
                 {(ticket.items || []).map((item, idx) => (
                   <div key={idx} className="rounded-xl border border-neutral-200 p-3 text-sm ">
@@ -139,7 +141,7 @@ export default function PawnDetail() {
                   </div>
                 ))}
                 {!ticket.items?.length && (
-                  <p className="text-sm text-neutral-500">No items listed.</p>
+                  <p className="text-sm text-neutral-500">{t('loans.noItemsListed')}</p>
                 )}
               </div>
             </div>
@@ -150,11 +152,11 @@ export default function PawnDetail() {
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <IconCreditCardPay className="h-5 w-5 text-blue-600" />
-                <h3 className="text-base font-semibold text-neutral-900 ">Add Payment</h3>
+                <h3 className="text-base font-semibold text-neutral-900 ">{t('loans.addPayment')}</h3>
               </div>
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">Amount</label>
+                  <label className="text-xs text-neutral-500">{t('loans.amount')}</label>
                   <input
                     type="number"
                     min="0"
@@ -164,22 +166,22 @@ export default function PawnDetail() {
                     value={paymentForm.amount_paid}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount_paid: e.target.value }))}
                     className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
-                    placeholder="Enter amount"
+                    placeholder={t('loans.enterAmount')}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">Payment Type</label>
+                  <label className="text-xs text-neutral-500">{t('loans.paymentType')}</label>
                   <select
                     value={paymentForm.payment_for}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_for: e.target.value }))}
                     className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
                   >
-                    <option value="interest">Interest</option>
-                    <option value="principal">Principal</option>
+                    <option value="interest">{t('loans.interest')}</option>
+                    <option value="principal">{t('loans.principal')}</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">Payment Date</label>
+                  <label className="text-xs text-neutral-500">{t('loans.paymentDate')}</label>
                   <input
                     type="date"
                     enterKeyHint="done"
@@ -194,7 +196,7 @@ export default function PawnDetail() {
                     disabled={paymentMutation.isLoading}
                     className="inline-flex items-center min-h-[44px] rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {paymentMutation.isLoading ? 'Saving...' : 'Save Payment'}
+                    {paymentMutation.isLoading ? t('buttons.saving') : t('loans.savePayment')}
                   </button>
                 </div>
               </form>
@@ -203,21 +205,21 @@ export default function PawnDetail() {
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
               <div className="flex items-center gap-2 mb-4">
                 <IconClock className="h-5 w-5 text-neutral-500" />
-                <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">Payment History</h3>
+                <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">{t('loans.paymentHistory')}</h3>
               </div>
               {isPaymentsLoading ? (
-                <p className="text-sm text-neutral-500">Loading payments...</p>
+                <p className="text-sm text-neutral-500">{t('loans.loadingPayments')}</p>
               ) : !payments.length ? (
-                <p className="text-sm text-neutral-500">No payments yet.</p>
+                <p className="text-sm text-neutral-500">{t('loans.noPaymentsYet')}</p>
               ) : (
                 <div className="overflow-auto">
                   <table className="min-w-full text-sm">
                     <thead>
                       <tr className="text-left text-neutral-500 border-b border-neutral-200 border-neutral-800">
-                        <th className="py-2 pr-4">Date</th>
-                        <th className="py-2 pr-4">Type</th>
-                        <th className="py-2 pr-4">Amount</th>
-                        <th className="py-2 pr-4">User</th>
+                        <th className="py-2 pr-4">{t('loans.date')}</th>
+                        <th className="py-2 pr-4">{t('loans.type')}</th>
+                        <th className="py-2 pr-4">{t('loans.amount')}</th>
+                        <th className="py-2 pr-4">{t('loans.user')}</th>
                       </tr>
                     </thead>
                     <tbody>

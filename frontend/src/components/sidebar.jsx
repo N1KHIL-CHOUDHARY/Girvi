@@ -8,6 +8,7 @@ import React, {
   createContext,
   useContext,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "../lib/utils";
@@ -80,6 +81,7 @@ export function SidebarBody(props) {
 ========================= */
 function DesktopSidebar({ className, children, ...props }) {
   const { open, setOpen, animate } = useSidebar();
+  const { t } = useTranslation();
   const timeoutRef = useRef(null);
   const [canHover, setCanHover] = useState(false);
 
@@ -112,7 +114,7 @@ function DesktopSidebar({ className, children, ...props }) {
     <motion.aside
       className={cn(
         "hidden lg:flex lg:flex-col shrink-0",
-        "min-h-[100dvh]",
+        "min-h-dvh",
         "bg-app-surface border-r border-app",
         "px-3 py-4",
         "z-30",
@@ -130,13 +132,13 @@ function DesktopSidebar({ className, children, ...props }) {
       onMouseLeave={handleLeave}
       {...props}
     >
-      {/* Header with toggle (TABLET / TOUCH) */}
+     
       {!canHover && (
         <div className="flex items-center justify-end mb-2">
           <button
             onClick={() => setOpen(!open)}
             className="p-2 rounded-md hover:bg-[var(--color-surface-muted)]"
-            aria-label={open ? "Close sidebar" : "Open sidebar"}
+            aria-label={open ? t('nav.closeSidebar') : t('nav.openSidebar')}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -153,6 +155,7 @@ function DesktopSidebar({ className, children, ...props }) {
 ========================= */
 function MobileSidebar({ className, children, ...props }) {
   const { open, setOpen } = useSidebar();
+  const { t } = useTranslation();
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
 
@@ -215,7 +218,7 @@ function MobileSidebar({ className, children, ...props }) {
                 <button
                   onClick={() => setOpen(false)}
                   className="p-2 rounded-md hover:bg-slate-100"
-                  aria-label="Close menu"
+                  aria-label={t('nav.closeMenu')}
                 >
                   <X size={20} />
                 </button>
@@ -237,6 +240,7 @@ function MobileSidebar({ className, children, ...props }) {
 ========================= */
 export function SidebarLink({ link, className, ...props }) {
   const { open, setOpen } = useSidebar();
+  const { t } = useTranslation();
 
   const handleClick = () => {
     if (window.innerWidth < 1024) setOpen(false);
@@ -264,7 +268,7 @@ export function SidebarLink({ link, className, ...props }) {
         transition={{ duration: 0.2 }}
         className="text-sm text-app-primary whitespace-nowrap overflow-hidden"
       >
-        {link.label}
+        {t(link.label)}
       </motion.span>
     </Link>
   );

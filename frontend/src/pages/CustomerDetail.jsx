@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, getPawnTicketsByAccountId, getAccountStats, updatePawnTicketStatus } from '../services/api';
@@ -57,6 +58,7 @@ const CustomerDetailSkeleton = () => (
 );
 
 export default function CustomerDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,7 +73,7 @@ export default function CustomerDetail() {
   } = useQuery({
     queryKey: ['customer', id],
     queryFn: () => getAccountById(id).then(res => res.data),
-    onError: () => toast.error('Failed to load customer details.'),
+    onError: () => toast.error(t('errors.failedToLoadCustomerDetails')),
   });
 
   const {
@@ -81,7 +83,7 @@ export default function CustomerDetail() {
   } = useQuery({
     queryKey: ['pawns', id],
     queryFn: () => getPawnTicketsByAccountId(id).then(res => res.data.tickets),
-    onError: () => toast.error('Failed to load pawn tickets.'),
+    onError: () => toast.error(t('errors.failedToLoadPawnTickets')),
   });
 
   const {
@@ -91,18 +93,18 @@ export default function CustomerDetail() {
   } = useQuery({
     queryKey: ['stats', id],
     queryFn: () => getAccountStats(id).then(res => res.data.stats),
-    onError: () => toast.error('Failed to load stats.'),
+    onError: () => toast.error(t('errors.failedToLoadStats')),
   });
 
   // SETTLE mutation
   const settleMutation = useMutation({
     mutationFn: (ticketId) => updatePawnTicketStatus(ticketId, 'settled'),
     onSuccess: () => {
-      toast.success('Ticket settled');
+      toast.success(t('loans.ticketSettled'));
       queryClient.invalidateQueries(['pawns', id]);
       queryClient.invalidateQueries(['stats', id]);
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to settle ticket')
+    onError: (err) => toast.error(err.response?.data?.message || t('errors.failedToSettleTicket'))
   });
 
   const openSettleModal = (ticketId) => {
@@ -136,8 +138,8 @@ export default function CustomerDetail() {
   if (error || !customer) return (
     <div className="min-h-[100dvh] flex items-center justify-center p-4">
       <div className="text-center">
-        <p className="text-red-600 font-semibold text-lg">Failed to load customer data</p>
-        <p className="text-gray-500 text-sm mt-2">Please try again later</p>
+        <p className="text-red-600 font-semibold text-lg">{t('customers.failedToLoad')}</p>
+        <p className="text-gray-500 text-sm mt-2">{t('customers.tryAgainLater')}</p>
       </div>
     </div>
   );
@@ -156,9 +158,9 @@ export default function CustomerDetail() {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onConfirm={handleConfirmSettle}
-            title="Settle Pawn Ticket"
-            message="Are you sure this ticket is settled and the loan is closed?"
-            confirmText="Yes, Settle"
+            title={t('loans.settlePawnTicket')}
+            message={t('loans.settleConfirmMessage')}
+            confirmText={t('loans.yesSettle')}
           />
 
           {/* Customer Info - Redesigned for mobile */}
@@ -194,7 +196,7 @@ export default function CustomerDetail() {
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all active:scale-95 shadow-sm text-sm md:text-base"
                 >
                   <IconEdit className="w-4 h-4" />
-                  <span>Edit Customer</span>
+                  <span>{t('common.editCustomer')}</span>
                 </Link>
               </div>
             </div>
@@ -203,20 +205,20 @@ export default function CustomerDetail() {
           {/* Analytics - Enhanced mobile grid */}
           <div className="mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 px-1">
-              Analytics
+              {t('common.analytics')}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <StatCard 
-                title="Lifetime Loans" 
+                title={t('common.lifetimeLoans')} 
                 value={`₹${stats?.total_loan_value?.toLocaleString('en-IN') || 0}`}
                 className="col-span-2 md:col-span-1"
               />
               <StatCard 
-                title="Active Loans" 
+                title={t('common.activeLoans')} 
                 value={`₹${stats?.total_active_loan?.toLocaleString('en-IN') || 0}`} 
               />
               <StatCard 
-                title="Active Tickets" 
+                title={t('common.activeTickets')} 
                 value={stats?.active_tickets || 0} 
               />
             </div>
@@ -225,15 +227,15 @@ export default function CustomerDetail() {
           {/* Pawn History - Enhanced header */}
           <div className="flex justify-between items-center mb-3 md:mb-4 px-1">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              Pawn Tickets
+              {t('common.pawnTicketsList')}
             </h2>
             <Link
               to="/app/pawn/add"
               className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-sm"
             >
               <IconPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">New Ticket</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">{t('loans.newTicket')}</span>
+              <span className="sm:hidden">{t('auth.next')}</span>
             </Link>
           </div>
 
@@ -243,16 +245,16 @@ export default function CustomerDetail() {
               <div className="hidden md:block shadow-input rounded-2xl bg-white text-base">
                 <Table>
                   <TableCaption className="pb-1.5 text-neutral-700">
-                    A list of all pawn tickets for {customer.full_name}.
+                    {t('common.ticketsForCustomer', { name: customer.full_name })}
                   </TableCaption>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Ticket #</TableHead>
-                      <TableHead>Item(s)</TableHead>
-                      <TableHead>Loan Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
+                      <TableHead>{t('loans.ticketNumber')}</TableHead>
+                      <TableHead>{t('loans.items')}</TableHead>
+                      <TableHead>{t('loans.loanAmount')}</TableHead>
+                      <TableHead>{t('loans.dateLabel')}</TableHead>
+                      <TableHead>{t('loans.status')}</TableHead>
+                      <TableHead className="text-center">{t('customers.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -280,7 +282,7 @@ export default function CustomerDetail() {
                               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
                             >
                               <IconEdit size={16} />
-                              <span>Edit</span>
+                              <span>{t('customers.edit')}</span>
                             </Link>
                             {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                               <button
@@ -290,7 +292,7 @@ export default function CustomerDetail() {
                                 title="Mark as Settled"
                               >
                                 <IconCheck size={16} />
-                                <span>Settle</span>
+                                <span>{t('loans.settle')}</span>
                               </button>
                             )}
                             <Link
@@ -298,7 +300,7 @@ export default function CustomerDetail() {
                               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
                             >
                               <IconCurrencyRupee size={16} />
-                              <span>Payment</span>
+                              <span>{t('loans.payment')}</span>
                             </Link>
                           </div>
                         </TableCell>
@@ -342,7 +344,7 @@ export default function CustomerDetail() {
                       <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                         <IconFileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-medium mb-0.5">Items</p>
+                          <p className="text-xs text-gray-500 font-medium mb-0.5">{t('common.itemsLabel')}</p>
                           <p className="text-sm font-semibold text-gray-900">
                             {pawn.items[0]?.name}
                             {pawn.items.length > 1 && (
@@ -357,7 +359,7 @@ export default function CustomerDetail() {
                       {/* Amount and Date */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-emerald-50 rounded-xl">
-                          <p className="text-xs text-emerald-600 font-medium mb-1">Loan Amount</p>
+                          <p className="text-xs text-emerald-600 font-medium mb-1">{t('common.loanAmountLabel')}</p>
                           <p className="text-lg font-bold text-emerald-700">
                             ₹{pawn.loan_amount.toLocaleString('en-IN')}
                           </p>
@@ -381,7 +383,7 @@ export default function CustomerDetail() {
                           className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 font-semibold text-sm shadow-sm"
                         >
                           <IconEdit className="w-4 h-4" />
-                          <span>Edit</span>
+                          <span>{t('customers.edit')}</span>
                         </Link>
                         
                         {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
@@ -391,7 +393,7 @@ export default function CustomerDetail() {
                             className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white hover:bg-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-sm"
                           >
                             <IconCheck className="w-4 h-4" />
-                            <span>Settle</span>
+                            <span>{t('loans.settle')}</span>
                           </button>
                         )}
                       </div>
@@ -401,7 +403,7 @@ export default function CustomerDetail() {
                         to={`/app/pawns/${pawn._id}`}
                         className="block w-full py-2.5 text-center rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-semibold text-sm border border-emerald-200"
                       >
-                        View Payments & Details
+                        {t('common.viewPaymentsAndDetails')}
                       </Link>
                     </div>
                   </motion.div>
@@ -413,14 +415,14 @@ export default function CustomerDetail() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                 <IconTicket className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-gray-600 font-semibold text-lg mb-1">No pawn tickets yet</p>
-              <p className="text-gray-500 text-sm mb-6">Create the first pawn ticket for this customer</p>
+              <p className="text-gray-600 font-semibold text-lg mb-1">{t('empty.noPawnTicketsYet')}</p>
+              <p className="text-gray-500 text-sm mb-6">{t('empty.createFirstPawnTicket')}</p>
               <Link
                 to="/app/pawn/add"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 font-semibold shadow-sm"
               >
                 <IconPlus className="w-5 h-5" />
-                Create Pawn Ticket
+                {t('empty.createPawnTicket')}
               </Link>
             </div>
           )}

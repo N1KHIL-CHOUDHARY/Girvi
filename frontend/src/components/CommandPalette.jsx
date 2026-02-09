@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent } from './ui/Dialog'; // Your existing Dialog
 import {
@@ -21,6 +22,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 
 export default function CommandPalette() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth(); // Get user to show/hide admin links
@@ -47,46 +49,46 @@ export default function CommandPalette() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
         <Command>
-          <CommandInput placeholder="Type a command or search..." />
+          <CommandInput placeholder={t('common.typeCommandOrSearch')} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t('empty.noResultsFound')}</CommandEmpty>
             
-            <CommandGroup heading="Navigation">
+            <CommandGroup heading={t('common.navigation')}>
               <CommandItem onSelect={() => runCommand('/app/dashboard')}>
                 <IconHome className="mr-2 h-4 w-4 text-app-primary" />
-                <span>Dashboard</span>
+                <span>{t('nav.dashboard')}</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/customers')}>
                 <IconUsers className="mr-2 h-4 w-4 text-app-primary" />
-                <span>All Customers</span>
+                <span>{t('nav.allCustomers')}</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/pawns')}>
                 <IconFileText className="mr-2 h-4 w-4 text-app-primary" />
-                <span>All Pawn Tickets</span>
+                <span>{t('nav.allPawnTickets')}</span>
               </CommandItem>
             </CommandGroup>
             
-            <CommandGroup heading="Actions">
+            <CommandGroup heading={t('common.actions')}>
               <CommandItem onSelect={() => runCommand('/app/customer/add')}>
                 <IconUserPlus className="mr-2 h-4 w-4 text-app-primary" />
-                <span>New Customer</span>
+                <span>{t('nav.newCustomer')}</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand('/app/pawn/add')}>
                 <IconPlus className="mr-2 h-4 w-4 text-app-primary" />
-                <span>New Pawn Ticket</span>
+                <span>{t('nav.newPawnTicket')}</span>
               </CommandItem>
             </CommandGroup>
 
             {/* Show Admin links only to 'owner' */}
             {user?.role === 'owner' && (
-              <CommandGroup heading="Admin">
+              <CommandGroup heading={t('common.adminGroup')}>
                 <CommandItem onSelect={() => runCommand('/app/employees')}>
                   <IconUserCog className="mr-2 h-4 w-4 text-app-primary" />
-                  <span>Manage Employees</span>
+                  <span>{t('nav.manageEmployees')}</span>
                 </CommandItem>
                 <CommandItem onSelect={() => runCommand('/app/roles')}>
                   <IconShieldLock className="mr-2 h-4 w-4 text-app-primary" />
-                  <span>Manage Roles</span>
+                  <span>{t('nav.manageRoles')}</span>
                 </CommandItem>
               </CommandGroup>
             )}

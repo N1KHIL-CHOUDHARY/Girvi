@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createAccount } from '../services/api';
 import toast from 'react-hot-toast';
@@ -22,6 +23,7 @@ const initialState = {
 };
 
 export default function NewCustomer() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState(initialState);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -33,7 +35,7 @@ export default function NewCustomer() {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Customer created successfully!');
+      toast.success(t('customers.createdSuccess'));
     
       queryClient.invalidateQueries(['customers']);
       navigate('/app/customers');
@@ -43,7 +45,7 @@ export default function NewCustomer() {
       const message = 
         error.response?.data?.error || 
         error.response?.data?.message || 
-        'Failed to create customer';
+        t('errors.failedToCreateCustomer');
         
     
       toast.error(message.replace(/"/g, ''));
@@ -80,20 +82,20 @@ export default function NewCustomer() {
     <div className="w-full">
       <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
         <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
-          Create New Customer
+          {t('common.createNewCustomer')}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
-          Add a new customer to your shop's records.
+          {t('common.addCustomerDescription')}
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">Full Name</Label>
+              <Label htmlFor="full_name">{t('forms.fullName')}</Label>
               <Input
                 id="full_name"
                 name="full_name"
-                placeholder="Jane Smith"
+                placeholder={t('common.placeholderFullName')}
                 type="text"
                 autoComplete="name"
                 enterKeyHint="next"
@@ -104,11 +106,11 @@ export default function NewCustomer() {
             </LabelInputContainer>
 
             <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">Phone Number</Label>
+              <Label htmlFor="phone_number">{t('forms.phoneNumber')}</Label>
               <Input
                 id="phone_number"
                 name="phone_number"
-                placeholder="9876543210"
+                placeholder={t('common.placeholderPhone')}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
@@ -121,7 +123,7 @@ export default function NewCustomer() {
           </div>
 
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">{t('forms.gender')}</Label>
             <select
               id="gender"
               name="gender"
@@ -132,18 +134,18 @@ export default function NewCustomer() {
 border-neutral-300 text-black`
               )}
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Male">{t('forms.male')}</option>
+              <option value="Female">{t('forms.female')}</option>
+              <option value="Other">{t('forms.other')}</option>
             </select>
           </LabelInputContainer>
 
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="line1">Address Line</Label>
+            <Label htmlFor="line1">{t('forms.addressLine')}</Label>
             <Input
               id="line1"
               name="line1"
-              placeholder="123 Main St"
+              placeholder={t('common.placeholderAddress')}
               type="text"
               autoComplete="street-address"
               enterKeyHint="next"
@@ -154,11 +156,11 @@ border-neutral-300 text-black`
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t('forms.city')}</Label>
               <Input
                 id="city"
                 name="city"
-                placeholder="Chennai"
+                placeholder={t('common.placeholderCity')}
                 type="text"
                 autoComplete="address-level2"
                 enterKeyHint="next"
@@ -167,11 +169,11 @@ border-neutral-300 text-black`
               />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pincode">Pincode</Label>
+              <Label htmlFor="pincode">{t('forms.pincode')}</Label>
               <Input
                 id="pincode"
                 name="pincode"
-                placeholder="600001"
+                placeholder={t('common.placeholderPincode')}
                 type="text"
                 inputMode="numeric"
                 autoComplete="postal-code"
@@ -184,11 +186,11 @@ border-neutral-300 text-black`
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
+              <Label htmlFor="aadhaar_number">{t('forms.aadhaarNumber')}</Label>
               <Input
                 id="aadhaar_number"
                 name="aadhaar_number"
-                placeholder="XXXX XXXX XXXX"
+                placeholder={t('common.placeholderAadhaar')}
                 type="text"
                 inputMode="numeric"
                 enterKeyHint="next"
@@ -197,11 +199,11 @@ border-neutral-300 text-black`
               />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pan_number">PAN Number</Label>
+              <Label htmlFor="pan_number">{t('forms.panNumber')}</Label>
               <Input
                 id="pan_number"
                 name="pan_number"
-                placeholder="ABCDE1234F"
+                placeholder={t('common.placeholderPan')}
                 type="text"
                 autoComplete="off"
                 enterKeyHint="next"
@@ -215,7 +217,7 @@ border-neutral-300 text-black`
             <FileUpload
               value={formData.customer_photo_url}
               onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
-              label="Customer Photo"
+              label={t('forms.customerPhoto')}
             />
           </LabelInputContainer>
 
@@ -224,7 +226,7 @@ border-neutral-300 text-black`
             type="submit"
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? 'Saving...' : 'Save Customer'}
+            {mutation.isPending ? t('buttons.saving') : t('buttons.saveCustomer')}
             <BottomGradient />
           </button>
         </form>

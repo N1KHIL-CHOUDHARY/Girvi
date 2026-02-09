@@ -1,9 +1,11 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { IconHome, IconAlertTriangle } from "@tabler/icons-react";
 import { motion } from "framer-motion";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50 px-4">
       <motion.div
@@ -25,12 +27,11 @@ export default function NotFound() {
         </h1>
 
         <h2 className="text-xl font-semibold text-slate-800 mb-3">
-          Page not found
+          {t('notFound.title')}
         </h2>
 
         <p className="text-sm text-slate-600 leading-relaxed mb-8">
-          The page you’re looking for doesn’t exist, was moved,
-          or you don’t have access to it.
+          {t('notFound.description')}
         </p>
 
         {/* Action */}
@@ -40,7 +41,7 @@ export default function NotFound() {
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
           >
             <IconHome size={16} />
-            Back to Dashboard
+            {t('notFound.backToDashboard')}
           </Link>
         </div>
       </motion.div>

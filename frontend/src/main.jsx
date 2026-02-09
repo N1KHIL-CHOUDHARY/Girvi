@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
+import './i18n';
 import './index.css';
 import App from './App';
 import { Toaster } from 'react-hot-toast';

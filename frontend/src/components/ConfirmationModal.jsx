@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from "./ui/Dialog";
 import { IconAlertTriangle, IconX } from '@tabler/icons-react';
 
@@ -8,9 +9,12 @@ export default function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
 }) {
+  const { t } = useTranslation();
+  const resolvedConfirm = confirmText ?? t('buttons.confirm');
+  const resolvedCancel = cancelText ?? t('buttons.cancel');
   if (!isOpen) return null;
 
   return (
@@ -40,14 +44,14 @@ export default function ConfirmationModal({
               onClose();
             }}
           >
-            {confirmText}
+            {resolvedConfirm}
           </button>
           <button
             type="button"
             className="mt-3 inline-flex w-full justify-center items-center rounded-md app-surface px-3 py-2.5 min-h-[44px] text-sm font-semibold text-app-primary shadow-sm ring-1 ring-inset ring-[var(--color-border)] hover:bg-[var(--color-surface-muted)] sm:mt-0 sm:w-auto"
             onClick={onClose}
           >
-            {cancelText}
+            {resolvedCancel}
           </button>
         </div>
       </DialogContent>

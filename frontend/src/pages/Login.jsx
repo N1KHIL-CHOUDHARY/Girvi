@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -7,6 +8,7 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 
 export default function Login() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -28,13 +30,13 @@ export default function Login() {
     try {
       const result = await login(formData); 
       if (result.success) {
-        toast.success('Login successful!');
+        toast.success(t('auth.loginSuccess'));
         navigate(from, { replace: true });
       } else {
-        toast.error(result.message || 'Login failed');
+        toast.error(result.message || t('auth.loginFailed'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -45,20 +47,20 @@ export default function Login() {
       <div className="shadow-input relative w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8">
         
         <h2 className="text-xl font-bold text-neutral-800">
-          Welcome Back
+          {t('auth.welcomeBack')}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-neutral-600">
-          Log in to your PawnManager account
+          {t('auth.logInToAccount')}
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="email">Email Address</Label> 
+            <Label htmlFor="email">{t('auth.emailAddress')}</Label> 
             <Input id="email" name="email" placeholder="owner@citygold.com" type="email" inputMode="email" autoComplete="email" enterKeyHint="next" onChange={handleChange} required />
           </LabelInputContainer>
 
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('auth.password')}</Label>
             <Input id="password" name="password" placeholder="••••••••" type="password" autoComplete="current-password" enterKeyHint="done" onChange={handleChange} required />
           </LabelInputContainer>
 
@@ -67,15 +69,15 @@ export default function Login() {
             type="submit"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Log in →'}
+            {loading ? t('auth.loggingIn') : t('auth.loginAction')}
             <BottomGradient />
           </button>
         </form>
 
         <p className="mt-4 text-center text-sm text-neutral-600">
-          No account?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/signup" className="font-bold text-indigo-500 hover:text-indigo-400">
-            Sign up
+            {t('auth.signup')}
           </Link>
         </p>
       </div>

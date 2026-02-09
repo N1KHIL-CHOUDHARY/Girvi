@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,19 +10,32 @@ const CUSTOMERS_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v176543
 const logo_IMG ='https://res.cloudinary.com/ddgdcca86/image/upload/v1770195946/logo_imxhzo.png';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
+  const scrollRef = React.useRef(null);
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
   const [activeDemoTab, setActiveDemoTab] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    console.log('isScrolled:', isScrolled);
+  }, [isScrolled]);
 
-  // Animation variants
+  
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+  
+    const handleScroll = () => {
+      setIsScrolled(el.scrollTop > 20);
+    };
+  
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+
+  
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
@@ -38,11 +52,16 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-white">
+    <div className="min-h-screen bg-white">
       
-      <nav className={`fixed inset-x-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
-      }`}>
+      <nav
+  className={`fixed inset-x-0 z-50 transition-all duration-300 ${
+    isScrolled
+      ? 'bg-white/80 backdrop-blur-md shadow-md'
+      : 'bg-transparent'
+  }`}
+>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -50,7 +69,7 @@ const LandingPage = () => {
               <span className={`font-semibold text-lg ${
                 isScrolled ? 'text-slate-900' : 'text-white'
               }`}>
-                PawnManager
+                {t('landing.appName')}
               </span>
             </div>
             
@@ -58,25 +77,25 @@ const LandingPage = () => {
               <a href="#demo" className={`font-medium transition-colors ${
                 isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
               }`}>
-                Demo
+                {t('nav.demo')}
               </a>
               <a href="#features" className={`font-medium transition-colors ${
                 isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
               }`}>
-                Features
+                {t('nav.features')}
               </a>
               <a href="#faq" className={`font-medium transition-colors ${
                 isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
               }`}>
-                FAQ
+                {t('nav.faq')}
               </a>
               <a href="#contact" className={`font-medium transition-colors ${
                 isScrolled ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-white'
               }`}>
-                Contact
+                {t('nav.contact')}
               </a>
               <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors inline-block">
-                Get Started
+                {t('nav.getStarted')}
               </Link>
             </div>
           </div>
@@ -97,14 +116,14 @@ const LandingPage = () => {
               className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
               variants={fadeInUp}
             >
-              Manage pawn loans, customers, and payments in one place
+              {t('landing.heroTitle')}
             </motion.h1>
             
             <motion.p 
               className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
               variants={fadeInUp}
             >
-              The complete pawn shop management platform for loans, customer records, inventory, and payments.
+              {t('landing.heroSubtitle')}
             </motion.p>
             
             <motion.div 
@@ -112,10 +131,10 @@ const LandingPage = () => {
               variants={fadeInUp}
             >
               <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors inline-block">
-                Start Free Trial
+                {t('landing.startFreeTrial')}
               </Link>
               <button className="border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors">
-                Watch Demo
+                {t('landing.watchDemo')}
               </button>
             </motion.div>
             
@@ -123,9 +142,9 @@ const LandingPage = () => {
               className="text-sm text-slate-400 space-x-6"
               variants={fadeInUp}
             >
-              <span>✓ 14-day free trial</span>
-              <span>✓ No credit card required</span>
-              <span>✓ Cancel anytime</span>
+              <span>✓ {t('landing.freeTrial14')}</span>
+              <span>✓ {t('landing.noCreditCard')}</span>
+              <span>✓ {t('landing.cancelAnytime')}</span>
             </motion.div>
           </motion.div>
           
@@ -139,7 +158,7 @@ const LandingPage = () => {
             <div className="rounded-xl overflow-hidden border border-white/20 shadow-2xl shadow-black/30 bg-white/5 p-2 sm:p-4">
               <img
                 src={DASHBOARD_IMG}
-                alt="PawnManager dashboard showing loans overview, recent activity, and key metrics"
+                alt={t('landing.dashboardAlt')}
                 className="w-full h-auto rounded-lg object-contain aspect-video sm:aspect-[16/10] object-top"
                 loading="eager"
                 width={1200}
@@ -161,10 +180,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              See PawnManager in action
+              {t('landing.seeInAction')}
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Dashboard, customers, and payments—all in one place.
+              {t('landing.demoSubtitle')}
             </p>
           </motion.div>
 
@@ -176,7 +195,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            {['Dashboard', 'Customers', 'Payments'].map((label, idx) => (
+            {[t('nav.dashboard'), t('nav.customers'), t('nav.payments')].map((label, idx) => (
               <button
                 key={label}
                 onClick={() => setActiveDemoTab(idx)}
@@ -211,7 +230,7 @@ const LandingPage = () => {
                 {activeDemoTab === 0 && (
                   <img
                     src={DASHBOARD_IMG}
-                    alt="PawnManager dashboard with loans overview and metrics"
+                    alt={t('landing.dashboardImgAlt')}
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
@@ -220,7 +239,7 @@ const LandingPage = () => {
                 {activeDemoTab === 1 && (
                   <img
                     src={CUSTOMERS_IMG}
-                    alt="PawnManager customers list and management view"
+                    alt={t('landing.customersImgAlt')}
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
@@ -229,7 +248,7 @@ const LandingPage = () => {
                 {activeDemoTab === 2 && (
                   <img
                     src={PAYMENTS_IMG}
-                    alt="PawnManager payments and transaction history"
+                    alt={t('landing.paymentsImgAlt')}
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
@@ -254,10 +273,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Why choose PawnManager?
+              {t('landing.whyChoose')}
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Stop juggling spreadsheets and paper. Manage loans, customers, and payments in one purpose-built platform.
+              {t('landing.whySubtitle')}
             </p>
           </motion.div>
           
@@ -270,16 +289,16 @@ const LandingPage = () => {
           >
             {[
               {
-                title: "All-in-one platform",
-                description: "Loans, customer records, inventory, and payments in one place. No more spreadsheets or disjointed systems."
+                title: t('landing.allInOneTitle'),
+                description: t('landing.allInOneDesc')
               },
               {
-                title: "Built for pawn shops",
-                description: "Designed specifically for pawn workflows. Track every loan, renewal, and payment with ease."
+                title: t('landing.builtForPawnTitle'),
+                description: t('landing.builtForPawnDesc')
               },
               {
-                title: "Stay organized",
-                description: "Never lose track of items or deadlines. Clear dashboards and reports keep your shop running smoothly."
+                title: t('landing.stayOrganizedTitle'),
+                description: t('landing.stayOrganizedDesc')
               }
             ].map((item, index) => (
               <motion.div 
@@ -309,10 +328,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Everything you need to run your pawn shop
+              {t('landing.everythingYouNeed')}
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Powerful features for loans, customers, inventory, and payments.
+              {t('landing.featuresSubtitle')}
             </p>
           </motion.div>
           
@@ -325,28 +344,28 @@ const LandingPage = () => {
           >
             {[
               {
-                title: "Loan Management",
-                description: "Track every pawn loan from intake to redemption. Set terms, due dates, and interest with ease."
+                title: t('landing.loanManagement'),
+                description: t('landing.loanManagementDesc')
               },
               {
-                title: "Customer Records",
-                description: "Centralize customer data, contact info, and loan history in one searchable database."
+                title: t('landing.customerRecords'),
+                description: t('landing.customerRecordsDesc')
               },
               {
-                title: "Payments & Transactions",
-                description: "Record payments, extensions, and redemptions. Keep a clear audit trail of all transactions."
+                title: t('landing.paymentsTransactions'),
+                description: t('landing.paymentsTransactionsDesc')
               },
               {
-                title: "Inventory Tracking",
-                description: "Know exactly what's in your shop. Tag items to loans and track status at a glance."
+                title: t('landing.inventoryTracking'),
+                description: t('landing.inventoryTrackingDesc')
               },
               {
-                title: "Dashboards & Reports",
-                description: "See active loans, revenue, and key metrics at a glance. Export reports when you need them."
+                title: t('landing.dashboardsReports'),
+                description: t('landing.dashboardsReportsDesc')
               },
               {
-                title: "Secure & Reliable",
-                description: "Your data is protected. Built for reliability so you can focus on running your shop."
+                title: t('landing.secureReliable'),
+                description: t('landing.secureReliableDesc')
               }
             ].map((feature, index) => (
               <motion.div 
@@ -377,10 +396,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Get started in minutes
+              {t('landing.getStartedMinutes')}
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Simple setup process that gets you up and running without the complexity.
+              {t('landing.getStartedSubtitle')}
             </p>
           </motion.div>
           
@@ -394,18 +413,18 @@ const LandingPage = () => {
             {[
               {
                 step: "1",
-                title: "Sign up",
-                description: "Create your account in minutes. No credit card required to get started."
+                title: t('landing.signUpStep'),
+                description: t('landing.signUpStepDesc')
               },
               {
                 step: "2",
-                title: "Add your data",
-                description: "Import customers and loans, or start fresh. The interface is built for pawn shop workflows."
+                title: t('landing.addYourData'),
+                description: t('landing.addYourDataDesc')
               },
               {
                 step: "3",
-                title: "Run your shop",
-                description: "Manage loans, customers, and payments in one place. PawnManager keeps everything organized."
+                title: t('landing.runYourShop'),
+                description: t('landing.runYourShopDesc')
               }
             ].map((item, index) => (
               <motion.div 
@@ -440,10 +459,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Frequently asked questions
+              {t('landing.faqTitle')}
             </h2>
             <p className="text-xl text-slate-600">
-              Everything you need to know about PawnManager.
+              {t('landing.faqSubtitle')}
             </p>
           </motion.div>
           
@@ -456,24 +475,24 @@ const LandingPage = () => {
           >
             {[
               {
-                question: "How long does it take to set up PawnManager?",
-                answer: "Most pawn shops are up and running within 30 minutes. Add your first customer and loan, and you're ready to go."
+                question: t('landing.faq1Q'),
+                answer: t('landing.faq1A')
               },
               {
-                question: "Can I import my existing customer and loan data?",
-                answer: "Yes. You can import data from spreadsheets or enter it manually. We can help with larger migrations if needed."
+                question: t('landing.faq2Q'),
+                answer: t('landing.faq2A')
               },
               {
-                question: "What happens if I need to cancel?",
-                answer: "You can cancel anytime with no penalties. We'll help you export your data, and you'll retain access until the end of your billing period."
+                question: t('landing.faq3Q'),
+                answer: t('landing.faq3A')
               },
               {
-                question: "Is my pawn shop data secure?",
-                answer: "Absolutely. Your data is encrypted and stored securely. We take privacy seriously—your customer and loan information is protected."
+                question: t('landing.faq4Q'),
+                answer: t('landing.faq4A')
               },
               {
-                question: "Do you offer support?",
-                answer: "Yes, all plans include email support. We're here to help you get the most out of PawnManager."
+                question: t('landing.faq5Q'),
+                answer: t('landing.faq5A')
               }
             ].map((faq, index) => (
               <motion.div 
@@ -527,14 +546,14 @@ const LandingPage = () => {
             className="text-3xl md:text-4xl font-bold text-white mb-6"
             variants={fadeInUp}
           >
-            Ready to run your pawn shop better?
+            {t('landing.readyCta')}
           </motion.h2>
           
           <motion.p 
             className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
             variants={fadeInUp}
           >
-            Join pawn shops nationwide using PawnManager to manage loans, customers, and payments.
+            {t('landing.readySubtitle')}
           </motion.p>
           
           <motion.div 
@@ -542,10 +561,10 @@ const LandingPage = () => {
             variants={fadeInUp}
           >
             <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors inline-block">
-              Start Your Free Trial
+              {t('landing.startYourFreeTrial')}
             </Link>
             <button className="border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-colors">
-              Schedule Demo
+              {t('landing.scheduleDemo')}
             </button>
           </motion.div>
           
@@ -553,7 +572,7 @@ const LandingPage = () => {
             className="text-sm text-slate-400"
             variants={fadeInUp}
           >
-            No credit card required • Cancel anytime • 14-day free trial
+            {t('landing.ctaFooter')}
           </motion.p>
         </motion.div>
       </section>
@@ -566,18 +585,18 @@ const LandingPage = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
                 <span className="text-white font-bold text-sm">P</span>
               </div>
-              <span className="font-semibold text-lg text-white">PawnManager</span>
+              <span className="font-semibold text-lg text-white">{t('landing.appName')}</span>
             </div>
             
             <div className="flex space-x-8 mb-4 md:mb-0">
-              <a href="#features" className="text-slate-400 hover:text-white transition-colors">Features</a>
-              <a href="#demo" className="text-slate-400 hover:text-white transition-colors">Demo</a>
-              <a href="#faq" className="text-slate-400 hover:text-white transition-colors">FAQ</a>
-              <a href="mailto:support@pawnmanager.com" className="text-slate-400 hover:text-white transition-colors">Contact</a>
+              <a href="#features" className="text-slate-400 hover:text-white transition-colors">{t('nav.features')}</a>
+              <a href="#demo" className="text-slate-400 hover:text-white transition-colors">{t('nav.demo')}</a>
+              <a href="#faq" className="text-slate-400 hover:text-white transition-colors">{t('nav.faq')}</a>
+              <a href="mailto:support@pawnmanager.com" className="text-slate-400 hover:text-white transition-colors">{t('nav.contact')}</a>
             </div>
             
             <p className="text-slate-400 text-sm">
-              © 2025 PawnManager. All rights reserved.
+              {t('landing.copyright')}
             </p>
           </div>
         </div>

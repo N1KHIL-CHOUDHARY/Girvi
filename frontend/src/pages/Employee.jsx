@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEmployees, createEmployee, deleteEmployee, getRoles, updateEmployee } from '../services/api';
 import { Input } from '../components/ui/Input';
@@ -13,6 +14,7 @@ import { cn } from '../lib/utils';
 import toast from 'react-hot-toast';
 
 export default function Employees() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   
   const [fullName, setFullName] = useState('');
@@ -45,7 +47,7 @@ export default function Employees() {
   const createMutation = useMutation({
     mutationFn: createEmployee,
     onSuccess: () => {
-      toast.success('Employee created!');
+      toast.success(t('common.employeeCreated'));
       queryClient.invalidateQueries(['employees']);
       setFullName('');
       setEmail('');
@@ -53,7 +55,7 @@ export default function Employees() {
       setSelectedRole('');
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to create employee');
+      toast.error(err.response?.data?.message || t('errors.failedToCreateEmployee'));
     }
   });
 
@@ -61,11 +63,11 @@ export default function Employees() {
   const deleteMutation = useMutation({
     mutationFn: deleteEmployee,
     onSuccess: () => {
-      toast.success('Employee deleted!');
+      toast.success(t('common.employeeDeleted'));
       queryClient.invalidateQueries(['employees']);
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to delete employee');
+      toast.error(err.response?.data?.message || t('errors.failedToDeleteEmployee'));
     }
   });
 
@@ -73,14 +75,14 @@ export default function Employees() {
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }) => updateEmployee(id, payload),
     onSuccess: () => {
-      toast.success('Employee updated!');
+      toast.success(t('common.employeeUpdated'));
       queryClient.invalidateQueries(['employees']);
       setEditModalOpen(false);
       setEditingEmployee(null);
       setEditForm({ full_name: '', email: '', role_id: '', password: '' });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to update employee');
+      toast.error(err.response?.data?.message || t('errors.failedToUpdateEmployee'));
     },
   });
 
@@ -136,7 +138,7 @@ export default function Employees() {
     <>
     <div className="p-4 md:p-6 min-h-[100dvh]">
       <h1 className="text-3xl font-bold text-neutral-800 text-neutral-200 mb-6">
-        Manage Employees
+        {t('common.manageEmployees')}
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,23 +146,23 @@ export default function Employees() {
         <div className="md:col-span-1">
           <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
             <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
-              Create New Employee
+              {t('common.createNewEmployee')}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <LabelInputContainer>
-                <Label htmlFor="full_name">Full Name *</Label>
+                <Label htmlFor="full_name">{t('forms.fullName')} *</Label>
                 <Input id="full_name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </LabelInputContainer>
               <LabelInputContainer>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('forms.email')} *</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </LabelInputContainer>
               <LabelInputContainer>
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">{t('auth.password')} *</Label>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </LabelInputContainer>
               <LabelInputContainer>
-                <Label htmlFor="role">Role *</Label>
+                <Label htmlFor="role">{t('forms.role')} *</Label>
                 <select
                   id="role"
                   value={selectedRole}
@@ -185,7 +187,7 @@ export default function Employees() {
                 className="w-full h-10 rounded-md bg-indigo-600 text-white font-medium"
                 disabled={createMutation.isLoading}
               >
-                {createMutation.isLoading ? 'Creating...' : 'Create Employee'}
+                {createMutation.isLoading ? t('buttons.creating') : t('buttons.createEmployee')}
               </button>
             </form>
           </div>
@@ -195,15 +197,15 @@ export default function Employees() {
         <div className="md:col-span-2">
           <div className="shadow-input rounded-2xl bg-white bg-black">
             {isLoadingEmployees ? (
-              <p className="p-4 text-center">Loading employees...</p>
+              <p className="p-4 text-center">{t('common.loadingEmployees')}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead>{t('customers.name')}</TableHead>
+                    <TableHead>{t('forms.email')}</TableHead>
+                    <TableHead>{t('forms.role')}</TableHead>
+                    <TableHead className="text-center">{t('customers.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -245,11 +247,11 @@ export default function Employees() {
     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
       <DialogContent className="sm:max-w-lg">
         <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
-          Edit Employee
+          {t('common.editEmployee')}
         </h3>
         <form onSubmit={handleUpdate} className="space-y-4">
           <LabelInputContainer>
-            <Label htmlFor="edit_full_name">Full Name *</Label>
+            <Label htmlFor="edit_full_name">{t('forms.fullName')} *</Label>
             <Input
               id="edit_full_name"
               type="text"
@@ -259,7 +261,7 @@ export default function Employees() {
             />
           </LabelInputContainer>
           <LabelInputContainer>
-            <Label htmlFor="edit_email">Email *</Label>
+            <Label htmlFor="edit_email">{t('forms.email')} *</Label>
             <Input
               id="edit_email"
               type="email"
@@ -269,17 +271,17 @@ export default function Employees() {
             />
           </LabelInputContainer>
           <LabelInputContainer>
-            <Label htmlFor="edit_password">New Password (optional)</Label>
+            <Label htmlFor="edit_password">{t('forms.newPasswordOptional')}</Label>
             <Input
               id="edit_password"
               type="password"
               value={editForm.password}
               onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-              placeholder="Leave blank to keep current password"
+              placeholder={t('forms.leaveBlankPassword')}
             />
           </LabelInputContainer>
           <LabelInputContainer>
-            <Label htmlFor="edit_role">Role *</Label>
+            <Label htmlFor="edit_role">{t('forms.role')} *</Label>
             <select
               id="edit_role"
               value={editForm.role_id}
@@ -290,7 +292,7 @@ export default function Employees() {
 border-neutral-700 bg-neutral-800 text-neutral-200`
               )}
             >
-              <option value="" disabled>{isLoadingRoles ? 'Loading roles...' : 'Select a role'}</option>
+              <option value="" disabled>{isLoadingRoles ? t('forms.loadingRoles') : t('forms.selectRole')}</option>
               {rolesData?.map((role) => (
                 !role.is_owner_role && (
                   <option key={role._id} value={role._id}>
@@ -306,14 +308,14 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
               className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
               onClick={() => setEditModalOpen(false)}
             >
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button
               type="submit"
               className="h-10 px-4 rounded-md bg-indigo-600 text-white font-medium"
               disabled={updateMutation.isLoading}
             >
-              {updateMutation.isLoading ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isLoading ? t('buttons.saving') : t('buttons.saveChanges')}
             </button>
           </div>
         </form>
@@ -324,9 +326,9 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
       isOpen={!!deleteTarget}
       onClose={() => setDeleteTarget(null)}
       onConfirm={confirmDelete}
-      title="Delete employee?"
-      message="This action cannot be undone. The employee will be removed."
-      confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
+      title={t('common.deleteEmployeeTitle')}
+      message={t('common.deleteEmployeeMessage')}
+      confirmText={deleteMutation.isLoading ? t('customers.deleting') : t('customers.delete')}
     />
     </>
   );

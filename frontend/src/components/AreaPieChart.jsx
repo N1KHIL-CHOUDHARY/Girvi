@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -14,6 +15,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function AreaBarChart({ data }) {
+  const { t } = useTranslation();
   // data from API: [{ pincode: '600001', count: 1 }]
   // We rename 'pincode' to 'name' and 'customers' to 'value'
   const chartData = data.map(item => ({
@@ -24,7 +26,7 @@ export default function AreaBarChart({ data }) {
   return (
     <div className="shadow-input w-full rounded-2xl app-surface p-4 min-h-[320px]">
       <h3 className="text-lg font-semibold text-app-primary mb-4">
-        Top Customer Areas (by Pincode)
+        {t('dashboard.topCustomerAreas')}
       </h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={chartData} layout="vertical">

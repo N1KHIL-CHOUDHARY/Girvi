@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, updateAccount } from '../services/api';
@@ -9,6 +10,7 @@ import { Label } from '../components/ui/Label';
 import FileUpload from '../components/FileUpload';
 
 export default function UpdateCustomer() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -27,7 +29,7 @@ export default function UpdateCustomer() {
       return res.data;
     },
     onError: () => {
-      toast.error('Failed to load customer data');
+      toast.error(t('errors.failedToLoadCustomer'));
       navigate('/app/customers');
     },
   });
@@ -36,7 +38,7 @@ export default function UpdateCustomer() {
   const updateMutation = useMutation({
     mutationFn: (payload) => updateAccount(id, payload),
     onSuccess: () => {
-      toast.success('Customer updated successfully!');
+      toast.success(t('customers.updatedSuccess'));
       // Refresh cached data
       queryClient.invalidateQueries(['customers']);
       queryClient.invalidateQueries(['customer', id]);
@@ -46,7 +48,7 @@ export default function UpdateCustomer() {
       const message = 
         error.response?.data?.error || 
         error.response?.data?.message || 
-        'Failed to update customer';
+        t('errors.failedToUpdateCustomer');
         
     
       toast.error(message.replace(/"/g, ''));
@@ -98,7 +100,7 @@ export default function UpdateCustomer() {
   if (loadingCustomer || !formData) {
     return (
       <div className="text-center py-20 text-neutral-500 text-neutral-400">
-        Loading customer data...
+        {t('common.loadingCustomerData')}
       </div>
     );
   }
@@ -106,9 +108,9 @@ export default function UpdateCustomer() {
   if (isError) {
     return (
       <div className="text-center py-20 text-red-500">
-        Failed to load customer. <br />
+        {t('common.failedToLoadCustomer')} <br />
         <Link to="/app/customers" className="text-blue-500 underline">
-          Go back
+          {t('buttons.goBack')}
         </Link>
       </div>
     );
@@ -118,17 +120,17 @@ export default function UpdateCustomer() {
     <div className="w-full">
       <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
         <h2 className="text-xl font-bold text-neutral-800 ">
-          Update Customer
+          {t('common.updateCustomer')}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
-          Editing details for {formData.full_name}.
+          {t('common.editingDetailsFor', { name: formData.full_name })}
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
           {/* Name + Phone */}
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">Full Name</Label>
+              <Label htmlFor="full_name">{t('forms.fullName')}</Label>
               <Input
                 id="full_name"
                 name="full_name"
@@ -141,7 +143,7 @@ export default function UpdateCustomer() {
               />
             </LabelInputContainer>
             <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">Phone Number</Label>
+              <Label htmlFor="phone_number">{t('forms.phoneNumber')}</Label>
               <Input
                 id="phone_number"
                 name="phone_number"
@@ -158,7 +160,7 @@ export default function UpdateCustomer() {
 
           {/* Gender */}
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">{t('forms.gender')}</Label>
             <select
               id="gender"
               name="gender"
@@ -169,15 +171,15 @@ export default function UpdateCustomer() {
  text-black`
               )}
             >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Male">{t('forms.male')}</option>
+              <option value="Female">{t('forms.female')}</option>
+              <option value="Other">{t('forms.other')}</option>
             </select>
           </LabelInputContainer>
 
           {/* Address */}
           <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="line1">Address Line</Label>
+            <Label htmlFor="line1">{t('forms.addressLine')}</Label>
             <Input
               id="line1"
               name="line1"
@@ -191,11 +193,11 @@ export default function UpdateCustomer() {
 
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t('forms.city')}</Label>
               <Input id="city" name="city" type="text" autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pincode">Pincode</Label>
+              <Label htmlFor="pincode">{t('forms.pincode')}</Label>
               <Input id="pincode" name="pincode" type="text" inputMode="numeric" autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} />
             </LabelInputContainer>
           </div>
@@ -203,11 +205,11 @@ export default function UpdateCustomer() {
           {/* Aadhaar + PAN */}
           <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
             <LabelInputContainer>
-              <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
+              <Label htmlFor="aadhaar_number">{t('forms.aadhaarNumber')}</Label>
               <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pan_number">PAN Number</Label>
+              <Label htmlFor="pan_number">{t('forms.panNumber')}</Label>
               <Input id="pan_number" name="pan_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} />
             </LabelInputContainer>
           </div>
@@ -217,7 +219,7 @@ export default function UpdateCustomer() {
             <FileUpload
               value={formData.customer_photo_url}
               onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
-              label="Customer Photo"
+              label={t('forms.customerPhoto')}
             />
           </LabelInputContainer>
 
@@ -227,14 +229,14 @@ export default function UpdateCustomer() {
               to="/app/customers"
               className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
             >
-              Cancel
+              {t('buttons.cancel')}
             </Link>
             <button
               className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
               type="submit"
               disabled={updateMutation.isPending}
             >
-              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending ? t('buttons.saving') : t('buttons.saveChanges')}
               <BottomGradient />
             </button>
           </div>
