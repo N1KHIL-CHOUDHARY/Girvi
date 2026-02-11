@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Seo from '@/components/Seo';
 
 // Product screenshot URLs for showcase
 const DASHBOARD_IMG = 'https://res.cloudinary.com/ddgdcca86/image/upload/v1765436515/Darshboard_ndgkms.png';
@@ -11,30 +12,10 @@ const logo_IMG ='https://res.cloudinary.com/ddgdcca86/image/upload/v1770195946/l
 
 const LandingPage = () => {
   const { t } = useTranslation();
-  const scrollRef = React.useRef(null);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
   const [activeDemoTab, setActiveDemoTab] = useState(0);
-
-  useEffect(() => {
-    console.log('isScrolled:', isScrolled);
-  }, [isScrolled]);
-
-  
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-  
-    const handleScroll = () => {
-      setIsScrolled(el.scrollTop > 20);
-    };
-  
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-
   
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -53,7 +34,12 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      
+      <Seo
+        title="Pawn Shop Management Software & POS – Inventory & Billing"
+        description="Cloud pawn shop POS for India with inventory, billing and loan tracking in one simple dashboard."
+        canonicalPath="/"
+      />
+
       <nav
   className={`fixed inset-x-0 z-50 transition-all duration-300 ${
     isScrolled
@@ -65,7 +51,15 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <h1 className='h-7 w-7'><img src={logo_IMG} /></h1>
+              <h1 className="h-7 w-7">
+                <img
+                  src={logo_IMG}
+                  alt="PawnManager logo"
+                  width={28}
+                  height={28}
+                  loading="lazy"
+                />
+              </h1>
               <span className={`font-semibold text-lg ${
                 isScrolled ? 'text-slate-900' : 'text-white'
               }`}>
@@ -169,6 +163,42 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* SEO TEXT: What PawnManager is and who it is for */}
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <h2 className="text-3xl font-bold text-slate-900">
+            Pawn shop management software for real-world pawn businesses
+          </h2>
+          <p className="text-slate-700">
+            PawnManager is a pawn shop management software and POS that helps you track pledged
+            items, customer records, pawn tickets and repayments in one secure system instead of
+            scattered notebooks and Excel sheets.
+          </p>
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                Problems most pawn shops face
+              </h3>
+              <p className="text-slate-700">
+                Without a proper pawn shop inventory system it is hard to see which tickets are due,
+                which customers are overdue and how much money is tied up in active loans. Manual
+                interest calculations and handwritten bills also increase the risk of mistakes.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                How PawnManager solves them
+              </h3>
+              <p className="text-slate-700">
+                PawnManager automates ticket calculations, keeps every pledged item linked to a
+                customer profile and gives owners a live dashboard of loans, inventory and payments.
+                It is a simple pawn shop billing software that fits smoothly into your daily work.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* WORKFLOW / DEMO: Tabbed screenshots to show Dashboard, Customers, Payments */}
       <section id="demo" className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -234,6 +264,7 @@ const LandingPage = () => {
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
+                    loading="lazy"
                   />
                 )}
                 {activeDemoTab === 1 && (
@@ -243,6 +274,7 @@ const LandingPage = () => {
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
+                    loading="lazy"
                   />
                 )}
                 {activeDemoTab === 2 && (
@@ -252,6 +284,7 @@ const LandingPage = () => {
                     className="w-full h-auto rounded-lg object-contain aspect-video object-top"
                     width={1200}
                     height={675}
+                    loading="lazy"
                   />
                 )}
               </motion.div>
