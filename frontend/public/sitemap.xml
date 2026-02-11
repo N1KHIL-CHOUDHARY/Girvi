@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.pawnmanager.com/</loc>
+    <loc>https://www.pawnmanager.vercel.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.pawnmanager.com/features</loc>
+    <loc>https://www.pawnmanager.vercel.app/features</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.pawnmanager.com/pricing</loc>
+    <loc>https://www.pawnmanager.vercel.app/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.pawnmanager.com/pawn-shop-management-software</loc>
+    <loc>https://www.pawnmanager.vercel.app/pawn-shop-management-software</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pawnmanager.com/login</loc>
+    <loc>https://www.pawnmanager.vercel.app/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://www.pawnmanager.com/signup</loc>
+    <loc>https://www.pawnmanager.vercel.app/signup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
