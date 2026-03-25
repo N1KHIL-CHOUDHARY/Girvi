@@ -54,9 +54,11 @@ app.use((req, res) => {
 
 
 app.use(errorHandler);
+console.log("Allowed Origins:", allowedOrigins);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log("Allowed Origins:", allowedOrigins);
 });
 
 cron.schedule("*/15 * * * *", async () => {
