@@ -4,7 +4,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPawnTicketById, updatePawnTicket } from '../services/api';
 import toast from 'react-hot-toast';
-import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 
@@ -17,24 +16,12 @@ export default function UpdatePawn() {
   const [formData, setFormData] = useState(null);
   const [customerName, setCustomerName] = useState('');
 
-  // ✅ Fetch pawn ticket using React Query
-  const {
-    data: pawnData,
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data: pawnData, isLoading, isError } = useQuery({
     queryKey: ['pawnTicket', id],
-    queryFn: async () => {
-      const res = await getPawnTicketById(id);
-      return res.data;
-    },
-    onError: () => {
-      toast.error(t('errors.failedToLoadCustomer'));
-      navigate('/app/pawns');
-    },
+    queryFn: async () => (await getPawnTicketById(id)).data,
+    onError: () => { toast.error(t('errors.failedToLoadCustomer')); navigate('/app/pawns'); },
   });
 
-  // Initialize form once data is fetched
   useEffect(() => {
     if (pawnData) {
       setCustomerName(pawnData.customer_id?.full_name || 'N/A');
@@ -53,161 +40,156 @@ export default function UpdatePawn() {
     }
   }, [pawnData]);
 
-  // ✅ Mutation for updating pawn ticket
   const updateMutation = useMutation({
     mutationFn: (payload) => updatePawnTicket(id, payload),
     onSuccess: () => {
       toast.success(t('loans.updateSuccess'));
-      queryClient.invalidateQueries(['pawnTickets']); // refresh pawn list
-      queryClient.invalidateQueries(['pawnTicket', id]); // refresh this ticket
+      queryClient.invalidateQueries(['pawnTickets']);
+      queryClient.invalidateQueries(['pawnTicket', id]);
       navigate('/app/pawns');
     },
     onError: (error) => {
-      const message = 
-      error.response?.data?.error || 
-      error.response?.data?.message || 
-      t('loans.updateFailed');
-      
-  
-    toast.error(message.replace(/"/g, ''));
+      const message = error.response?.data?.error || error.response?.data?.message || t('loans.updateFailed');
+      toast.error(message.replace(/"/g, ''));
     },
   });
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData) return;
-
-    const payload = {
+    updateMutation.mutate({
       customer_id: formData.customer_id,
       ticket_number: formData.ticket_number,
       loan_amount: parseFloat(formData.loan_amount),
       interest_rate: parseFloat(formData.interest_rate),
       adv_amount: parseFloat(formData.adv_amount),
       pawned_date: formData.pawned_date,
-      items: [
-        {
-          name: formData.item_name,
-          weight_grams: parseFloat(formData.item_weight),
-          purity: parseFloat(formData.item_purity),
-          description: formData.item_description,
-        },
-      ],
-    };
-
-    updateMutation.mutate(payload);
+      items: [{
+        name: formData.item_name,
+        weight_grams: parseFloat(formData.item_weight),
+        purity: parseFloat(formData.item_purity),
+        description: formData.item_description,
+      }],
+    });
   };
 
   if (isLoading || !formData) {
     return (
-      <div className="text-center py-20 text-neutral-500 text-neutral-400">
-        {t('common.loadingTicketData')}
+      <div style={{ padding: 'var(--page-py) var(--page-px)', textAlign: 'center', paddingTop: '4rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{t('common.loadingTicketData')}</p>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="text-center py-20 text-red-500">
-        {t('common.failedToLoadTicket')}
-        <br />
-        <Link to="/app/pawns" className="text-blue-500 underline">
-          {t('buttons.goBack')}
-        </Link>
+      <div style={{ padding: 'var(--page-py) var(--page-px)', textAlign: 'center', paddingTop: '4rem' }}>
+        <p style={{ color: 'var(--danger-text)', fontSize: '0.875rem', marginBottom: '1rem' }}>{t('common.failedToLoadTicket')}</p>
+        <Link to="/app/pawns" className="pm-btn pm-btn-secondary">{t('buttons.goBack')}</Link>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
-        <h2 className="text-xl font-bold text-neutral-800 ">
-          {t('common.updatePawnTicket')}
-        </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
+    <div style={{ padding: 'var(--page-py) var(--page-px)', maxWidth: '40rem', margin: '0 auto' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="pm-section-title">{t('common.updatePawnTicket')}</h1>
+        <p className="pm-section-subtitle">
           {t('common.editingTicketFor', { ticket: formData.ticket_number, name: customerName })}
         </p>
+      </div>
 
-        <form className="my-8 pb-40 md:pb-0" onSubmit={handleSubmit}>
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label>{t('common.customerLabel')}</Label>
-            <Input type="text" value={customerName} disabled className="text-black" />
-          </LabelInputContainer>
+      <div className="pm-form-section">
+        <form onSubmit={handleSubmit}>
 
-          {/* Ticket Info */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="ticket_number">{t('loans.ticketNumberLabel')} *</Label>
-              <Input id="ticket_number" name="ticket_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="pawned_date">{t('loans.pawnedDate')} *</Label>
-              <Input id="pawned_date" name="pawned_date" type="date" enterKeyHint="next" value={formData.pawned_date} onChange={handleChange} required />
-            </LabelInputContainer>
+          {/* Customer (read-only) */}
+          <div className="pm-form-group">
+            <Label className="pm-label">{t('common.customerLabel')}</Label>
+            <Input type="text" value={customerName} disabled className="pm-input"
+              style={{ opacity: 0.7, cursor: 'not-allowed' }} />
           </div>
 
-          {/* Loan Info */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="loan_amount">{t('loans.loanAmountLabel')} *</Label>
-              <Input id="loan_amount" name="loan_amount" type="number" inputMode="decimal" enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="interest_rate">{t('loans.interestRate')} *</Label>
-              <Input id="interest_rate" name="interest_rate" type="number" inputMode="decimal" enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="adv_amount">{t('loans.advanceAmount')} *</Label>
-              <Input id="adv_amount" name="adv_amount" type="number" inputMode="decimal" enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
-            </LabelInputContainer>
+          {/* Ticket + Date */}
+          <div className="pm-form-row pm-form-row-2">
+            <div className="pm-form-group">
+              <Label htmlFor="ticket_number" className="pm-label">{t('loans.ticketNumberLabel')} *</Label>
+              <Input id="ticket_number" name="ticket_number" type="text" className="pm-input"
+                autoComplete="off" enterKeyHint="next" value={formData.ticket_number} onChange={handleChange} required />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="pawned_date" className="pm-label">{t('loans.pawnedDate')} *</Label>
+              <Input id="pawned_date" name="pawned_date" type="date" className="pm-input"
+                value={formData.pawned_date} onChange={handleChange} required />
+            </div>
           </div>
 
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
+          {/* Loan + Interest + Advance */}
+          <div className="pm-form-row pm-form-row-3">
+            <div className="pm-form-group">
+              <Label htmlFor="loan_amount" className="pm-label">{t('loans.loanAmountLabel')} *</Label>
+              <Input id="loan_amount" name="loan_amount" type="number" inputMode="decimal" className="pm-input"
+                enterKeyHint="next" value={formData.loan_amount} onChange={handleChange} required />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="interest_rate" className="pm-label">{t('loans.interestRate')} *</Label>
+              <Input id="interest_rate" name="interest_rate" type="number" inputMode="decimal" className="pm-input"
+                enterKeyHint="next" value={formData.interest_rate} onChange={handleChange} required />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="adv_amount" className="pm-label">{t('loans.advanceAmount')} *</Label>
+              <Input id="adv_amount" name="adv_amount" type="number" inputMode="decimal" className="pm-input"
+                enterKeyHint="next" value={formData.adv_amount} onChange={handleChange} required />
+            </div>
+          </div>
 
-          {/* Item Info */}
-          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
+          <div className="pm-divider" />
+
+          <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
             {t('loans.itemDetails')}
           </h3>
 
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="item_name">{t('loans.itemName')} *</Label>
-            <Input id="item_name" name="item_name" type="text" autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
-          </LabelInputContainer>
-
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="item_weight">{t('loans.weightGrams')} *</Label>
-              <Input id="item_weight" name="item_weight" type="number" inputMode="decimal" enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="item_purity">{t('loans.purity')} (e.g., 22)</Label>
-              <Input id="item_purity" name="item_purity" type="number" inputMode="numeric" enterKeyHint="next" value={formData.item_purity} onChange={handleChange} />
-            </LabelInputContainer>
+          {/* Item name */}
+          <div className="pm-form-group">
+            <Label htmlFor="item_name" className="pm-label">{t('loans.itemName')} *</Label>
+            <Input id="item_name" name="item_name" type="text" className="pm-input"
+              autoComplete="off" enterKeyHint="next" value={formData.item_name} onChange={handleChange} required />
           </div>
 
-          <LabelInputContainer className="mb-8 md:mb-8">
-            <Label htmlFor="item_description">{t('loans.itemDescription')}</Label>
-            <Input id="item_description" name="item_description" type="text" autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
-          </LabelInputContainer>
+          {/* Weight + Purity */}
+          <div className="pm-form-row pm-form-row-2">
+            <div className="pm-form-group">
+              <Label htmlFor="item_weight" className="pm-label">{t('loans.weightGrams')} *</Label>
+              <Input id="item_weight" name="item_weight" type="number" inputMode="decimal" className="pm-input"
+                enterKeyHint="next" value={formData.item_weight} onChange={handleChange} required />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="item_purity" className="pm-label">{t('loans.purity')}</Label>
+              <Input id="item_purity" name="item_purity" type="number" inputMode="numeric" className="pm-input"
+                placeholder="22" enterKeyHint="next" value={formData.item_purity} onChange={handleChange} />
+            </div>
+          </div>
 
-          {/* Buttons */}
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-            <Link
-              to="/app/pawns"
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
-            >
+          {/* Description */}
+          <div className="pm-form-group" style={{ marginBottom: '1.75rem' }}>
+            <Label htmlFor="item_description" className="pm-label">{t('loans.itemDescription')}</Label>
+            <Input id="item_description" name="item_description" type="text" className="pm-input"
+              autoComplete="off" enterKeyHint="done" value={formData.item_description} onChange={handleChange} />
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Link to="/app/pawns" className="pm-btn pm-btn-secondary pm-btn-lg" style={{ flex: 1 }}>
               {t('buttons.cancel')}
             </Link>
             <button
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-blue-600 to-blue-500 font-medium text-white shadow-lg"
               type="submit"
               disabled={updateMutation.isPending}
+              className="pm-btn pm-btn-primary pm-btn-lg"
+              style={{ flex: 1 }}
             >
               {updateMutation.isPending ? t('buttons.saving') : t('buttons.saveChanges')}
-              <BottomGradient />
             </button>
           </div>
         </form>
@@ -215,17 +197,3 @@ export default function UpdatePawn() {
     </div>
   );
 }
-
-// Helper components
-const BottomGradient = () => (
-  <>
-    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-  </>
-);
-
-const LabelInputContainer = ({ children, className }) => (
-  <div className={cn('flex flex-col space-y-2 w-full', className)}>
-    {children}
-  </div>
-);

@@ -5,41 +5,26 @@ import { getAccounts, deleteAccount } from '../services/api';
 import { usePermission } from '../hooks/usePermission';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  IconCircleArrowLeftFilled, 
-  IconCircleArrowRightFilled, 
-  IconEye, 
-  IconTrashFilled, 
-  IconEdit, 
-  IconPlus,
-  IconPhone,
-  IconMapPin,
-  IconSearch,
-  IconX,
-  IconDotsVertical
+import {
+  IconCircleArrowLeftFilled, IconCircleArrowRightFilled,
+  IconEye, IconTrashFilled, IconEdit, IconPlus,
+  IconPhone, IconMapPin, IconSearch, IconX, IconDotsVertical,
 } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table";
-import { Input } from "../components/ui/Input";
-import TableSkeleton from "../components/TableSkeleton";
-import ConfirmationModal from "../components/ConfirmationModal";
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '../components/ui/table';
+import { Input } from '../components/ui/Input';
+import TableSkeleton from '../components/TableSkeleton';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 export default function AllCustomers() {
   const { t } = useTranslation();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
+  const [page,          setPage]          = useState(1);
+  const [search,        setSearch]        = useState('');
+  const [deleteTarget,  setDeleteTarget]  = useState(null);
+  const [openMenuId,    setOpenMenuId]    = useState(null);
+  const [isSearchOpen,  setIsSearchOpen]  = useState(false);
   const { hasPermission } = usePermission();
   const queryClient = useQueryClient();
 
@@ -50,417 +35,261 @@ export default function AllCustomers() {
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
-  
-  const accounts = queryData?.data?.customers || [];
-  const totalPages = queryData?.data?.totalPages || 1;
+  const accounts       = queryData?.data?.customers  || [];
+  const totalPages     = queryData?.data?.totalPages    || 1;
   const totalCustomers = queryData?.data?.totalCustomers || 0;
 
   const deleteMutation = useMutation({
     mutationFn: deleteAccount,
-    onSuccess: () => {
-      toast.success(t('customers.deletedSuccess'));
-      queryClient.invalidateQueries(['customers']); 
-      setDeleteTarget(null);
-      setOpenMenuId(null);
-    },
-    onError: (err) => {
-      toast.error(err.response?.data?.message || t('customers.failedToDelete'));
-    },
+    onSuccess: () => { toast.success(t('customers.deletedSuccess')); queryClient.invalidateQueries(['customers']); setDeleteTarget(null); setOpenMenuId(null); },
+    onError: err => toast.error(err.response?.data?.message || t('customers.failedToDelete')),
   });
 
-  const handleDelete = async (id) => {
-    setDeleteTarget(id);
-  };
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteMutation.mutate(deleteTarget); 
-    }
-  };
-  
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setPage(1); 
-  };
-  
-  const goToPage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
-  };
-
-  const toggleMenu = (id) => {
-    setOpenMenuId(openMenuId === id ? null : id);
-  };
+  const handleSearch = e => { setSearch(e.target.value); setPage(1); };
+  const goToPage     = n  => { if (n >= 1 && n <= totalPages) setPage(n); };
+  const toggleMenu   = id => setOpenMenuId(openMenuId === id ? null : id);
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 md:bg-white">
-      {/* Mobile Header - Fixed */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                {isSearchOpen ? (
-                  <IconX className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <IconSearch className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-base)' }}>
+
+      {/* ── Mobile header (fixed) ── */}
+      <div style={{ display: 'none' }} className="mobile-header-block">
+        {/* rendered via CSS below for screens < md */}
+      </div>
+
+      {/* ── Page wrapper ── */}
+      <div style={{ padding: 'var(--page-py) var(--page-px)' }}>
+
+        {/* Desktop header */}
+        <div className="pm-page-header">
+          <div className="pm-page-header-row">
+            <div>
+              <h1 className="pm-section-title">{t('customers.title')}</h1>
+              {!isLoading && (
+                <p className="pm-section-subtitle">
+                  {t('customers.totalCount', { count: totalCustomers })}
+                </p>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div className="pm-search-wrap">
+                <svg className="pm-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <Input
+                  type="text" placeholder={t('customers.searchByName')}
+                  value={search} onChange={handleSearch}
+                  className="pm-input pm-search-input"
+                  style={{ width: '16rem' }}
+                />
+              </div>
               {hasPermission('can_create_customers') && (
-                <Link
-                  to="/app/customer/add"
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                >
-                  <IconPlus className="w-4 h-4" />
-                  {t('customers.add')}
+                <Link to="/app/customer/add" className="pm-btn pm-btn-primary">
+                  <IconPlus size={16} /> {t('customers.newCustomer')}
                 </Link>
               )}
             </div>
           </div>
-          
-          {/* Search Bar - Collapsible on Mobile */}
-          <AnimatePresence>
-            {isSearchOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <Input
-                  type="text"
-                  placeholder={t('customers.searchByName')}
-                  value={search}
-                  onChange={handleSearch}
-                  className="w-full"
-                  autoFocus
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-        
-        {/* Results Count */}
-        {!isLoading && accounts.length > 0 && (
-          <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-            <p className="text-xs text-gray-600">
-              {t('customers.totalCount', { count: totalCustomers })}
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <h1 className="text-3xl font-bold text-black">{t('customers.title')}</h1>
-          <div className="flex w-full sm:w-auto gap-2">
-            <Input
-              type="text"
-              placeholder={t('customers.searchByName')}
-              value={search}
-              onChange={handleSearch}
-              className="w-full md:w-64"
-            />
-            {hasPermission('can_create_customers') && (
-              <Link
-                to="/app/customer/add"
-                className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-black hover:bg-gray-100"
-              >
-                <IconPlus className="text-black" />
-                <span>{t('customers.newCustomer')}</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="pt-32 md:pt-0 pb-20 md:pb-6 px-4 md:px-6">
+        {/* Content */}
         <AnimatePresence mode="wait">
           {isLoading ? (
-            <motion.div
-              key="loader"
-              initial={false}
-              exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="shadow-input rounded-2xl bg-white p-4 min-h-[320px]"
-            >
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <TableSkeleton />
             </motion.div>
+          ) : isError ? (
+            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div className="pm-empty">
+                <p style={{ color: 'var(--danger-text)', fontWeight: 500 }}>{t('customers.failedToLoad')}</p>
+              </div>
+            </motion.div>
+          ) : accounts.length === 0 ? (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <div className="pm-empty" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-default)' }}>
+                <div className="pm-empty-icon">
+                  <IconSearch size={24} />
+                </div>
+                <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{t('customers.noCustomersFound')}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('customers.tryDifferentSearch')}</p>
+              </div>
+            </motion.div>
           ) : (
-            <motion.div
-              key="data"
-              initial={false}
-              animate={{ opacity: 1, transition: { duration: 0.25 } }}
-            >
-              {isError ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                    <IconX className="w-8 h-8 text-red-600" />
-                  </div>
-                  <p className="text-red-600 font-medium">{t('customers.failedToLoad')}</p>
-                  <p className="text-gray-500 text-sm mt-1">{t('customers.tryAgainLater')}</p>
-                </div>
-              ) : accounts.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                    <IconSearch className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <p className="text-gray-600 font-medium">
-                    {search ? t('customers.noCustomersMatching', { search }) : t('customers.noCustomersYet')}
-                  </p>
-                  {!search && hasPermission('can_create_customers') && (
-                    <Link
-                      to="/app/customer/add"
-                      className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                    >
-                      <IconPlus className="w-4 h-4" />
-                      {t('customers.addFirstCustomer')}
-                    </Link>
-                  )}
-                </div>
-              ) : (
-                <>
-                  {/* Desktop Table View */}
-                  <div className="hidden md:block shadow-input rounded-2xl bg-white p-4">
-                    <Table>
-                      <TableCaption className="pb-4">
-                        {t('customers.showingOf', { shown: accounts.length, total: totalCustomers })}
-                      </TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('customers.photo')}</TableHead>
-                          <TableHead>{t('customers.name')}</TableHead>
-                          <TableHead>{t('customers.phone')}</TableHead>
-                          <TableHead>{t('customers.address')}</TableHead>
-                          <TableHead className="text-center">{t('customers.actions')}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {accounts.map((account) => (
-                          <TableRow key={account._id} className="hover:bg-gray-50">
-                            <TableCell>
+            <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {/* Desktop table */}
+              <div className="pm-table-wrap" style={{ display: 'none' }} data-desktop-table>
+                <Table className="pm-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('customers.name')}</TableHead>
+                      <TableHead>{t('forms.phoneNumber')}</TableHead>
+                      <TableHead>{t('forms.city')}</TableHead>
+                      <TableHead style={{ textAlign: 'center' }}>{t('customers.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {accounts.map(account => (
+                      <TableRow key={account._id}>
+                        <TableCell>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <img
                               src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
                               alt={account.full_name}
-                              width={40}
-                              height={40}
-                              className="h-10 w-10 rounded-full object-cover"
+                              style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-default)', flexShrink: 0 }}
                             />
-                            </TableCell>
-                            <TableCell className="font-medium text-black">
-                              {account.full_name}
-                            </TableCell>
-                            <TableCell className="text-black">
-                              {account.phone_number}
-                            </TableCell>
-                            <TableCell className="text-black">
-                              {account.address?.city || 'N/A'}
-                              {account.address?.pincode && `, ${account.address.pincode}`}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-2">
-                                <Link
-                                  to={`/app/customer/${account._id}`}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
-                                >
-                                  <IconEye className="text-indigo-500 w-5 h-5" />
-                                </Link>
-                                {hasPermission('can_edit_customers') && (
-                                  <Link
-                                    to={`/app/customer/update/${account._id}`}
-                                    className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
-                                  >
-                                    <IconEdit className="text-blue-500 w-5 h-5" />
-                                  </Link>
-                                )}
-                                {hasPermission('can_delete_customers') && (
-                                  <button
-                                    onClick={() => handleDelete(account._id)}
-                                    className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
-                                    disabled={deleteMutation.isLoading}
-                                  >
-                                    <IconTrashFilled className="text-red-500 w-5 h-5" />
-                                  </button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  {/* Mobile Card View - Improved */}
-                  <div className="md:hidden space-y-3">
-                    {accounts.map((account) => (
-                      <motion.div
-                        key={account._id}
-                        initial={false}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-                      >
-                        {/* Card Header */}
-                        <div className="p-4">
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
-                              alt={account.full_name}
-                              width={48}
-                              height={48}
-                              className="h-12 w-12 rounded-full object-cover flex-shrink-0 ring-2 ring-gray-100"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-base text-gray-900 truncate">
-                                {account.full_name}
-                              </h3>
-                              <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-600">
-                                <IconPhone className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="truncate">{account.phone_number}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-600">
-                                <IconMapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="truncate">
-                                  {account.address?.city || 'N/A'}
-                                  {account.address?.pincode && `, ${account.address.pincode}`}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {/* Menu Button */}
-                            <div className="relative">
-                              <button
-                                onClick={() => toggleMenu(account._id)}
-                                className="p-2 -mr-2 rounded-lg hover:bg-gray-100 transition-colors"
-                              >
-                                <IconDotsVertical className="w-5 h-5 text-gray-600" />
+                            <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{account.full_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{account.phone_number}</TableCell>
+                        <TableCell>{account.address?.city || '—'}</TableCell>
+                        <TableCell style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                            <Link to={`/app/customer/${account._id}`} className="pm-btn pm-btn-ghost pm-btn-sm" title={t('customers.view')}>
+                              <IconEye size={15} style={{ color: 'var(--brand)' }} />
+                            </Link>
+                            {hasPermission('can_edit_customers') && (
+                              <Link to={`/app/customer/update/${account._id}`} className="pm-btn pm-btn-ghost pm-btn-sm">
+                                <IconEdit size={15} style={{ color: 'var(--info)' }} />
+                              </Link>
+                            )}
+                            {hasPermission('can_delete_customers') && (
+                              <button className="pm-btn pm-btn-ghost pm-btn-sm" onClick={() => setDeleteTarget(account._id)} disabled={deleteMutation.isLoading}>
+                                <IconTrashFilled size={15} style={{ color: 'var(--danger)' }} />
                               </button>
-                              
-                              {/* Dropdown Menu */}
-                              <AnimatePresence>
-                                {openMenuId === account._id && (
-                                  <>
-                                    {/* Backdrop */}
-                                    <div
-                                      className="fixed inset-0 z-40"
-                                      onClick={() => setOpenMenuId(null)}
-                                    />
-                                    
-                                    {/* Menu */}
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                      transition={{ duration: 0.15 }}
-                                      className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-                                    >
-                                      <Link
-                                        to={`/app/customer/${account._id}`}
-                                        onClick={() => setOpenMenuId(null)}
-                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
-                                      >
-                                        <IconEye className="w-4 h-4 text-indigo-500" />
-                                        <span className="text-sm font-medium">{t('customers.view')}</span>
-                                      </Link>
-                                      
-                                      {hasPermission('can_edit_customers') && (
-                                        <Link
-                                          to={`/app/customer/update/${account._id}`}
-                                          onClick={() => setOpenMenuId(null)}
-                                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
-                                        >
-                                          <IconEdit className="w-4 h-4 text-blue-500" />
-                                          <span className="text-sm font-medium">{t('customers.edit')}</span>
-                                        </Link>
-                                      )}
-                                      
-                                      {hasPermission('can_delete_customers') && (
-                                        <>
-                                          <div className="h-px bg-gray-200 my-1" />
-                                          <button
-                                            onClick={() => {
-                                              handleDelete(account._id);
-                                              setOpenMenuId(null);
-                                            }}
-                                            disabled={deleteMutation.isLoading}
-                                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-600 w-full disabled:opacity-50"
-                                          >
-                                            <IconTrashFilled className="w-4 h-4" />
-                                            <span className="text-sm font-medium">{t('customers.delete')}</span>
-                                          </button>
-                                        </>
-                                      )}
-                                    </motion.div>
-                                  </>
-                                )}
-                              </AnimatePresence>
-                            </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }} data-mobile-cards>
+                {accounts.map(account => (
+                  <motion.div key={account._id} initial={false} animate={{ opacity: 1 }} className="pm-mobile-card">
+                    <div className="pm-mobile-card-header">
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                        <img
+                          src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                          alt={account.full_name}
+                          style={{ width: '3rem', height: '3rem', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border-default)', flexShrink: 0 }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3 style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--text-primary)', margin: '0 0 0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {account.full_name}
+                          </h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+                            <IconPhone size={12} />
+                            <span>{account.phone_number}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                            <IconMapPin size={12} />
+                            <span>{account.address?.city || '—'}{account.address?.pincode && `, ${account.address.pincode}`}</span>
                           </div>
                         </div>
 
-                        {/* Quick Action Button - View Details */}
-                        <Link
-                          to={`/app/customer/${account._id}`}
-                          className="block px-4 py-3 bg-gray-50 border-t border-gray-100 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          {t('customers.viewDetails')}
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
-                </>
-              )}
+                        {/* Kebab menu */}
+                        <div style={{ position: 'relative' }}>
+                          <button onClick={() => toggleMenu(account._id)}
+                            className="pm-btn pm-btn-ghost pm-btn-sm">
+                            <IconDotsVertical size={16} />
+                          </button>
+                          <AnimatePresence>
+                            {openMenuId === account._id && (
+                              <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpenMenuId(null)} />
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                                  transition={{ duration: 0.12 }}
+                                  style={{
+                                    position: 'absolute', right: 0, top: '100%', marginTop: '0.375rem',
+                                    width: '10rem', background: 'var(--bg-elevated)',
+                                    border: '1px solid var(--border-strong)',
+                                    borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-md)',
+                                    padding: '0.375rem', zIndex: 50,
+                                  }}
+                                >
+                                  <Link to={`/app/customer/${account._id}`} onClick={() => setOpenMenuId(null)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-subtle)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                  >
+                                    <IconEye size={14} style={{ color: 'var(--brand)' }} />
+                                    {t('customers.view')}
+                                  </Link>
+                                  {hasPermission('can_edit_customers') && (
+                                    <Link to={`/app/customer/update/${account._id}`} onClick={() => setOpenMenuId(null)}
+                                      style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}
+                                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-subtle)'}
+                                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                      <IconEdit size={14} style={{ color: 'var(--info)' }} />
+                                      {t('customers.edit')}
+                                    </Link>
+                                  )}
+                                  {hasPermission('can_delete_customers') && (
+                                    <>
+                                      <div style={{ height: '1px', background: 'var(--border-default)', margin: '0.25rem 0' }} />
+                                      <button
+                                        onClick={() => { setDeleteTarget(account._id); setOpenMenuId(null); }}
+                                        disabled={deleteMutation.isLoading}
+                                        style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', color: 'var(--danger-text)', fontSize: '0.875rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-light)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                      >
+                                        <IconTrashFilled size={14} />
+                                        {t('customers.delete')}
+                                      </button>
+                                    </>
+                                  )}
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Link to={`/app/customer/${account._id}`}
+                      style={{ display: 'block', textAlign: 'center', padding: '0.625rem 1rem', background: 'var(--bg-subtle)', borderTop: '1px solid var(--border-default)', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+                    >
+                      {t('customers.viewDetails')}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Pagination - Fixed Bottom on Mobile */}
+        {/* Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="fixed md:relative bottom-0 left-0 right-0 md:mt-6 bg-white md:bg-transparent border-t md:border-0 border-gray-200 px-4 py-3 md:p-0 z-30">
-            <div className="flex justify-between items-center max-w-7xl mx-auto">
-              <button
-                onClick={() => goToPage(page - 1)}
-                disabled={page === 1}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-30 transition-opacity"
-              >
-                <IconCircleArrowLeftFilled 
-                  className={`h-8 w-8 ${page === 1 ? 'text-gray-300' : 'text-gray-700'}`}
-                />
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.previous')}</span>
-              </button>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">
-                  {t('customers.pageOf', { page, total: totalPages })}
-                </span>
-              </div>
-              
-              <button
-                onClick={() => goToPage(page + 1)}
-                disabled={page === totalPages}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-30 transition-opacity"
-              >
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.next')}</span>
-                <IconCircleArrowRightFilled 
-                  className={`h-8 w-8 ${page === totalPages ? 'text-gray-300' : 'text-gray-700'}`}
-                />
-              </button>
-            </div>
+          <div className="pm-pagination" style={{ marginTop: '1.5rem' }}>
+            <button onClick={() => goToPage(page - 1)} disabled={page === 1}
+              className="pm-btn pm-btn-secondary pm-btn-sm">
+              <IconCircleArrowLeftFilled size={18} />
+              <span>{t('customers.previous')}</span>
+            </button>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              {t('customers.pageOf', { page, total: totalPages })}
+            </span>
+            <button onClick={() => goToPage(page + 1)} disabled={page === totalPages}
+              className="pm-btn pm-btn-secondary pm-btn-sm">
+              <span>{t('customers.next')}</span>
+              <IconCircleArrowRightFilled size={18} />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
+        onConfirm={() => { deleteMutation.mutate(deleteTarget); setDeleteTarget(null); }}
         title={t('customers.deleteConfirmTitle')}
         message={t('customers.deleteConfirmMessage')}
         confirmText={deleteMutation.isLoading ? t('customers.deleting') : t('customers.delete')}

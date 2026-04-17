@@ -4,28 +4,13 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFinancialReport } from '../services/api';
 import toast from 'react-hot-toast';
-import { IconReportMoney, IconCurrencyRupee, IconCircleCheck, IconAlertTriangle, IconCircleArrowLeftFilled, IconCircleArrowRightFilled, IconSearch } from '@tabler/icons-react';
+import {
+  IconReportMoney, IconCurrencyRupee, IconCircleCheck,
+  IconAlertTriangle, IconChevronLeft, IconChevronRight, IconSearch,
+} from '@tabler/icons-react';
 import { Input } from '../components/ui/Input';
-import { cn } from '../lib/utils';
 
-const currency = (value = 0) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
-
-const PaymentsTableSkeleton = () => (
-  <div className="min-h-[320px] rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-    <div className="space-y-3">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <div key={i} className="flex gap-4 border-b border-neutral-100 pb-3 last:border-0">
-          <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
-          <div className="h-4 w-32 rounded bg-gray-200 animate-pulse" />
-          <div className="h-4 w-16 rounded bg-gray-200 animate-pulse" />
-          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
-          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
-          <div className="h-4 w-20 rounded bg-gray-200 animate-pulse" />
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const currency = (v = 0) => `₹${Number(v || 0).toLocaleString('en-IN')}`;
 
 export default function Payments() {
   const { t } = useTranslation();
@@ -45,217 +30,192 @@ export default function Payments() {
   const totalPages = data?.meta?.totalPages || 1;
   const totalItems = data?.meta?.totalItems || 0;
 
- 
-  const totals = useMemo(() => {
-    return rows.reduce(
-      (acc, row) => {
-        acc.outstanding += Number(row.loan_amount || 0);
-        acc.principal += Number(row.total_principal_paid || 0);
-        acc.interest += Number(row.total_interest_paid || 0);
-        return acc;
-      },
-      { outstanding: 0, principal: 0, interest: 0 }
-    );
-  }, [rows]);
+  const totals = useMemo(() => rows.reduce(
+    (acc, row) => {
+      acc.outstanding += Number(row.loan_amount || 0);
+      acc.principal   += Number(row.total_principal_paid || 0);
+      acc.interest    += Number(row.total_interest_paid || 0);
+      return acc;
+    },
+    { outstanding: 0, principal: 0, interest: 0 }
+  ), [rows]);
 
-  const goToPage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPage(1); // Reset to first page when searching
-  };
+  const goToPage = (n) => { if (n >= 1 && n <= totalPages) setPage(n); };
+  const handleSearch = (e) => { setSearch(e.target.value); setPage(1); };
 
   return (
-    <div className="min-h-[100dvh]">
-      <div className="mb-6 flex items-center gap-2">
-        <IconReportMoney className="h-6 w-6 text-blue-600" />
-        <h1 className="text-xl font-semibold text-neutral-900">{t('payments.title')}</h1>
+    <div style={{ padding: 'var(--page-py) var(--page-px)' }}>
+
+      {/* Header */}
+      <div className="pm-page-header">
+        <div className="pm-page-header-row">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <IconReportMoney size={20} style={{ color: 'var(--brand)' }} />
+            <h1 className="pm-section-title">{t('payments.title')}</h1>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <SummaryCard title={t('payments.totalOutstanding')} value={currency(totals.outstanding)} />
-        <SummaryCard title={t('payments.totalPrincipalCollected')} value={currency(totals.principal)} />
-        <SummaryCard title={t('payments.totalInterestCollected')} value={currency(totals.interest)} />
+      {/* Summary cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <SummaryCard title={t('payments.totalOutstanding')}        value={currency(totals.outstanding)} />
+        <SummaryCard title={t('payments.totalPrincipalCollected')} value={currency(totals.principal)}   />
+        <SummaryCard title={t('payments.totalInterestCollected')}  value={currency(totals.interest)}    />
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative w-full md:w-64">
-          <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+      {/* Search */}
+      <div style={{ marginBottom: '1rem', maxWidth: '18rem' }}>
+        <div className="pm-search-wrap">
+          <IconSearch size={14} className="pm-search-icon" />
           <Input
             type="text"
             placeholder={t('payments.searchByTicket')}
             value={search}
-            onChange={handleSearchChange}
-            className="pl-10"
+            onChange={handleSearch}
+            className="pm-input pm-search-input"
           />
         </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm min-h-[320px]">
-        <div className="overflow-auto">
-          <table className="min-w-full text-sm">
+      {/* Desktop table */}
+      <div style={{ display: 'none' }} className="pm-desk-table">
+        <style>{`@media(min-width:768px){.pm-desk-table{display:block!important}.pm-mob-cards{display:none!important}}`}</style>
+        <div className="pm-table-wrap">
+          <table className="pm-table">
             <thead>
-              <tr className="text-left text-neutral-500 border-b border-neutral-200">
-                <th className="py-2 pr-4">{t('loans.ticketNumber')}</th>
-                <th className="py-2 pr-4">{t('loans.customer')}</th>
-                <th className="py-2 pr-4">{t('loans.status')}</th>
-                <th className="py-2 pr-4">{t('payments.originalLoan')}</th>
-                <th className="py-2 pr-4">{t('payments.principalPaid')}</th>
-                <th className="py-2 pr-4">{t('payments.interestPaid')}</th>
-                <th className="py-2 pr-4">{t('payments.balanceDue')}</th>
-                <th className="py-2 pr-4"></th>
+              <tr>
+                <th>{t('loans.ticketNumber')}</th>
+                <th>{t('loans.customer')}</th>
+                <th>{t('loans.status')}</th>
+                <th>{t('payments.originalLoan')}</th>
+                <th>{t('payments.principalPaid')}</th>
+                <th>{t('payments.interestPaid')}</th>
+                <th>{t('payments.balanceDue')}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="p-0">
-                    <div className="min-h-[280px] flex items-center justify-center text-neutral-400">{t('common.loading')}</div>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                    {t('common.loading')}
                   </td>
                 </tr>
               ) : !rows.length ? (
                 <tr>
-                  <td colSpan={8} className="py-4 text-center text-neutral-500">
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                     {search ? t('payments.noTicketsMatchingSearch', { search }) : t('payments.noData')}
                   </td>
                 </tr>
-              ) : (
-                rows.map((row) => (
-                  <tr key={row._id} className="border-b border-neutral-100">
-                    <td className="py-3 pr-4 font-semibold text-neutral-900">{row.ticket_number}</td>
-                    <td className="py-3 pr-4">{Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}</td>
-                    <td className="py-3 pr-4">
-                      <StatusPill status={row.status} />
-                    </td>
-                    <td className="py-3 pr-4">{currency(row.original_loan_amount)}</td>
-                    <td className="py-3 pr-4">{currency(row.total_principal_paid)}</td>
-                    <td className="py-3 pr-4">{currency(row.total_interest_paid)}</td>
-                    <td className="py-3 pr-4">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                        <IconCurrencyRupee className="h-4 w-4" />
-                        {Number(row.loan_amount || 0).toLocaleString('en-IN')}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <Link
-                        to={`/app/pawns/${row._id}`}
-                        className="text-blue-600 hover:underline text-sm font-semibold"
-                      >
-                        {t('customers.view')}
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ) : rows.map((row) => (
+                <tr key={row._id}>
+                  <td className="pm-td-primary">{row.ticket_number}</td>
+                  <td>{Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}</td>
+                  <td><StatusPill status={row.status} /></td>
+                  <td>{currency(row.original_loan_amount)}</td>
+                  <td>{currency(row.total_principal_paid)}</td>
+                  <td>{currency(row.total_interest_paid)}</td>
+                  <td>
+                    <span className="pm-badge pm-badge-defaulted" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                      <IconCurrencyRupee size={12} />
+                      {Number(row.loan_amount || 0).toLocaleString('en-IN')}
+                    </span>
+                  </td>
+                  <td>
+                    <Link to={`/app/pawns/${row._id}`} style={{ color: 'var(--brand)', fontWeight: 600, fontSize: '0.8125rem', textDecoration: 'none' }}>
+                      {t('customers.view')}
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
         {!isLoading && totalItems > 0 && (
-          <div className="mt-4 pt-4 border-t border-neutral-200 text-sm text-neutral-500">
+          <p style={{ marginTop: '0.75rem', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
             {t('payments.showingOfTotal', { shown: rows.length, total: totalItems })}
-          </div>
+          </p>
         )}
       </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
+      {/* Mobile cards */}
+      <div className="pm-mob-cards" style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
         {isLoading ? (
-          <PaymentsTableSkeleton />
-        ) : !rows.length ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-center text-neutral-500 shadow-sm">
-            {search ? t('payments.noTicketsMatchingSearch', { search }) : t('payments.noData')}
-          </div>
-        ) : (
-          rows.map((row) => (
-            <div key={row._id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-neutral-500">{t('loans.ticketNumberLabel')}</p>
-                  <p className="text-lg font-semibold text-neutral-900">{row.ticket_number}</p>
-                  <p className="mt-1 text-sm text-neutral-600">
-                    {Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}
-                  </p>
-                </div>
-                <StatusPill status={row.status} />
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-neutral-600">
-                <div>
-                  <p className="text-xs text-neutral-500">{t('payments.originalLoan')}</p>
-                  <p className="font-semibold text-neutral-900">{currency(row.original_loan_amount)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">{t('payments.principalPaid')}</p>
-                  <p className="font-semibold text-neutral-900">{currency(row.total_principal_paid)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">{t('payments.interestPaid')}</p>
-                  <p className="font-semibold text-neutral-900">{currency(row.total_interest_paid)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">{t('payments.balanceDue')}</p>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                    <IconCurrencyRupee className="h-4 w-4" />
-                    {Number(row.loan_amount || 0).toLocaleString('en-IN')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 flex justify-end">
-                <Link
-                  to={`/app/pawns/${row._id}`}
-                  className="text-sm font-semibold text-blue-600 hover:underline"
-                >
-                  {t('customers.view')}
-                </Link>
-              </div>
+          [1,2,3,4].map(i => (
+            <div key={i} className="pm-card">
+              {[1,2,3].map(j => <div key={j} className="pm-skeleton" style={{ height: '1rem', marginBottom: '0.75rem', width: j===1?'60%':j===2?'40%':'80%' }} />)}
             </div>
           ))
-        )}
-        {!isLoading && totalItems > 0 && (
-          <div className="text-sm text-neutral-500 text-center">
-            {t('payments.showingOfTotal', { shown: rows.length, total: totalItems })}
+        ) : !rows.length ? (
+          <div className="pm-card" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            {search ? t('payments.noTicketsMatchingSearch', { search }) : t('payments.noData')}
           </div>
+        ) : rows.map((row) => (
+          <div key={row._id} className="pm-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{t('loans.ticketNumberLabel')}</p>
+                <p style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{row.ticket_number}</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  {Array.isArray(row.customer_name) ? row.customer_name[0] : row.customer_name || '—'}
+                </p>
+              </div>
+              <StatusPill status={row.status} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem', marginBottom: '1rem' }}>
+              {[
+                [t('payments.originalLoan'), currency(row.original_loan_amount)],
+                [t('payments.principalPaid'), currency(row.total_principal_paid)],
+                [t('payments.interestPaid'), currency(row.total_interest_paid)],
+              ].map(([label, val]) => (
+                <div key={label}>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{label}</p>
+                  <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{val}</p>
+                </div>
+              ))}
+              <div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>{t('payments.balanceDue')}</p>
+                <span className="pm-badge pm-badge-defaulted" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                  <IconCurrencyRupee size={12} />
+                  {Number(row.loan_amount || 0).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Link to={`/app/pawns/${row._id}`} style={{ color: 'var(--brand)', fontWeight: 600, fontSize: '0.8125rem', textDecoration: 'none' }}>
+                {t('customers.view')}
+              </Link>
+            </div>
+          </div>
+        ))}
+        {!isLoading && totalItems > 0 && (
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+            {t('payments.showingOfTotal', { shown: rows.length, total: totalItems })}
+          </p>
         )}
       </div>
 
       {/* Pagination */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex justify-between items-center mt-6">
+        <div className="pm-pagination" style={{ marginTop: '1.5rem' }}>
           <button
             onClick={() => goToPage(page - 1)}
             disabled={page === 1}
-            className="px-4 py-2 rounded-md disabled:opacity-50"
+            className="pm-btn pm-btn-secondary pm-btn-sm"
+            style={{ gap: '0.25rem' }}
           >
-            <IconCircleArrowLeftFilled
-              className={cn(
-                'h-10 w-10',
-                page === 1
-                  ? 'text-gray-400'
-                  : 'text-neutral-800'
-              )}
-            />
+            <IconChevronLeft size={15} /> Prev
           </button>
-          <span className="text-sm text-neutral-600">
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
             {t('customers.pageOf', { page, total: totalPages })}
           </span>
           <button
             onClick={() => goToPage(page + 1)}
             disabled={page === totalPages}
-            className="px-4 py-2 rounded-md disabled:opacity-50"
+            className="pm-btn pm-btn-secondary pm-btn-sm"
+            style={{ gap: '0.25rem' }}
           >
-            <IconCircleArrowRightFilled
-              className={cn(
-                'h-10 w-10',
-                page === totalPages
-                  ? 'text-gray-400'
-                  : 'text-neutral-800'
-              )}
-            />
+            Next <IconChevronRight size={15} />
           </button>
         </div>
       )}
@@ -265,25 +225,22 @@ export default function Payments() {
 
 const SummaryCard = memo(function SummaryCard({ title, value }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm min-h-[80px]">
-      <p className="text-xs text-neutral-500">{title}</p>
-      <p className="mt-2 text-lg font-semibold text-neutral-800">{value}</p>
+    <div className="pm-stat">
+      <p className="pm-stat-label">{title}</p>
+      <p className="pm-stat-value" style={{ fontSize: '1.375rem' }}>{value}</p>
     </div>
   );
 });
 
 const StatusPill = memo(function StatusPill({ status }) {
-  const styles = {
-    active: 'bg-green-100 text-green-800',
-    settled: 'bg-blue-100 text-blue-800',
-    defaulted: 'bg-red-100 text-red-800',
-  };
-  const labelIcon = status === 'settled' ? <IconCircleCheck className="h-4 w-4" /> : status === 'defaulted' ? <IconAlertTriangle className="h-4 w-4" /> : null;
+  const cls = status === 'settled' ? 'pm-badge pm-badge-settled'
+    : status === 'defaulted' ? 'pm-badge pm-badge-defaulted'
+    : 'pm-badge pm-badge-active';
+  const icon = status === 'settled' ? <IconCircleCheck size={12} />
+    : status === 'defaulted' ? <IconAlertTriangle size={12} /> : null;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${styles[status] || 'bg-neutral-100 text-neutral-800'}`}>
-      {labelIcon}
-      {status || '—'}
+    <span className={cls} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+      {icon}{status || '—'}
     </span>
   );
 });
-

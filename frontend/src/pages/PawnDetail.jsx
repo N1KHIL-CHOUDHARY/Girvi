@@ -22,20 +22,14 @@ export default function PawnDetail() {
     payment_date: new Date().toISOString().split('T')[0],
   });
 
-  const {
-    data: ticketRes,
-    isLoading: isTicketLoading,
-  } = useQuery({
+  const { data: ticketRes, isLoading: isTicketLoading } = useQuery({
     queryKey: ['pawn', id],
     queryFn: () => getPawnTicketById(id),
     enabled: !!id,
     onError: (err) => toast.error(err.message || t('loans.failedToLoadTicket')),
   });
 
-  const {
-    data: paymentsRes,
-    isLoading: isPaymentsLoading,
-  } = useQuery({
+  const { data: paymentsRes, isLoading: isPaymentsLoading } = useQuery({
     queryKey: ['payments', id],
     queryFn: () => getPaymentsForTicket(id),
     enabled: !!id,
@@ -51,11 +45,7 @@ export default function PawnDetail() {
       toast.success(t('loans.paymentRecorded'));
       queryClient.invalidateQueries(['pawn', id]);
       queryClient.invalidateQueries(['payments', id]);
-      setPaymentForm((prev) => ({
-        ...prev,
-        amount_paid: '',
-        payment_for: 'interest',
-      }));
+      setPaymentForm((prev) => ({ ...prev, amount_paid: '', payment_for: 'interest' }));
     },
     onError: (err) => toast.error(err.message || t('loans.failedToSavePayment')),
   });
@@ -63,178 +53,214 @@ export default function PawnDetail() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const amount = Number(paymentForm.amount_paid);
-    if (!amount || amount <= 0) {
-      toast.error(t('loans.enterValidAmountShort'));
-      return;
-    }
-
-    paymentMutation.mutate({
-      ticket_id: id,
-      amount_paid: amount,
-      payment_for: paymentForm.payment_for,
-      payment_date: paymentForm.payment_date,
-    });
+    if (!amount || amount <= 0) { toast.error(t('loans.enterValidAmountShort')); return; }
+    paymentMutation.mutate({ ticket_id: id, ...paymentForm, amount_paid: amount });
   };
 
-  const statusBadge = useMemo(() => {
-    const status = ticket?.status || '';
-    const base = 'px-3 py-1 rounded-full text-xs font-semibold';
-    if (status === 'settled') return `${base} bg-blue-100 text-blue-800`;
-    if (status === 'defaulted') return `${base} bg-red-100 text-red-800`;
-    return `${base} bg-green-100 text-green-800`;
+  const statusClass = useMemo(() => {
+    const s = ticket?.status || '';
+    if (s === 'settled') return 'pm-badge pm-badge-settled';
+    if (s === 'defaulted') return 'pm-badge pm-badge-defaulted';
+    return 'pm-badge pm-badge-active';
   }, [ticket?.status]);
 
   return (
-    <div className="min-h-[100dvh]">
-      <div className="mb-4 flex items-center gap-2">
-        <Link to="/app/pawns" className="inline-flex items-center text-sm text-blue-600 hover:underline">
-          <IconArrowLeft className="h-4 w-4 mr-1" /> {t('loans.backToPawns')}
+    <div style={{ padding: 'var(--page-py) var(--page-px)' }}>
+      {/* Back link */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <Link
+          to="/app/pawns"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+            fontSize: '0.875rem', color: 'var(--brand)', fontWeight: 500, textDecoration: 'none',
+          }}
+        >
+          <IconArrowLeft size={15} />
+          {t('loans.backToPawns')}
         </Link>
       </div>
 
       {isTicketLoading ? (
-        <div className="text-sm text-neutral-500">{t('loans.loadingTicket')}</div>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          {t('loans.loadingTicket')}
+        </div>
       ) : !ticket ? (
-        <div className="text-sm text-red-600">{t('loans.ticketNotFound')}</div>
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--danger-text)', fontSize: '0.875rem' }}>
+          {t('loans.ticketNotFound')}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left column: Ticket info */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-xs text-neutral-500">{t('loans.ticketNumberLabel')}</p>
-                  <p className="text-lg font-semibold text-neutral-900 ">{ticket.ticket_number}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+          <style>{`@media(min-width:1024px){.pd-grid{grid-template-columns:1fr 2fr!important}}`}</style>
+
+          <div className="pd-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+            {/* ── Left column ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+              {/* Ticket summary */}
+              <div className="pm-card">
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                      {t('loans.ticketNumberLabel')}
+                    </p>
+                    <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                      {ticket.ticket_number}
+                    </p>
+                  </div>
+                  <span className={statusClass}>{ticket.status}</span>
                 </div>
-                <span className={statusBadge}>{ticket.status}</span>
-              </div>
-              <div className="space-y-2 text-sm text-neutral-700 ">
-                <p><span className="text-neutral-500">Customer:</span> {ticket.customer_id?.full_name || 'Unknown'}</p>
-                <p><span className="text-neutral-500">Pawned Date:</span> {formatDate(ticket.pawned_date)}</p>
-                <p><span className="text-neutral-500">Interest Rate:</span> {ticket.interest_rate}%</p>
-                <p><span className="text-neutral-500">Advance:</span> ₹{ticket.adv_amount}</p>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-neutral-50 p-3">
-                  <p className="text-xs text-neutral-500">{t('loans.originalLoan')}</p>
-                  <p className="text-lg font-semibold text-neutral-900 flex flex-row items-center gap-1">
-                    <IconCurrencyRupee className="h-4 w-4" /> {ticket.original_loan_amount ?? ticket.loan_amount}
-                  </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                  <p><span style={{ color: 'var(--text-muted)' }}>Customer: </span>{ticket.customer_id?.full_name || '—'}</p>
+                  <p><span style={{ color: 'var(--text-muted)' }}>Pawned: </span>{formatDate(ticket.pawned_date)}</p>
+                  <p><span style={{ color: 'var(--text-muted)' }}>Interest: </span>{ticket.interest_rate}%</p>
+                  <p><span style={{ color: 'var(--text-muted)' }}>Advance: </span>₹{ticket.adv_amount}</p>
                 </div>
-                <div className="rounded-xl bg-green-100 p-3">
-                  <p className="text-xs text-neutral-500">{t('loans.currentBalance')}</p>
-                  <p className="text-lg font-semibold text-green-800 flex items-center gap-1">
-                    <IconCurrencyRupee className="h-4 w-4" /> {ticket.loan_amount}
-                  </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: '0.875rem' }}>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {t('loans.originalLoan')}
+                    </p>
+                    <p style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <IconCurrencyRupee size={15} />
+                      {ticket.original_loan_amount ?? ticket.loan_amount}
+                    </p>
+                  </div>
+                  <div style={{ background: 'var(--success-light)', borderRadius: 'var(--radius-sm)', padding: '0.875rem' }}>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--success-text)', marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {t('loans.currentBalance')}
+                    </p>
+                    <p style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--success-text)', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      <IconCurrencyRupee size={15} />
+                      {ticket.loan_amount}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="pm-card">
+                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.875rem' }}>
+                  {t('common.itemsLabel')}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {(ticket.items || []).map((item, idx) => (
+                    <div key={idx} style={{
+                      border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)',
+                      padding: '0.75rem', fontSize: '0.875rem',
+                    }}>
+                      <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{item.name}</p>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>{item.weight_grams}g · {item.purity || 'N/A'} purity</p>
+                    </div>
+                  ))}
+                  {!ticket.items?.length && (
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('loans.noItemsListed')}</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm  ">
-              <p className="text-sm font-semibold text-neutral-900 mb-2">{t('common.itemsLabel')}</p>
-              <div className="space-y-3">
-                {(ticket.items || []).map((item, idx) => (
-                  <div key={idx} className="rounded-xl border border-neutral-200 p-3 text-sm ">
-                    <p className="font-semibold text-neutral-900 ">{item.name}</p>
-                    <p className="text-neutral-600 ">{item.type}</p>
-                    <p className="text-neutral-600">{item.weight_grams} g · {item.purity || 'N/A'} purity</p>
+            {/* ── Right column ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+              {/* Payment form */}
+              <div className="pm-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1.25rem' }}>
+                  <IconCreditCardPay size={18} style={{ color: 'var(--brand)' }} />
+                  <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {t('loans.addPayment')}
+                  </h3>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                    <style>{`@media(min-width:640px){.pay-form-grid{grid-template-columns:1fr 1fr 1fr!important}}`}</style>
+                    <div className="pay-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                      <div className="pm-form-group" style={{ marginBottom: 0 }}>
+                        <label className="pm-label">{t('loans.amount')}</label>
+                        <input
+                          type="number" min="0" step="0.01" inputMode="decimal"
+                          value={paymentForm.amount_paid}
+                          onChange={(e) => setPaymentForm((p) => ({ ...p, amount_paid: e.target.value }))}
+                          className="pm-input"
+                          placeholder={t('loans.enterAmount')}
+                        />
+                      </div>
+                      <div className="pm-form-group" style={{ marginBottom: 0 }}>
+                        <label className="pm-label">{t('loans.paymentType')}</label>
+                        <select
+                          value={paymentForm.payment_for}
+                          onChange={(e) => setPaymentForm((p) => ({ ...p, payment_for: e.target.value }))}
+                          className="pm-input pm-input-select"
+                        >
+                          <option value="interest">{t('loans.interest')}</option>
+                          <option value="principal">{t('loans.principal')}</option>
+                        </select>
+                      </div>
+                      <div className="pm-form-group" style={{ marginBottom: 0 }}>
+                        <label className="pm-label">{t('loans.paymentDate')}</label>
+                        <input
+                          type="date"
+                          value={paymentForm.payment_date}
+                          onChange={(e) => setPaymentForm((p) => ({ ...p, payment_date: e.target.value }))}
+                          className="pm-input"
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        type="submit"
+                        disabled={paymentMutation.isLoading}
+                        className="pm-btn pm-btn-primary pm-btn-lg"
+                      >
+                        {paymentMutation.isLoading ? t('buttons.saving') : t('loans.savePayment')}
+                      </button>
+                    </div>
                   </div>
-                ))}
-                {!ticket.items?.length && (
-                  <p className="text-sm text-neutral-500">{t('loans.noItemsListed')}</p>
+                </form>
+              </div>
+
+              {/* Payment history */}
+              <div className="pm-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1.25rem' }}>
+                  <IconClock size={18} style={{ color: 'var(--text-muted)' }} />
+                  <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {t('loans.paymentHistory')}
+                  </h3>
+                </div>
+
+                {isPaymentsLoading ? (
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('loans.loadingPayments')}</p>
+                ) : !payments.length ? (
+                  <div className="pm-empty" style={{ padding: '2rem' }}>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('loans.noPaymentsYet')}</p>
+                  </div>
+                ) : (
+                  <div className="pm-table-wrap">
+                    <table className="pm-table">
+                      <thead>
+                        <tr>
+                          <th>{t('loans.date')}</th>
+                          <th>{t('loans.type')}</th>
+                          <th>{t('loans.amount')}</th>
+                          <th>{t('loans.user')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {payments.map((payment) => (
+                          <tr key={payment._id}>
+                            <td>{formatDate(payment.payment_date || payment.createdAt)}</td>
+                            <td style={{ textTransform: 'capitalize' }}>{payment.payment_for}</td>
+                            <td className="pm-td-primary">₹{payment.amount_paid}</td>
+                            <td>{payment.created_by_user_id?.full_name || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Right column: Payment form and history */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <IconCreditCardPay className="h-5 w-5 text-blue-600" />
-                <h3 className="text-base font-semibold text-neutral-900 ">{t('loans.addPayment')}</h3>
-              </div>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">{t('loans.amount')}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    enterKeyHint="next"
-                    value={paymentForm.amount_paid}
-                    onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount_paid: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
-                    placeholder={t('loans.enterAmount')}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">{t('loans.paymentType')}</label>
-                  <select
-                    value={paymentForm.payment_for}
-                    onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_for: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
-                  >
-                    <option value="interest">{t('loans.interest')}</option>
-                    <option value="principal">{t('loans.principal')}</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-500">{t('loans.paymentDate')}</label>
-                  <input
-                    type="date"
-                    enterKeyHint="done"
-                    value={paymentForm.payment_date}
-                    onChange={(e) => setPaymentForm((prev) => ({ ...prev, payment_date: e.target.value }))}
-                    className="w-full min-h-[44px] rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 "
-                  />
-                </div>
-                <div className="md:col-span-3 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={paymentMutation.isLoading}
-                    className="inline-flex items-center min-h-[44px] rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {paymentMutation.isLoading ? t('buttons.saving') : t('loans.savePayment')}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
-              <div className="flex items-center gap-2 mb-4">
-                <IconClock className="h-5 w-5 text-neutral-500" />
-                <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">{t('loans.paymentHistory')}</h3>
-              </div>
-              {isPaymentsLoading ? (
-                <p className="text-sm text-neutral-500">{t('loans.loadingPayments')}</p>
-              ) : !payments.length ? (
-                <p className="text-sm text-neutral-500">{t('loans.noPaymentsYet')}</p>
-              ) : (
-                <div className="overflow-auto">
-                  <table className="min-w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-neutral-500 border-b border-neutral-200 border-neutral-800">
-                        <th className="py-2 pr-4">{t('loans.date')}</th>
-                        <th className="py-2 pr-4">{t('loans.type')}</th>
-                        <th className="py-2 pr-4">{t('loans.amount')}</th>
-                        <th className="py-2 pr-4">{t('loans.user')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments.map((payment) => (
-                        <tr key={payment._id} className="border-b border-neutral-100 border-neutral-800">
-                          <td className="py-2 pr-4">{formatDate(payment.payment_date || payment.createdAt)}</td>
-                          <td className="py-2 pr-4 capitalize">{payment.payment_for}</td>
-                          <td className="py-2 pr-4">₹{payment.amount_paid}</td>
-                          <td className="py-2 pr-4">{payment.created_by_user_id?.full_name || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -242,4 +268,3 @@ export default function PawnDetail() {
     </div>
   );
 }
-

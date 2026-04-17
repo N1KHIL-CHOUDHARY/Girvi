@@ -4,7 +4,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, updateAccount } from '../services/api';
 import toast from 'react-hot-toast';
-import { cn } from '../lib/utils';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import FileUpload from '../components/FileUpload';
@@ -17,45 +16,26 @@ export default function UpdateCustomer() {
 
   const [formData, setFormData] = useState(null);
 
-  // ✅ Fetch existing customer using React Query
-  const {
-    data: customerData,
-    isLoading: loadingCustomer,
-    isError,
-  } = useQuery({
+  const { data: customerData, isLoading, isError } = useQuery({
     queryKey: ['customer', id],
-    queryFn: async () => {
-      const res = await getAccountById(id);
-      return res.data;
-    },
-    onError: () => {
-      toast.error(t('errors.failedToLoadCustomer'));
-      navigate('/app/customers');
-    },
+    queryFn: async () => (await getAccountById(id)).data,
+    onError: () => { toast.error(t('errors.failedToLoadCustomer')); navigate('/app/customers'); },
   });
 
-  // ✅ Mutation for updating customer
   const updateMutation = useMutation({
     mutationFn: (payload) => updateAccount(id, payload),
     onSuccess: () => {
       toast.success(t('customers.updatedSuccess'));
-      // Refresh cached data
       queryClient.invalidateQueries(['customers']);
       queryClient.invalidateQueries(['customer', id]);
       navigate('/app/customers');
     },
     onError: (error) => {
-      const message = 
-        error.response?.data?.error || 
-        error.response?.data?.message || 
-        t('errors.failedToUpdateCustomer');
-        
-    
+      const message = error.response?.data?.error || error.response?.data?.message || t('errors.failedToUpdateCustomer');
       toast.error(message.replace(/"/g, ''));
     },
   });
 
-  // Initialize form when data is fetched
   React.useEffect(() => {
     if (customerData) {
       setFormData({
@@ -72,172 +52,130 @@ export default function UpdateCustomer() {
     }
   }, [customerData]);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData) return;
-
-    const payload = {
+    updateMutation.mutate({
       full_name: formData.full_name,
       phone_number: formData.phone_number,
       gender: formData.gender,
-      address: {
-        line1: formData.line1,
-        city: formData.city,
-        pincode: formData.pincode,
-      },
+      address: { line1: formData.line1, city: formData.city, pincode: formData.pincode },
       aadhaar_number: formData.aadhaar_number,
       pan_number: formData.pan_number,
       customer_photo_url: formData.customer_photo_url || undefined,
-    };
-
-    updateMutation.mutate(payload);
+    });
   };
 
-  if (loadingCustomer || !formData) {
+  if (isLoading || !formData) {
     return (
-      <div className="text-center py-20 text-neutral-500 text-neutral-400">
-        {t('common.loadingCustomerData')}
+      <div style={{ padding: 'var(--page-py) var(--page-px)', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', paddingTop: '4rem' }}>{t('common.loadingCustomerData')}</p>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="text-center py-20 text-red-500">
-        {t('common.failedToLoadCustomer')} <br />
-        <Link to="/app/customers" className="text-blue-500 underline">
-          {t('buttons.goBack')}
-        </Link>
+      <div style={{ padding: 'var(--page-py) var(--page-px)', textAlign: 'center', paddingTop: '4rem' }}>
+        <p style={{ color: 'var(--danger-text)', fontSize: '0.875rem', marginBottom: '1rem' }}>{t('common.failedToLoadCustomer')}</p>
+        <Link to="/app/customers" className="pm-btn pm-btn-secondary">{t('buttons.goBack')}</Link>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
-        <h2 className="text-xl font-bold text-neutral-800 ">
-          {t('common.updateCustomer')}
-        </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
-          {t('common.editingDetailsFor', { name: formData.full_name })}
-        </p>
+    <div style={{ padding: 'var(--page-py) var(--page-px)', maxWidth: '40rem', margin: '0 auto' }}>
+      <div style={{ marginBottom: '1.75rem' }}>
+        <h1 className="pm-section-title">{t('common.updateCustomer')}</h1>
+        <p className="pm-section-subtitle">{t('common.editingDetailsFor', { name: formData.full_name })}</p>
+      </div>
 
-        <form className="my-8" onSubmit={handleSubmit}>
+      <div className="pm-form-section">
+        <form onSubmit={handleSubmit}>
+
           {/* Name + Phone */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">{t('forms.fullName')}</Label>
-              <Input
-                id="full_name"
-                name="full_name"
-                type="text"
-                autoComplete="name"
-                enterKeyHint="next"
-                value={formData.full_name}
-                onChange={handleChange}
-                required
-              />
-            </LabelInputContainer>
-            <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">{t('forms.phoneNumber')}</Label>
-              <Input
-                id="phone_number"
-                name="phone_number"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-                enterKeyHint="next"
-                value={formData.phone_number}
-                onChange={handleChange}
-                required
-              />
-            </LabelInputContainer>
+          <div className="pm-form-row pm-form-row-2">
+            <div className="pm-form-group">
+              <Label htmlFor="full_name" className="pm-label">{t('forms.fullName')} *</Label>
+              <Input id="full_name" name="full_name" type="text" className="pm-input"
+                autoComplete="name" enterKeyHint="next" value={formData.full_name} onChange={handleChange} required />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="phone_number" className="pm-label">{t('forms.phoneNumber')} *</Label>
+              <Input id="phone_number" name="phone_number" type="tel" inputMode="numeric" className="pm-input"
+                autoComplete="tel" enterKeyHint="next" value={formData.phone_number} onChange={handleChange} required />
+            </div>
           </div>
 
           {/* Gender */}
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="gender">{t('forms.gender')}</Label>
-            <select
-              id="gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className={cn(
-                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
- text-black`
-              )}
-            >
+          <div className="pm-form-group">
+            <Label htmlFor="gender" className="pm-label">{t('forms.gender')}</Label>
+            <select id="gender" name="gender" value={formData.gender} onChange={handleChange}
+              className="pm-input pm-input-select">
               <option value="Male">{t('forms.male')}</option>
               <option value="Female">{t('forms.female')}</option>
               <option value="Other">{t('forms.other')}</option>
             </select>
-          </LabelInputContainer>
+          </div>
 
           {/* Address */}
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="line1">{t('forms.addressLine')}</Label>
-            <Input
-              id="line1"
-              name="line1"
-              type="text"
-              autoComplete="street-address"
-              enterKeyHint="next"
-              value={formData.line1}
-              onChange={handleChange}
-            />
-          </LabelInputContainer>
+          <div className="pm-form-group">
+            <Label htmlFor="line1" className="pm-label">{t('forms.addressLine')}</Label>
+            <Input id="line1" name="line1" type="text" className="pm-input"
+              autoComplete="street-address" enterKeyHint="next" value={formData.line1} onChange={handleChange} />
+          </div>
 
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="city">{t('forms.city')}</Label>
-              <Input id="city" name="city" type="text" autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="pincode">{t('forms.pincode')}</Label>
-              <Input id="pincode" name="pincode" type="text" inputMode="numeric" autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} />
-            </LabelInputContainer>
+          {/* City + Pincode */}
+          <div className="pm-form-row pm-form-row-2">
+            <div className="pm-form-group">
+              <Label htmlFor="city" className="pm-label">{t('forms.city')}</Label>
+              <Input id="city" name="city" type="text" className="pm-input"
+                autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="pincode" className="pm-label">{t('forms.pincode')}</Label>
+              <Input id="pincode" name="pincode" type="text" inputMode="numeric" className="pm-input"
+                autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} />
+            </div>
           </div>
 
           {/* Aadhaar + PAN */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="aadhaar_number">{t('forms.aadhaarNumber')}</Label>
-              <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="pan_number">{t('forms.panNumber')}</Label>
-              <Input id="pan_number" name="pan_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} />
-            </LabelInputContainer>
+          <div className="pm-form-row pm-form-row-2">
+            <div className="pm-form-group">
+              <Label htmlFor="aadhaar_number" className="pm-label">{t('forms.aadhaarNumber')}</Label>
+              <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" className="pm-input"
+                enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} />
+            </div>
+            <div className="pm-form-group">
+              <Label htmlFor="pan_number" className="pm-label">{t('forms.panNumber')}</Label>
+              <Input id="pan_number" name="pan_number" type="text" className="pm-input"
+                autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} />
+            </div>
           </div>
 
           {/* Photo */}
-          <LabelInputContainer className="mb-8">
+          <div className="pm-form-group" style={{ marginBottom: '1.75rem' }}>
             <FileUpload
               value={formData.customer_photo_url}
-              onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
+              onChange={(url) => setFormData((p) => ({ ...p, customer_photo_url: url }))}
               label={t('forms.customerPhoto')}
             />
-          </LabelInputContainer>
+          </div>
 
-          {/* Buttons */}
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-            <Link
-              to="/app/customers"
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
-            >
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <Link to="/app/customers" className="pm-btn pm-btn-secondary pm-btn-lg" style={{ flex: 1 }}>
               {t('buttons.cancel')}
             </Link>
             <button
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
               type="submit"
               disabled={updateMutation.isPending}
+              className="pm-btn pm-btn-primary pm-btn-lg"
+              style={{ flex: 1 }}
             >
               {updateMutation.isPending ? t('buttons.saving') : t('buttons.saveChanges')}
-              <BottomGradient />
             </button>
           </div>
         </form>
@@ -245,15 +183,3 @@ export default function UpdateCustomer() {
     </div>
   );
 }
-
-// Helper Components
-const BottomGradient = () => (
-  <>
-    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-  </>
-);
-
-const LabelInputContainer = ({ children, className }) => (
-  <div className={cn('flex flex-col space-y-2 w-full', className)}>{children}</div>
-);

@@ -6,187 +6,184 @@ import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 
 const GenderPieChart = lazy(() => import('../components/GenderPieChart'));
-const AreaBarChart = lazy(() => import('../components/AreaPieChart'));
+const AreaBarChart   = lazy(() => import('../components/AreaPieChart'));
 
-const StatCardSkeleton = () => (
-  <div className="rounded-lg bg-white p-6 border border-gray-200 animate-pulse">
-    <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
-    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-  </div>
+/* ─── Skeletons ─────────────────────────────────────────── */
+const StatSkeleton = () => (
+  <div className="pm-stat pm-skeleton" style={{ minHeight: '5.5rem' }} />
 );
 
+const ChartSkeleton = () => (
+  <div
+    className="pm-card pm-skeleton"
+    style={{ minHeight: '20rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+  />
+);
+
+/* ─── Stat Card ─────────────────────────────────────────── */
 const StatCard = memo(function StatCard({ title, value, isLoading }) {
-  if (isLoading) return <StatCardSkeleton />;
-  
+  if (isLoading) return <StatSkeleton />;
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
-      <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
-      <p className="text-2xl md:text-3xl font-semibold text-gray-900">{value}</p>
+    <div className="pm-stat">
+      <p className="pm-stat-label">{title}</p>
+      <p className="pm-stat-value">{value}</p>
     </div>
   );
 });
 
+/* ─── Loading Rows ──────────────────────────────────────── */
 const ListSkeleton = () => (
-  <div className="space-y-4">
-    {[1, 2, 3].map((i) => (
-      <div key={i} className="animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+    {[1, 2, 3].map(i => (
+      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+        <div className="pm-skeleton" style={{ height: '0.875rem', width: '70%', borderRadius: '4px' }} />
+        <div className="pm-skeleton" style={{ height: '0.75rem', width: '45%', borderRadius: '4px' }} />
       </div>
     ))}
   </div>
 );
 
+/* ─── Recent Activity ───────────────────────────────────── */
 const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="pm-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
         {t('dashboard.recentActivity')}
       </h3>
-      <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
-        {isLoading ? (
-          <ListSkeleton />
-        ) : activities.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-gray-500">{t('dashboard.noRecentActivity')}</p>
+      <div style={{ maxHeight: '18rem', overflowY: 'auto' }}>
+        {isLoading ? <ListSkeleton /> :
+         activities.length === 0 ? (
+          <div className="pm-empty" style={{ padding: '2rem' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              {t('dashboard.noRecentActivity')}
+            </p>
           </div>
-        ) : (
-          activities.map((activity) => (
-            <div 
-              key={activity._id} 
-              className="pb-3 border-b border-gray-100 last:border-b-0"
-            >
-              <p className="text-sm text-gray-900 font-medium mb-1">
-                {activity.message}
-              </p>
-              <p className="text-xs text-gray-500">
-                {new Date(activity.createdAt).toLocaleString()}
-              </p>
-            </div>
-          ))
-        )}
+        ) : activities.map(a => (
+          <div
+            key={a._id}
+            style={{
+              padding: '0.75rem 0',
+              borderBottom: '1px solid var(--border-default)',
+            }}
+          >
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500, margin: '0 0 0.25rem' }}>
+              {a.message}
+            </p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', margin: 0 }}>
+              {new Date(a.createdAt).toLocaleString()}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
 });
 
+/* ─── Top Customers ─────────────────────────────────────── */
 const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="pm-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
         {t('dashboard.topCustomers')}
       </h3>
-      <div className="space-y-3 max-h-80 overflow-y-auto scroll-contain">
-        {isLoading ? (
-          <ListSkeleton />
-        ) : customers.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-gray-500">{t('dashboard.noCustomerDataYet')}</p>
+      <div style={{ maxHeight: '18rem', overflowY: 'auto' }}>
+        {isLoading ? <ListSkeleton /> :
+         customers.length === 0 ? (
+          <div className="pm-empty" style={{ padding: '2rem' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+              {t('dashboard.noCustomerDataYet')}
+            </p>
           </div>
-        ) : (
-          customers.map((customer, idx) => (
-            <div 
-              key={customer._id} 
-              className="flex justify-between items-center pb-3 border-b border-gray-100 last:border-b-0"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-semibold text-xs">
-                  {idx + 1}
-                </span>
-                <p className="text-sm text-gray-900 font-medium">
-                  {customer.full_name}
-                </p>
-              </div>
-              <p className="text-sm font-semibold text-gray-900">
-                ₹{(customer.total_loan || 0).toLocaleString('en-IN')}
+        ) : customers.map((c, idx) => (
+          <div
+            key={c._id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.625rem 0',
+              borderBottom: '1px solid var(--border-default)',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '1.75rem', height: '1.75rem', borderRadius: '50%',
+                background: 'var(--bg-subtle)', color: 'var(--text-muted)',
+                fontSize: '0.75rem', fontWeight: 600, flexShrink: 0,
+              }}>
+                {idx + 1}
+              </span>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500, margin: 0 }}>
+                {c.full_name}
               </p>
             </div>
-          ))
-        )}
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, flexShrink: 0 }}>
+              ₹{(c.total_loan || 0).toLocaleString('en-IN')}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
 });
 
+/* ─── Dashboard (main) ──────────────────────────────────── */
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const {
-    data: dashboardData,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const { data: dashboardData, isLoading, isError, refetch } = useQuery({
     queryKey: ['dashboard'],
-    queryFn: async () => {
-      const res = await getDashboardStats();
-      return res.data;
-    },
+    queryFn: async () => (await getDashboardStats()).data,
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     onError: () => toast.error(t('dashboard.failedToLoadDashboard')),
   });
 
+  /* Loading skeleton */
   if (isLoading) {
     return (
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center">
-          <div className="h-10 bg-gray-200 rounded w-64 animate-pulse"></div>
+      <div className="pm-page" style={{ maxWidth: '80rem', margin: '0 auto' }}>
+        <div className="pm-skeleton" style={{ height: '2rem', width: '14rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <StatSkeleton /><StatSkeleton /><StatSkeleton />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCardSkeleton />
-          <StatCardSkeleton />
-          <StatCardSkeleton />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <ChartSkeleton /><ChartSkeleton />
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-lg bg-white p-6 border border-gray-200 h-80 animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-full bg-gray-100 rounded"></div>
-          </div>
-          <div className="rounded-lg bg-white p-6 border border-gray-200 h-80 animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-full bg-gray-100 rounded"></div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+          <ChartSkeleton /><ChartSkeleton />
         </div>
       </div>
     );
   }
 
+  /* Error state */
   if (isError || !dashboardData) {
     return (
-      <div className="flex items-center justify-center min-h-[100dvh] p-4">
-        <div className="text-center p-8 rounded-lg bg-white border border-gray-200 shadow-sm max-w-md w-full">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
-            <svg 
-              className="w-8 h-8 text-red-500" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-              />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', padding: '1.5rem' }}>
+        <div className="pm-card" style={{ maxWidth: '24rem', width: '100%', textAlign: 'center', padding: '2.5rem 2rem' }}>
+          <div style={{
+            width: '3.5rem', height: '3.5rem', borderRadius: '50%',
+            background: 'var(--danger-light)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', margin: '0 auto 1.25rem',
+          }}>
+            <svg style={{ width: '1.75rem', height: '1.75rem', color: 'var(--danger-text)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             {t('dashboard.somethingWentWrong')}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
             {t('dashboard.couldNotLoadDashboard')}
           </p>
-          <button
-            onClick={() => refetch()}
-            className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          >
+          <button onClick={() => refetch()} className="pm-btn pm-btn-primary pm-btn-full pm-btn-lg">
             {t('dashboard.retry')}
           </button>
         </div>
@@ -197,61 +194,38 @@ export default function Dashboard() {
   const { stats, gender_data, area_data, top_customers, recent_activity } = dashboardData;
 
   return (
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+    <div className="pm-page" style={{ maxWidth: '80rem', margin: '0 auto' }}>
+      {/* Page Header */}
+      <div className="pm-page-header">
+        <h1 className="pm-section-title">
           {t('dashboard.welcomeBack', { name: user?.full_name })}
         </h1>
-        <p className="text-sm text-gray-600">
-          {t('dashboard.whatsHappening')}
-        </p>
+        <p className="pm-section-subtitle">{t('dashboard.whatsHappening')}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          title={t('dashboard.totalActiveLoan')}
-          value={`₹${(stats?.total_loan_active || 0).toLocaleString('en-IN')}`}
-        />
-        <StatCard
-          title={t('dashboard.loanGivenLast30Days')}
-          value={`₹${(stats?.monthly_loan_given || 0).toLocaleString('en-IN')}`}
-        />
-        <StatCard
-          title={t('dashboard.activePawnTickets')}
-          value={stats?.total_active_tickets ?? 0}
-        />
+      {/* Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: 'var(--section-gap)' }}>
+        <StatCard title={t('dashboard.totalActiveLoan')}      value={`₹${(stats?.total_loan_active || 0).toLocaleString('en-IN')}`} />
+        <StatCard title={t('dashboard.loanGivenLast30Days')}  value={`₹${(stats?.monthly_loan_given || 0).toLocaleString('en-IN')}`} />
+        <StatCard title={t('dashboard.activePawnTickets')}    value={stats?.total_active_tickets ?? 0} />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="min-h-[320px] w-full">
-          <Suspense
-            fallback={
-              <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm min-h-[320px] flex items-center justify-center">
-                <div className="h-64 w-full max-w-sm rounded bg-gray-100 animate-pulse" />
-              </div>
-            }
-          >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: 'var(--section-gap)' }}>
+        <div style={{ minHeight: '20rem' }}>
+          <Suspense fallback={<ChartSkeleton />}>
             <GenderPieChart data={gender_data || []} />
           </Suspense>
         </div>
-        <div className="min-h-[320px] w-full">
-          <Suspense
-            fallback={
-              <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm min-h-[320px] flex items-center justify-center">
-                <div className="h-64 w-full max-w-sm rounded bg-gray-100 animate-pulse" />
-              </div>
-            }
-          >
+        <div style={{ minHeight: '20rem' }}>
+          <Suspense fallback={<ChartSkeleton />}>
             <AreaBarChart data={area_data || []} />
           </Suspense>
         </div>
       </div>
 
       {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
         <TopCustomers customers={top_customers || []} isLoading={false} />
         <RecentActivity activities={recent_activity || []} isLoading={false} />
       </div>

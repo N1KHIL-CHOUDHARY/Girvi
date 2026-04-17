@@ -4,15 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRoles, createRole, deleteRole, updateRole } from '../services/api';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from "../components/ui/table";
-import { Dialog, DialogContent } from '../components/ui/Dialog';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { IconTrashFilled, IconEdit } from '@tabler/icons-react';
+import { IconTrashFilled, IconEdit, IconShieldCheck } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
-import { cn } from '../lib/utils';
-
 
 const initialPermissions = {
   can_view_dashboard: true,
@@ -30,15 +24,51 @@ const initialPermissions = {
   can_view_reports: false,
 };
 
-// Helper to format permission names
-const formatLabel = (key) => {
-  return key.replace('can_', '').replace(/_/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
-};
+const formatLabel = (key) =>
+  key.replace('can_', '').replace(/_/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+
+/* ── Reusable permission checklist ── */
+function PermissionList({ permissions, onChange }) {
+  return (
+    <div style={{ maxHeight: '15rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {Object.keys(permissions).map((key) => (
+        <label
+          key={key}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            cursor: 'pointer', padding: '0.375rem 0',
+            borderBottom: '1px solid var(--border-default)',
+          }}
+        >
+          <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>{formatLabel(key)}</span>
+          <input
+            type="checkbox"
+            checked={permissions[key]}
+            onChange={() => onChange(key)}
+            style={{ width: '1rem', height: '1rem', accentColor: 'var(--brand)', cursor: 'pointer' }}
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/* ── Inline modal ── */
+function EditModal({ open, onClose, children }) {
+  if (!open) return null;
+  return (
+    <div className="pm-modal-overlay" onClick={onClose}>
+      <div className="pm-modal" style={{ borderRadius: 'var(--radius-xl)', maxWidth: '30rem' }} onClick={e => e.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function Roles() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  
+
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState(initialPermissions);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -49,7 +79,7 @@ export default function Roles() {
 
   const { data: rolesData, isLoading } = useQuery({
     queryKey: ['roles'],
-    queryFn: () => getRoles().then(res => res.data)
+    queryFn: () => getRoles().then(res => res.data),
   });
 
   const createMutation = useMutation({
@@ -57,18 +87,14 @@ export default function Roles() {
     onSuccess: () => {
       toast.success(t('common.roleCreated'));
       queryClient.invalidateQueries(['roles']);
-      setRoleName('');
-      setPermissions(initialPermissions);
+      setRoleName(''); setPermissions(initialPermissions);
     },
     onError: (err) => toast.error(err.response?.data?.message || t('errors.failedToCreateRole')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteRole,
-    onSuccess: () => {
-      toast.success(t('common.roleDeleted'));
-      queryClient.invalidateQueries(['roles']);
-    },
+    onSuccess: () => { toast.success(t('common.roleDeleted')); queryClient.invalidateQueries(['roles']); },
     onError: (err) => toast.error(err.response?.data?.message || t('errors.cannotDeleteRoleInUse')),
   });
 
@@ -77,30 +103,10 @@ export default function Roles() {
     onSuccess: () => {
       toast.success(t('common.roleUpdated'));
       queryClient.invalidateQueries(['roles']);
-      setEditModalOpen(false);
-      setEditingRole(null);
+      setEditModalOpen(false); setEditingRole(null);
     },
     onError: (err) => toast.error(err.response?.data?.message || t('errors.failedToUpdateRole')),
   });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    createMutation.mutate({ name: roleName, permissions });
-  };
-
-  const handlePermissionChange = (key) => {
-    setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-  
-  const handleDelete = (id) => {
-    setDeleteTarget(id);
-  };
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteMutation.mutate(deleteTarget);
-    }
-  };
 
   const handleEditClick = (role) => {
     setEditingRole(role);
@@ -109,182 +115,164 @@ export default function Roles() {
     setEditModalOpen(true);
   };
 
-  const handleEditPermissionChange = (key) => {
-    setEditPermissions(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
   const handleEditSubmit = (e) => {
     e.preventDefault();
     if (!editingRole) return;
-    updateMutation.mutate({
-      id: editingRole._id,
-      payload: { name: editRoleName, permissions: editPermissions },
-    });
+    updateMutation.mutate({ id: editingRole._id, payload: { name: editRoleName, permissions: editPermissions } });
   };
 
   return (
     <>
-    <div className="p-4 md:p-6 min-h-[100dvh]">
-      <h1 className="text-3xl font-bold text-neutral-800 mb-6">
-        {t('common.rolesAndPermissions')}
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* --- Create Role Form --- */}
-        <div className="md:col-span-1">
-          <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
-            <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
-              {t('common.createNewRole')}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <LabelInputContainer>
-                <Label htmlFor="role_name">{t('forms.roleName')}</Label>
-                <Input id="role_name" type="text" value={roleName} onChange={(e) => setRoleName(e.target.value)} required />
-              </LabelInputContainer>
-              
-              <div className="space-y-2">
-                <Label>{t('forms.permissions')}</Label>
-                <div className="max-h-60 overflow-y-auto scroll-contain space-y-2 pr-2">
-                  {Object.keys(permissions).map((key) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <Label htmlFor={key} className="font-normal">{formatLabel(key)}</Label>
-                      <input
-                        type="checkbox"
-                        id={key}
-                        checked={permissions[key]}
-                        onChange={() => handlePermissionChange(key)}
-                        className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 border-neutral-700 bg-gray-50 bg-neutral-800"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <button
-                type="submit"
-                className="w-full h-10 rounded-md bg-indigo-600 text-white font-medium"
-                disabled={createMutation.isLoading}
-              >
-                {createMutation.isLoading ? t('buttons.creating') : t('buttons.createRole')}
-              </button>
-            </form>
+      <div style={{ padding: 'var(--page-py) var(--page-px)' }}>
+        <div className="pm-page-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <IconShieldCheck size={20} style={{ color: 'var(--brand)' }} />
+            <h1 className="pm-section-title">{t('common.rolesAndPermissions')}</h1>
           </div>
+          <p className="pm-section-subtitle">{t('common.rolesDescription', 'Manage team roles and access permissions')}</p>
         </div>
 
-        {/* --- Role List --- */}
-        <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white bg-black text-white text-base">
-            {isLoading ? (
-              <p className="p-4 text-center text-neutral-600 text-neutral-400">{t('common.loadingRoles')}</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-neutral-800 text-neutral-200">{t('forms.roleName')}</TableHead>
-                    <TableHead className="text-neutral-800 text-neutral-200">{t('forms.permissions')}</TableHead>
-                    <TableHead className="text-center text-neutral-800 text-neutral-200">{t('customers.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rolesData?.map((role) => (
-                    <TableRow key={role._id} className="hover:bg-gray-50 hover:bg-neutral-800">
-                      <TableCell className="font-medium text-neutral-800 text-neutral-200">{role.name}</TableCell>
-                      <TableCell className="text-neutral-600 text-neutral-400 text-xs">
-                        {t('common.activePermissions', { count: Object.keys(role.permissions).filter(k => role.permissions[k] === true).length })}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {role.is_owner_role ? (
-                          <span className="text-xs text-neutral-500">{t('common.locked')}</span>
-                        ) : (
-                          <div className="flex justify-center gap-2">
-                            <button title="Edit" onClick={() => handleEditClick(role)}>
-                              <IconEdit className="text-blue-500 w-5 h-5" />
-                            </button>
-                            <button onClick={() => handleDelete(role._id)} disabled={deleteMutation.isLoading}>
-                              <IconTrashFilled className="text-red-500 w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+          <style>{`@media(min-width:1024px){.roles-grid{grid-template-columns:1fr 2fr!important}}`}</style>
+          <div className="roles-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+
+            {/* Create form */}
+            <div className="pm-form-section">
+              <h3 style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
+                {t('common.createNewRole')}
+              </h3>
+              <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ name: roleName, permissions }); }}>
+                <div className="pm-form-group">
+                  <Label className="pm-label">{t('forms.roleName')}</Label>
+                  <Input
+                    type="text"
+                    className="pm-input"
+                    value={roleName}
+                    onChange={(e) => setRoleName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="pm-form-group" style={{ marginBottom: '1.5rem' }}>
+                  <Label className="pm-label">{t('forms.permissions')}</Label>
+                  <PermissionList
+                    permissions={permissions}
+                    onChange={(key) => setPermissions(p => ({ ...p, [key]: !p[key] }))}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="pm-btn pm-btn-primary pm-btn-full"
+                >
+                  {createMutation.isPending ? t('buttons.creating') : t('buttons.createRole')}
+                </button>
+              </form>
+            </div>
+
+            {/* Roles table */}
+            <div>
+              {isLoading ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                  {t('common.loadingRoles')}
+                </div>
+              ) : (
+                <div className="pm-table-wrap">
+                  <table className="pm-table">
+                    <thead>
+                      <tr>
+                        <th>{t('forms.roleName')}</th>
+                        <th>{t('forms.permissions')}</th>
+                        <th style={{ textAlign: 'center' }}>{t('customers.actions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(rolesData || []).map((role) => {
+                        const activeCount = Object.values(role.permissions || {}).filter(Boolean).length;
+                        return (
+                          <tr key={role._id}>
+                            <td className="pm-td-primary">{role.name}</td>
+                            <td>
+                              <span className="pm-badge pm-badge-neutral">
+                                {t('common.activePermissions', { count: activeCount })}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              {role.is_owner_role ? (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>{t('common.locked')}</span>
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+                                  <button
+                                    onClick={() => handleEditClick(role)}
+                                    className="pm-btn pm-btn-ghost pm-btn-sm"
+                                    title={t('customers.edit')}
+                                  >
+                                    <IconEdit size={15} style={{ color: 'var(--brand)' }} />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteTarget(role._id)}
+                                    disabled={deleteMutation.isPending}
+                                    className="pm-btn pm-btn-ghost pm-btn-sm"
+                                    title={t('customers.delete')}
+                                  >
+                                    <IconTrashFilled size={15} style={{ color: 'var(--danger-text)' }} />
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
-            {t('common.editRole')}
-          </h3>
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <LabelInputContainer>
-              <Label htmlFor="edit_role_name">{t('forms.roleName')}</Label>
-              <Input
-                id="edit_role_name"
-                type="text"
-                value={editRoleName}
-                onChange={(e) => setEditRoleName(e.target.value)}
-                required
-              />
-            </LabelInputContainer>
-            <div className="space-y-2">
-              <Label>{t('forms.permissions')}</Label>
-              <div className="max-h-60 overflow-y-auto scroll-contain space-y-2 pr-2">
-                {Object.keys(editPermissions).map((key) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <Label htmlFor={`edit_${key}`} className="font-normal">{formatLabel(key)}</Label>
-                    <input
-                      type="checkbox"
-                      id={`edit_${key}`}
-                      checked={editPermissions[key]}
-                      onChange={() => handleEditPermissionChange(key)}
-                      className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 border-neutral-700 bg-gray-50 bg-neutral-800"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
-                onClick={() => setEditModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="h-10 px-4 rounded-md bg-indigo-600 text-white font-medium"
-                disabled={updateMutation.isLoading}
-              >
-                {updateMutation.isLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Edit modal */}
+      <EditModal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
+          {t('common.editRole')}
+        </h3>
+        <form onSubmit={handleEditSubmit}>
+          <div className="pm-form-group">
+            <Label className="pm-label">{t('forms.roleName')}</Label>
+            <Input
+              type="text"
+              className="pm-input"
+              value={editRoleName}
+              onChange={(e) => setEditRoleName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="pm-form-group" style={{ marginBottom: '1.5rem' }}>
+            <Label className="pm-label">{t('forms.permissions')}</Label>
+            <PermissionList
+              permissions={editPermissions}
+              onChange={(key) => setEditPermissions(p => ({ ...p, [key]: !p[key] }))}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="pm-btn pm-btn-secondary">
+              {t('buttons.cancel')}
+            </button>
+            <button type="submit" disabled={updateMutation.isPending} className="pm-btn pm-btn-primary">
+              {updateMutation.isPending ? t('buttons.saving') : t('buttons.saveChanges')}
+            </button>
+          </div>
+        </form>
+      </EditModal>
 
       <ConfirmationModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
+        onConfirm={() => { deleteMutation.mutate(deleteTarget); setDeleteTarget(null); }}
         title={t('common.deleteRoleTitle')}
         message={t('common.deleteRoleMessage')}
-        confirmText={deleteMutation.isLoading ? t('customers.deleting') : t('customers.delete')}
+        confirmText={deleteMutation.isPending ? t('customers.deleting') : t('customers.delete')}
       />
     </>
   );
 }
-
-const LabelInputContainer = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
-};

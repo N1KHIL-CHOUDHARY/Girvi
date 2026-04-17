@@ -1,15 +1,12 @@
 import MobileBottomNav from './MobileBottomNav';
 
-
 const HybridNavigation = ({ open, setOpen }) => {
-  const handleToggleMenu = () => {
-    setOpen(!open);
-  };
-
   return (
-    <>
-      <MobileBottomNav open={open} setOpen={setOpen} onToggleMenu={handleToggleMenu} />
-    </>
+    <MobileBottomNav
+      open={open}
+      setOpen={setOpen}
+      onToggleMenu={() => setOpen(!open)}
+    />
   );
 };
 
