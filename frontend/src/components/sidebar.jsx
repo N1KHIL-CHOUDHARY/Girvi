@@ -112,32 +112,27 @@ function DesktopSidebar({ className, children, ...props }) {
 
   return (
     <motion.aside
-  className={cn(
-    "hidden lg:flex lg:flex-col shrink-0",
-    "h-dvh overflow-hidden",
-    "bg-app-surface border-r border-app",
-    "px-3 py-4",
-    "z-30",
-    className
-  )}
+      className={cn(
+        'hidden lg:flex lg:flex-col shrink-0',
+        'h-screen overflow-hidden',
+        'bg-white border-r border-slate-200',
+        'px-3 py-4',
+        'z-30',
+        className
+      )}
       animate={{
-        width: animate
-          ? open
-            ? SIDEBAR_EXPANDED
-            : SIDEBAR_COLLAPSED
-          : SIDEBAR_EXPANDED,
+        width: animate ? (open ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED) : SIDEBAR_EXPANDED,
       }}
-      transition={{ type: "spring", stiffness: 260, damping: 25 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 25 }}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       {...props}
     >
-     
       {!canHover && (
         <div className="flex items-center justify-end mb-2">
           <button
             onClick={() => setOpen(!open)}
-            className="p-2 rounded-md hover:bg-[var(--color-surface-muted)]"
+            className="p-2 rounded-lg text-slate-600 transition hover:bg-slate-100"
             aria-label={open ? t('nav.closeSidebar') : t('nav.openSidebar')}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -251,8 +246,8 @@ export function SidebarLink({ link, className, ...props }) {
       to={link.href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-3 px-3 min-h-[44px]",
-        "rounded-md transition-colors hover:bg-[var(--color-surface-muted)]",
+        'flex items-center gap-3 px-3 min-h-[44px]',
+        'rounded-xl transition-colors hover:bg-slate-50',
         className
       )}
       {...props}
@@ -263,10 +258,10 @@ export function SidebarLink({ link, className, ...props }) {
         initial={false}
         animate={{
           opacity: open ? 1 : 0,
-          width: open ? "auto" : 0,
+          width: open ? 'auto' : 0,
         }}
         transition={{ duration: 0.2 }}
-        className="text-sm text-app-primary whitespace-nowrap overflow-hidden"
+        className="text-sm text-slate-900 whitespace-nowrap overflow-hidden"
       >
         {t(link.label)}
       </motion.span>

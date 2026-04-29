@@ -1,49 +1,32 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { IconHome, IconAlertTriangle } from "@tabler/icons-react";
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { IconHome, IconAlertTriangle } from '@tabler/icons-react';
 
 export default function NotFound() {
   const { t } = useTranslation();
+
   return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-[100dvh] bg-[#f4faf5] px-4 py-16 sm:py-24">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="max-w-md w-full text-center"
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="mx-auto max-w-md rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-soft"
       >
-        {/* Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200">
-            <IconAlertTriangle className="w-10 h-10 text-slate-500" />
-          </div>
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-50 text-emerald-700">
+          <IconAlertTriangle className="h-10 w-10" />
         </div>
-
-        {/* 404 */}
-        <h1 className="text-6xl font-bold text-slate-900 tracking-tight mb-2">
-          404
-        </h1>
-
-        <h2 className="text-xl font-semibold text-slate-800 mb-3">
-          {t('notFound.title')}
-        </h2>
-
-        <p className="text-sm text-slate-600 leading-relaxed mb-8">
-          {t('notFound.description')}
-        </p>
-
-        {/* Action */}
-        <div className="flex justify-center">
-          <Link
-            to="/app/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-          >
-            <IconHome size={16} />
-            {t('notFound.backToDashboard')}
-          </Link>
-        </div>
+        <h1 className="mt-8 text-6xl font-semibold text-slate-900">404</h1>
+        <p className="mt-4 text-xl font-semibold text-slate-900">{t('notFound.title')}</p>
+        <p className="mt-3 text-sm leading-7 text-slate-600">{t('notFound.description')}</p>
+        <Link
+          to="/app/dashboard"
+          className="mt-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+        >
+          <IconHome className="h-4 w-4" />
+          {t('notFound.backToDashboard')}
+        </Link>
       </motion.div>
     </div>
   );

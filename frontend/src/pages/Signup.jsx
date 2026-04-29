@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -21,14 +21,13 @@ export default function Signup() {
     shop_name: '',
     email: '',
     password: '',
-    language: 'en'
+    language: 'en',
   });
 
   const firstNameRef = useRef(null);
   const emailRef = useRef(null);
 
-  const isMobileViewport = () =>
-    typeof window !== 'undefined' && window.innerWidth <= 768;
+  const isMobileViewport = () => typeof window !== 'undefined' && window.innerWidth <= 768;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,11 +49,9 @@ export default function Signup() {
 
   useEffect(() => {
     if (!isMobileViewport()) return;
-
     if (step === 1 && firstNameRef.current) {
       firstNameRef.current.focus();
     }
-
     if (step === 2 && emailRef.current) {
       emailRef.current.focus();
     }
@@ -75,12 +72,11 @@ export default function Signup() {
       shop_name: formData.shop_name,
       email: formData.email,
       password: formData.password,
-      language: formData.language
+      language: formData.language,
     };
 
     try {
       const result = await signup(payload);
-
       if (result.success) {
         toast.success(t('auth.signupSuccess'));
         navigate('/app/dashboard');
@@ -95,131 +91,72 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-bold">
-          {t('auth.welcomeToPawnManager')}
-        </h2>
-        <p className="mt-2 text-sm text-neutral-600">
-          {t('auth.createAccountToStart')}
-        </p>
+    <div className="min-h-[100dvh] w-full bg-[#f4faf5] px-4 py-12 sm:px-6 sm:py-16">
+      <div className="mx-auto w-full max-w-lg rounded-[2rem] bg-white p-8 shadow-soft border border-slate-200">
+        <div className="space-y-3 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Create your account</p>
+          <h1 className="text-3xl font-semibold text-slate-900">Start managing your pawn shop in one smart system.</h1>
+          <p className="text-sm text-slate-600">Sign up quickly and bring your pawn ticket processes, customers, and payments together.</p>
+        </div>
 
-        <form className="mt-6" onSubmit={handleSubmit}>
-          {/* Step indicator (mobile) */}
-          <div className="mb-4 md:hidden flex justify-between text-xs text-neutral-500">
-            <span>{t('auth.stepOf', { step })}</span>
-            <span>
-              {step === 1
-                ? t('auth.basicDetails')
-                : t('auth.accountSecurity')}
-            </span>
-          </div>
-
-          {/* STEP 1 */}
-          <div className={cn(step === 1 ? 'block' : 'hidden', 'md:block')}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="grid gap-4 md:grid-cols-2">
             <LabelInputContainer>
-              <Label>{t('auth.firstname')}</Label>
-              <Input
-                name="firstname"
-                onChange={handleChange}
-                ref={firstNameRef}
-                required
-              />
+              <Label htmlFor="firstname">{t('auth.firstname')}</Label>
+              <Input ref={firstNameRef} id="firstname" name="firstname" onChange={handleChange} required />
             </LabelInputContainer>
-
             <LabelInputContainer>
-              <Label>{t('auth.lastname')}</Label>
-              <Input name="lastname" onChange={handleChange} required />
-            </LabelInputContainer>
-
-            <LabelInputContainer>
-              <Label>{t('auth.shopName')}</Label>
-              <Input name="shop_name" onChange={handleChange} required />
-            </LabelInputContainer>
-
-            {/* 🌐 LANGUAGE SELECT */}
-            <LabelInputContainer>
-              <Label>{t('common.language')}</Label>
-              <select
-                value={formData.language}
-                onChange={(e) => {
-                  const lang = e.target.value;
-                  setFormData({ ...formData, language: lang });
-                  i18n.changeLanguage(lang);
-                }}
-                className="min-h-[44px] rounded-md border px-3"
-              >
-                <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="ta">தமிழ்</option>
-              </select>
+              <Label htmlFor="lastname">{t('auth.lastname')}</Label>
+              <Input id="lastname" name="lastname" onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
-          {/* STEP 2 */}
-          <div className={cn(step === 2 ? 'block' : 'hidden', 'md:block')}>
-            <LabelInputContainer>
-              <Label>{t('auth.emailAddress')}</Label>
-              <Input
-                name="email"
-                type="email"
-                ref={emailRef}
-                onChange={handleChange}
-                required
-              />
-            </LabelInputContainer>
+          <LabelInputContainer>
+            <Label htmlFor="shop_name">{t('auth.shopName')}</Label>
+            <Input id="shop_name" name="shop_name" onChange={handleChange} required />
+          </LabelInputContainer>
 
+          <div className="grid gap-4 md:grid-cols-2">
             <LabelInputContainer>
-              <Label>{t('auth.password')}</Label>
-              <Input
-                name="password"
-                type="password"
-                onChange={handleChange}
-                required
-              />
+              <Label htmlFor="email">{t('auth.emailAddress')}</Label>
+              <Input ref={emailRef} id="email" name="email" type="email" onChange={handleChange} required />
+            </LabelInputContainer>
+            <LabelInputContainer>
+              <Label htmlFor="password">{t('auth.password')}</Label>
+              <Input id="password" name="password" type="password" onChange={handleChange} required />
             </LabelInputContainer>
           </div>
 
-          {/* MOBILE BUTTON */}
-          <div className="md:hidden mt-4">
-            {step === 1 ? (
-              <button
-                type="button"
-                onClick={goToStepTwo}
-                className="btn-primary w-full"
-              >
-                {t('auth.next')}
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full"
-              >
-                {loading
-                  ? t('auth.creatingAccount')
-                  : t('auth.createAccount')}
-              </button>
-            )}
-          </div>
-
-          {/* DESKTOP BUTTON */}
-          <div className="hidden md:block mt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
+          <LabelInputContainer>
+            <Label htmlFor="language">{t('common.language')}</Label>
+            <select
+              id="language"
+              value={formData.language}
+              onChange={(e) => {
+                const lang = e.target.value;
+                setFormData({ ...formData, language: lang });
+                i18n.changeLanguage(lang);
+              }}
+              className="min-h-[44px] w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
             >
-              {loading
-                ? t('auth.creatingAccount')
-                : t('auth.signupAction')}
-            </button>
-          </div>
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+              <option value="ta">தமிழ்</option>
+            </select>
+          </LabelInputContainer>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? t('auth.creatingAccount') : t('auth.signupAction')}
+          </button>
         </form>
 
-        <p className="mt-4 text-center text-sm">
+        <p className="mt-6 text-center text-sm text-slate-600">
           {t('auth.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="text-indigo-500 font-semibold">
+          <Link to="/login" className="font-semibold text-emerald-700 hover:text-emerald-800">
             {t('auth.login')}
           </Link>
         </p>
@@ -229,5 +166,5 @@ export default function Signup() {
 }
 
 const LabelInputContainer = ({ children }) => (
-  <div className="flex flex-col space-y-2 mb-4">{children}</div>
+  <div className="flex flex-col gap-2">{children}</div>
 );

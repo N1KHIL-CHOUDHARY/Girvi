@@ -33,7 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Toaster
             position="top-right"
             toastOptions={{
-              className: 'app-surface shadow-lg rounded-lg',
+              className: 'rounded-2xl border border-slate-200 bg-white/95 shadow-xl backdrop-blur-sm',
             }}
           />
         </AuthProvider>

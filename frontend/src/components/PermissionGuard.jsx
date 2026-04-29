@@ -1,7 +1,6 @@
-import React from 'react';
+import { motion } from 'framer-motion';
 import { usePermission } from '../hooks/usePermission';
 import { IconLock, IconAlertCircle } from '@tabler/icons-react';
-import { motion } from 'framer-motion';
 
 const PermissionGuard = ({ children, requiredPermission }) => {
   const { hasPermission } = usePermission();
@@ -11,29 +10,23 @@ const PermissionGuard = ({ children, requiredPermission }) => {
   }
 
   return (
-    <div className="relative w-full h-[calc(100dvh-100px)] flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-app bg-app-primary">
-      <div className="absolute inset-0 backdrop-blur-sm app-overlay opacity-50 z-10" />
-
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#f4faf5] px-4 py-12">
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative z-20 app-surface p-8 rounded-2xl shadow-2xl border border-app text-center max-w-sm mx-4"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft text-center"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 mb-4">
-          <IconLock className="h-7 w-7 text-red-600" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 mb-4 text-emerald-700">
+          <IconLock className="h-7 w-7" />
         </div>
-
-        <h2 className="text-xl font-bold text-app-primary mb-2">
-          Access Denied
-        </h2>
-
-        <p className="text-app-secondary text-sm mb-6">
-          You do not have permission to access this page. Contact your shop owner if you believe this is an error.
+        <h2 className="text-2xl font-semibold text-slate-900 mb-3">Access Denied</h2>
+        <p className="text-sm leading-7 text-slate-600 mb-6">
+          You do not have permission to access this section. Please contact your shop owner for access.
         </p>
-
-        <div className="flex items-center justify-center gap-2 text-xs text-app-secondary uppercase tracking-wider font-semibold">
-          <IconAlertCircle size={14} />
-          <span>Restricted Area</span>
+        <div className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">
+          <IconAlertCircle size={16} />
+          Restricted Area
         </div>
       </motion.div>
     </div>
