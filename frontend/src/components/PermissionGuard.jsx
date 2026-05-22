@@ -10,7 +10,7 @@ const PermissionGuard = ({ children, requiredPermission }) => {
   }
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#f4faf5] px-4 py-12">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-gray-50 px-4 py-12">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

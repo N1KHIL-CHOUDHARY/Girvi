@@ -12,6 +12,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import { IconTrashFilled, IconEdit } from '@tabler/icons-react';
 import { cn } from '../lib/utils';
 import toast from 'react-hot-toast';
+import { tw, buttonSystemFull, buttonSystem, buttonSecondary } from '../shared/ui/tw';
 
 export default function Employees() {
   const { t } = useTranslation();
@@ -136,16 +137,15 @@ export default function Employees() {
 
   return (
     <>
-    <div className="p-4 md:p-6 min-h-[100dvh]">
-      <h1 className="text-3xl font-bold text-neutral-800 text-neutral-200 mb-6">
-        {t('common.manageEmployees')}
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* --- Create Employee Form --- */}
+    <div className={tw.page}>
+      <header>
+        <h1 className={tw.pageTitle}>{t('common.manageEmployees')}</h1>
+      </header>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="md:col-span-1">
-          <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
-            <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
+          <div className={tw.card}>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
               {t('common.createNewEmployee')}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -168,9 +168,7 @@ export default function Employees() {
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value)}
                   required
-                  className={cn(
-                    `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm text-neutral-800`
-                  )}
+                  className={tw.select}
                 >
                   <option value="" disabled>{isLoadingRoles ? 'Loading roles...' : 'Select a role'}</option>
                   {rolesData?.map((role) => (
@@ -184,7 +182,7 @@ export default function Employees() {
               </LabelInputContainer>
               <button
                 type="submit"
-                className="w-full h-10 rounded-md bg-indigo-600 text-white font-medium"
+                className={buttonSystemFull}
                 disabled={createMutation.isLoading}
               >
                 {createMutation.isLoading ? t('buttons.creating') : t('buttons.createEmployee')}
@@ -193,51 +191,74 @@ export default function Employees() {
           </div>
         </div>
 
-        {/* --- Employee List --- */}
         <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white bg-black">
+          <div className={tw.cardFlush}>
             {isLoadingEmployees ? (
-              <p className="p-4 text-center">{t('common.loadingEmployees')}</p>
+              <p className="p-6 text-center text-sm text-gray-500">{t('common.loadingEmployees')}</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('customers.name')}</TableHead>
-                    <TableHead>{t('forms.email')}</TableHead>
-                    <TableHead>{t('forms.role')}</TableHead>
-                    <TableHead className="text-center">{t('customers.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                <div className={tw.tableWrap}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('customers.name')}</TableHead>
+                        <TableHead>{t('forms.email')}</TableHead>
+                        <TableHead>{t('forms.role')}</TableHead>
+                        <TableHead className="text-center">{t('customers.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {employeesData?.map((emp) => (
+                        <TableRow key={emp._id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium text-gray-900">{emp.full_name}</TableCell>
+                          <TableCell className="text-gray-600">{emp.email}</TableCell>
+                          <TableCell>
+                            <span className={emp.role === 'owner' ? tw.badgeSettled : tw.badgeMuted}>
+                              {emp.role_id?.name || emp.role}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {emp.role !== 'owner' && (
+                              <div className="flex justify-center gap-2">
+                                <button type="button" title="Edit" onClick={() => handleEditClick(emp)} className="min-h-[44px] min-w-[44px] rounded-xl hover:bg-gray-50">
+                                  <IconEdit className="h-5 w-5 text-indigo-600" />
+                                </button>
+                                <button type="button" onClick={() => handleDelete(emp._id)} disabled={deleteMutation.isLoading} className="min-h-[44px] min-w-[44px] rounded-xl hover:bg-gray-50">
+                                  <IconTrashFilled className="h-5 w-5 text-red-600" />
+                                </button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className={cn(tw.mobileList, 'p-4')}>
                   {employeesData?.map((emp) => (
-                    <TableRow key={emp._id} className="hover:bg-gray-50 hover:bg-neutral-800">
-                      <TableCell className="font-medium text-neutral-800 text-neutral-200">{emp.full_name}</TableCell>
-                      <TableCell className="text-neutral-600 text-neutral-400">{emp.email}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          emp.role === 'owner' 
-                          ? 'bg-indigo-100 text-indigo-800 bg-indigo-900 text-indigo-200' 
-                          : 'bg-gray-100 text-gray-800 bg-neutral-800 text-neutral-200'
-                        }`}>
+                    <article key={emp._id} className={tw.mobileCard}>
+                      <h3 className="font-semibold text-gray-900">{emp.full_name}</h3>
+                      <p className="mt-1 text-sm text-gray-600">{emp.email}</p>
+                      <p className="mt-2">
+                        <span className={emp.role === 'owner' ? tw.badgeSettled : tw.badgeMuted}>
                           {emp.role_id?.name || emp.role}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {emp.role !== 'owner' && (
-                          <div className="flex justify-center gap-2">
-                            <button title="Edit" onClick={() => handleEditClick(emp)}>
-                              <IconEdit className="text-blue-500 w-5 h-5" />
-                            </button>
-                            <button onClick={() => handleDelete(emp._id)} disabled={deleteMutation.isLoading}>
-                              <IconTrashFilled className="text-red-500 w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                      </p>
+                      {emp.role !== 'owner' && (
+                        <div className="mt-4 flex gap-2 border-t border-gray-100 pt-4">
+                          <button type="button" onClick={() => handleEditClick(emp)} className={cn(buttonSecondary, 'flex-1')}>
+                            {t('customers.edit')}
+                          </button>
+                          <button type="button" onClick={() => handleDelete(emp._id)} disabled={deleteMutation.isLoading} className={cn(buttonSecondary, 'flex-1 text-red-600')}>
+                            {t('customers.delete')}
+                          </button>
+                        </div>
+                      )}
+                    </article>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -246,7 +267,7 @@ export default function Employees() {
 
     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
       <DialogContent className="sm:max-w-lg">
-        <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">
           {t('common.editEmployee')}
         </h3>
         <form onSubmit={handleUpdate} className="space-y-4">
@@ -287,10 +308,7 @@ export default function Employees() {
               value={editForm.role_id}
               onChange={(e) => setEditForm({ ...editForm, role_id: e.target.value })}
               required
-              className={cn(
-                `flex h-10 w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
-border-neutral-700 bg-neutral-800 text-neutral-200`
-              )}
+              className={tw.select}
             >
               <option value="" disabled>{isLoadingRoles ? t('forms.loadingRoles') : t('forms.selectRole')}</option>
               {rolesData?.map((role) => (
@@ -305,14 +323,14 @@ border-neutral-700 bg-neutral-800 text-neutral-200`
           <div className="flex justify-end gap-3">
             <button
               type="button"
-              className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
+              className={buttonSecondary}
               onClick={() => setEditModalOpen(false)}
             >
               {t('buttons.cancel')}
             </button>
             <button
               type="submit"
-              className="h-10 px-4 rounded-md bg-indigo-600 text-white font-medium"
+              className={buttonSystem}
               disabled={updateMutation.isLoading}
             >
               {updateMutation.isLoading ? t('buttons.saving') : t('buttons.saveChanges')}

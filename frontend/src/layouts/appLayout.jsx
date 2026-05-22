@@ -13,29 +13,29 @@ const AppLayout = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f4faf5]">
-      <div className="mx-auto flex min-h-screen w-full overflow-hidden flex-col lg:flex-row">
+    <div className="h-screen overflow-hidden bg-gray-50">
+      <div className="flex h-full w-full overflow-hidden">
         <Sidebar open={open} setOpen={setOpen}>
           <SidebarBody className="justify-between gap-8 bg-white">
-            <div className="flex flex-1 flex-col overflow-hidden shrink">
+            <div className="flex flex-1 shrink flex-col overflow-hidden">
               <div className="mt-8 flex flex-col gap-2">
                 {mainLinks.map((link) => (
                   <SidebarLink
                     key={link.href}
                     link={{
                       ...link,
-                      icon: <link.icon className="h-5 w-5 shrink-0 text-slate-700" />,
+                      icon: <link.icon className="h-5 w-5 shrink-0 text-gray-600" />,
                     }}
                   />
                 ))}
 
                 {user?.role === 'owner' && (
                   <>
-                    <div className="my-2 h-px w-full bg-slate-200" />
+                    <div className="my-2 h-px w-full bg-gray-200" />
                     <motion.span
                       initial={false}
                       animate={{ display: open ? 'inline-block' : 'none', opacity: open ? 1 : 0 }}
-                      className="px-3 text-xs font-semibold uppercase text-slate-500"
+                      className="px-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
                     >
                       Admin
                     </motion.span>
@@ -45,7 +45,7 @@ const AppLayout = () => {
                         key={link.href}
                         link={{
                           ...link,
-                          icon: <link.icon className="h-5 w-5 shrink-0 text-slate-700" />,
+                          icon: <link.icon className="h-5 w-5 shrink-0 text-gray-600" />,
                         }}
                       />
                     ))}
@@ -58,18 +58,19 @@ const AppLayout = () => {
               <SidebarLink
                 link={{
                   ...settingsLink,
-                  icon: <settingsLink.icon className="h-5 w-5 shrink-0 text-slate-700" />,
+                  icon: <settingsLink.icon className="h-5 w-5 shrink-0 text-gray-600" />,
                 }}
               />
 
               <button
+                type="button"
                 onClick={() => {
                   setOpen(false);
                   logout();
                 }}
-                className="flex items-center justify-start gap-2 w-full rounded-xl px-3 py-2.5 text-left text-slate-700 transition hover:bg-slate-50"
+                className="flex min-h-[44px] w-full items-center justify-start gap-2 rounded-xl px-3 text-left text-gray-700 transition hover:bg-gray-50"
               >
-                <IconLogout className="h-5 w-5 shrink-0 text-slate-700" />
+                <IconLogout className="h-5 w-5 shrink-0 text-gray-600" />
                 <motion.span
                   initial={false}
                   animate={{ display: open ? 'inline-block' : 'none', opacity: open ? 1 : 0 }}
@@ -83,10 +84,15 @@ const AppLayout = () => {
         </Sidebar>
 
         {open && (
-          <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={() => setOpen(false)} />
+          <button
+            type="button"
+            aria-label="Close menu"
+            className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
+            onClick={() => setOpen(false)}
+          />
         )}
 
-        <main className="flex-1 bg-[#f4faf5] px-4 py-4 sm:px-6 sm:py-6 overflow-y-auto overscroll-contain md:pt-6 md:pb-8">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gray-50 px-4 py-6 sm:px-8 sm:py-8">
           <Outlet />
         </main>
 

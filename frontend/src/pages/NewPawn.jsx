@@ -145,11 +145,11 @@ export default function NewPawn() {
 
   return (
     <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 bg-neutral-900">
-        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
+      <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+        <h2 className="text-xl font-semibold text-gray-900">
           {t('common.createNewPawnTicket')}
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-gray-500">
           {t('common.createPawnDescription')}
         </p>
 
@@ -223,7 +223,7 @@ export default function NewPawn() {
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
 
-          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">{t('loans.itemDetails')}</h3>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('loans.itemDetails')}</h3>
 
           <LabelInputContainer className="mb-6 md:mb-4">
             <Label htmlFor="item_name">{t('loans.itemName')}  </Label>

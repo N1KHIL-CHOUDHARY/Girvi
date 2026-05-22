@@ -12,7 +12,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import { IconTrashFilled, IconEdit } from '@tabler/icons-react';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
-
+import { tw, buttonSystemFull, buttonSystem, buttonSecondary } from '../shared/ui/tw';
 
 const initialPermissions = {
   can_view_dashboard: true,
@@ -30,7 +30,6 @@ const initialPermissions = {
   can_view_reports: false,
 };
 
-// Helper to format permission names
 const formatLabel = (key) => {
   return key.replace('can_', '').replace(/_/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
 };
@@ -124,16 +123,15 @@ export default function Roles() {
 
   return (
     <>
-    <div className="p-4 md:p-6 min-h-[100dvh]">
-      <h1 className="text-3xl font-bold text-neutral-800 mb-6">
-        {t('common.rolesAndPermissions')}
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* --- Create Role Form --- */}
+    <div className={tw.page}>
+      <header>
+        <h1 className={tw.pageTitle}>{t('common.rolesAndPermissions')}</h1>
+      </header>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="md:col-span-1">
-          <div className="shadow-input rounded-2xl bg-white p-6 bg-black">
-            <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
+          <div className={tw.card}>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
               {t('common.createNewRole')}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -153,7 +151,7 @@ export default function Roles() {
                         id={key}
                         checked={permissions[key]}
                         onChange={() => handlePermissionChange(key)}
-                        className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 border-neutral-300 border-neutral-700 bg-gray-50 bg-neutral-800"
+                        className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                     </div>
                   ))}
@@ -162,7 +160,7 @@ export default function Roles() {
               
               <button
                 type="submit"
-                className="w-full h-10 rounded-md bg-indigo-600 text-white font-medium"
+                className={buttonSystemFull}
                 disabled={createMutation.isLoading}
               >
                 {createMutation.isLoading ? t('buttons.creating') : t('buttons.createRole')}
@@ -171,45 +169,69 @@ export default function Roles() {
           </div>
         </div>
 
-        {/* --- Role List --- */}
         <div className="md:col-span-2">
-          <div className="shadow-input rounded-2xl bg-white bg-black text-white text-base">
+          <div className={tw.cardFlush}>
             {isLoading ? (
-              <p className="p-4 text-center text-neutral-600 text-neutral-400">{t('common.loadingRoles')}</p>
+              <p className="p-6 text-center text-sm text-gray-500">{t('common.loadingRoles')}</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-neutral-800 text-neutral-200">{t('forms.roleName')}</TableHead>
-                    <TableHead className="text-neutral-800 text-neutral-200">{t('forms.permissions')}</TableHead>
-                    <TableHead className="text-center text-neutral-800 text-neutral-200">{t('customers.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                <div className={tw.tableWrap}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('forms.roleName')}</TableHead>
+                        <TableHead>{t('forms.permissions')}</TableHead>
+                        <TableHead className="text-center">{t('customers.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rolesData?.map((role) => (
+                        <TableRow key={role._id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium text-gray-900">{role.name}</TableCell>
+                          <TableCell className="text-xs text-gray-600">
+                            {t('common.activePermissions', { count: Object.keys(role.permissions).filter(k => role.permissions[k] === true).length })}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {role.is_owner_role ? (
+                              <span className="text-xs text-gray-500">{t('common.locked')}</span>
+                            ) : (
+                              <div className="flex justify-center gap-2">
+                                <button type="button" title="Edit" onClick={() => handleEditClick(role)} className="min-h-[44px] min-w-[44px] rounded-xl hover:bg-gray-50">
+                                  <IconEdit className="h-5 w-5 text-indigo-600" />
+                                </button>
+                                <button type="button" onClick={() => handleDelete(role._id)} disabled={deleteMutation.isLoading} className="min-h-[44px] min-w-[44px] rounded-xl hover:bg-gray-50">
+                                  <IconTrashFilled className="h-5 w-5 text-red-600" />
+                                </button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className={cn(tw.mobileList, 'p-4')}>
                   {rolesData?.map((role) => (
-                    <TableRow key={role._id} className="hover:bg-gray-50 hover:bg-neutral-800">
-                      <TableCell className="font-medium text-neutral-800 text-neutral-200">{role.name}</TableCell>
-                      <TableCell className="text-neutral-600 text-neutral-400 text-xs">
+                    <article key={role._id} className={tw.mobileCard}>
+                      <h3 className="font-semibold text-gray-900">{role.name}</h3>
+                      <p className="mt-1 text-sm text-gray-600">
                         {t('common.activePermissions', { count: Object.keys(role.permissions).filter(k => role.permissions[k] === true).length })}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {role.is_owner_role ? (
-                          <span className="text-xs text-neutral-500">{t('common.locked')}</span>
-                        ) : (
-                          <div className="flex justify-center gap-2">
-                            <button title="Edit" onClick={() => handleEditClick(role)}>
-                              <IconEdit className="text-blue-500 w-5 h-5" />
-                            </button>
-                            <button onClick={() => handleDelete(role._id)} disabled={deleteMutation.isLoading}>
-                              <IconTrashFilled className="text-red-500 w-5 h-5" />
-                            </button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                      </p>
+                      {!role.is_owner_role && (
+                        <div className="mt-4 flex gap-2 border-t border-gray-100 pt-4">
+                          <button type="button" onClick={() => handleEditClick(role)} className={cn(buttonSecondary, 'flex-1')}>
+                            {t('customers.edit')}
+                          </button>
+                          <button type="button" onClick={() => handleDelete(role._id)} disabled={deleteMutation.isLoading} className={cn(buttonSecondary, 'flex-1 text-red-600')}>
+                            {t('customers.delete')}
+                          </button>
+                        </div>
+                      )}
+                    </article>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -218,7 +240,7 @@ export default function Roles() {
 
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="sm:max-w-lg">
-          <h3 className="text-lg font-semibold text-neutral-900 text-neutral-100 mb-4">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
             {t('common.editRole')}
           </h3>
           <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -252,14 +274,14 @@ export default function Roles() {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                className="h-10 px-4 rounded-md border border-neutral-200 border-neutral-700 text-neutral-700 text-neutral-200"
+                className={buttonSecondary}
                 onClick={() => setEditModalOpen(false)}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="h-10 px-4 rounded-md bg-indigo-600 text-white font-medium"
+                className={buttonSystem}
                 disabled={updateMutation.isLoading}
               >
                 {updateMutation.isLoading ? 'Saving...' : 'Save Changes'}

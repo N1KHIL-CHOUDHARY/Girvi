@@ -17,9 +17,6 @@ import { X, Menu } from "lucide-react";
 const SIDEBAR_EXPANDED = 300;
 const SIDEBAR_COLLAPSED = 64;
 
-/* =========================
-   CONTEXT
-========================= */
 const SidebarContext = createContext(null);
 
 export function useSidebar() {
@@ -53,9 +50,6 @@ export function SidebarProvider({
   );
 }
 
-/* =========================
-   ROOT
-========================= */
 export function Sidebar({ children, open, setOpen, animate }) {
   return (
     <SidebarProvider open={open} setOpen={setOpen} animate={animate}>
@@ -64,9 +58,6 @@ export function Sidebar({ children, open, setOpen, animate }) {
   );
 }
 
-/* =========================
-   BODY
-========================= */
 export function SidebarBody(props) {
   return (
     <>
@@ -76,16 +67,12 @@ export function SidebarBody(props) {
   );
 }
 
-/* =========================
-   DESKTOP + TABLET SIDEBAR
-========================= */
 function DesktopSidebar({ className, children, ...props }) {
   const { open, setOpen, animate } = useSidebar();
   const { t } = useTranslation();
   const timeoutRef = useRef(null);
   const [canHover, setCanHover] = useState(false);
 
-  // Detect hover capability
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover)");
     setCanHover(mq.matches);
@@ -115,7 +102,7 @@ function DesktopSidebar({ className, children, ...props }) {
       className={cn(
         'hidden lg:flex lg:flex-col shrink-0',
         'h-screen overflow-hidden',
-        'bg-white border-r border-slate-200',
+        'bg-white border-r border-gray-200',
         'px-3 py-4',
         'z-30',
         className
@@ -132,7 +119,7 @@ function DesktopSidebar({ className, children, ...props }) {
         <div className="flex items-center justify-end mb-2">
           <button
             onClick={() => setOpen(!open)}
-            className="p-2 rounded-lg text-slate-600 transition hover:bg-slate-100"
+            className="min-h-[44px] min-w-[44px] rounded-xl p-2 text-gray-600 transition hover:bg-gray-50"
             aria-label={open ? t('nav.closeSidebar') : t('nav.openSidebar')}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -145,9 +132,6 @@ function DesktopSidebar({ className, children, ...props }) {
   );
 }
 
-/* =========================
-   MOBILE SIDEBAR (UNCHANGED)
-========================= */
 function MobileSidebar({ className, children, ...props }) {
   const { open, setOpen } = useSidebar();
   const { t } = useTranslation();
@@ -183,7 +167,7 @@ function MobileSidebar({ className, children, ...props }) {
         {open && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black/40 z-40"
+              className="fixed inset-0 z-40 bg-slate-900/30"
               onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -197,7 +181,7 @@ function MobileSidebar({ className, children, ...props }) {
                 "fixed bottom-0 left-0 right-0 z-50",
                 "min-h-[100dvh]",
                 "bg-white rounded-t-3xl",
-                "border-t border-slate-200 shadow-xl",
+                "border-t border-gray-200 shadow-xl",
                 "flex flex-col",
                 "p-4 pt-6 pb-[calc(4rem+env(safe-area-inset-bottom))]",
                 className
@@ -208,11 +192,10 @@ function MobileSidebar({ className, children, ...props }) {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               {...props}
             >
-              {/* Close button */}
               <div className="flex justify-end mb-2">
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-2 rounded-md hover:bg-slate-100"
+                  className="min-h-[44px] min-w-[44px] rounded-xl p-2 hover:bg-gray-50"
                   aria-label={t('nav.closeMenu')}
                 >
                   <X size={20} />
@@ -230,9 +213,6 @@ function MobileSidebar({ className, children, ...props }) {
   );
 }
 
-/* =========================
-   LINK
-========================= */
 export function SidebarLink({ link, className, ...props }) {
   const { open, setOpen } = useSidebar();
   const { t } = useTranslation();
@@ -247,7 +227,7 @@ export function SidebarLink({ link, className, ...props }) {
       onClick={handleClick}
       className={cn(
         'flex items-center gap-3 px-3 min-h-[44px]',
-        'rounded-xl transition-colors hover:bg-slate-50',
+        'rounded-xl transition-colors hover:bg-gray-50',
         className
       )}
       {...props}
@@ -261,7 +241,7 @@ export function SidebarLink({ link, className, ...props }) {
           width: open ? 'auto' : 0,
         }}
         transition={{ duration: 0.2 }}
-        className="text-sm text-slate-900 whitespace-nowrap overflow-hidden"
+        className="overflow-hidden whitespace-nowrap text-sm text-gray-900"
       >
         {t(link.label)}
       </motion.span>

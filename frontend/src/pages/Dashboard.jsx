@@ -9,7 +9,7 @@ const GenderPieChart = lazy(() => import('../components/GenderPieChart'));
 const AreaBarChart = lazy(() => import('../components/AreaPieChart'));
 
 const StatCardSkeleton = () => (
-  <div className="rounded-lg bg-white p-6 border border-gray-200 animate-pulse">
+  <div className="rounded-2xl border border-gray-200 bg-white p-6 animate-pulse">
     <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
     <div className="h-8 bg-gray-200 rounded w-1/2"></div>
   </div>
@@ -19,7 +19,7 @@ const StatCard = memo(function StatCard({ title, value, isLoading }) {
   if (isLoading) return <StatCardSkeleton />;
   
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
       <p className="text-2xl md:text-3xl font-semibold text-gray-900">{value}</p>
     </div>
@@ -40,7 +40,7 @@ const ListSkeleton = () => (
 const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         {t('dashboard.recentActivity')}
       </h3>
@@ -74,7 +74,7 @@ const RecentActivity = memo(function RecentActivity({ activities, isLoading }) {
 const TopCustomers = memo(function TopCustomers({ customers, isLoading }) {
   const { t } = useTranslation();
   return (
-    <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         {t('dashboard.topCustomers')}
       </h3>
@@ -145,11 +145,11 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-lg bg-white p-6 border border-gray-200 h-80 animate-pulse">
+          <div className="h-80 animate-pulse rounded-2xl border border-gray-200 bg-white p-6">
             <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
             <div className="h-full bg-gray-100 rounded"></div>
           </div>
-          <div className="rounded-lg bg-white p-6 border border-gray-200 h-80 animate-pulse">
+          <div className="h-80 animate-pulse rounded-2xl border border-gray-200 bg-white p-6">
             <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
             <div className="h-full bg-gray-100 rounded"></div>
           </div>
@@ -160,8 +160,8 @@ export default function Dashboard() {
 
   if (isError || !dashboardData) {
     return (
-      <div className="flex items-center justify-center min-h-[100dvh] p-4">
-        <div className="text-center p-8 rounded-lg bg-white border border-gray-200 shadow-sm max-w-md w-full">
+      <div className="flex items-center justify-center p-4 py-16">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
             <svg 
               className="w-8 h-8 text-red-500" 
@@ -185,7 +185,7 @@ export default function Dashboard() {
           </p>
           <button
             onClick={() => refetch()}
-            className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="min-h-[44px] rounded-xl bg-emerald-600 px-6 font-medium text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
           >
             {t('dashboard.retry')}
           </button>
@@ -229,7 +229,7 @@ export default function Dashboard() {
         <div className="min-h-[320px] w-full">
           <Suspense
             fallback={
-              <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm min-h-[320px] flex items-center justify-center">
+              <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div className="h-64 w-full max-w-sm rounded bg-gray-100 animate-pulse" />
               </div>
             }
@@ -240,7 +240,7 @@ export default function Dashboard() {
         <div className="min-h-[320px] w-full">
           <Suspense
             fallback={
-              <div className="rounded-lg bg-white p-6 border border-gray-200 shadow-sm min-h-[320px] flex items-center justify-center">
+              <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div className="h-64 w-full max-w-sm rounded bg-gray-100 animate-pulse" />
               </div>
             }

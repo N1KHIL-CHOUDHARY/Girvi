@@ -20,17 +20,17 @@ import { Input } from '/src/components/ui/Input.jsx';
 import { Label } from '/src/components/ui/Label.jsx';
 import { cn } from '/src/lib/utils.js';
 
-/* -------------------- UI HELPERS -------------------- */
+import { tw, buttonPrimary } from '../shared/ui/tw';
 
 const SettingsCard = React.memo(({ title, description, icon, children }) => (
-  <div className="shadow-input rounded-2xl bg-white p-6 md:p-8">
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-8 h-8 flex items-center justify-center text-neutral-600">
+  <div className={tw.card}>
+    <div className="mb-4 flex items-center gap-3">
+      <div className="flex h-8 w-8 items-center justify-center text-gray-600">
         {icon}
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-neutral-800">{title}</h3>
-        <p className="text-sm text-neutral-600">{description}</p>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <p className="text-sm text-gray-500">{description}</p>
       </div>
     </div>
     <div className="mt-6 space-y-6">{children}</div>
@@ -43,14 +43,10 @@ const LabelInputContainer = ({ children, className }) => (
   </div>
 );
 
-/* -------------------- MAIN SETTINGS -------------------- */
-
 export default function Settings() {
   const { t } = useTranslation();
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
-
-  /* ---------- Local State ---------- */
 
   const [shopName, setShopName] = useState('');
   const [noticePeriod, setNoticePeriod] = useState(30);
@@ -61,8 +57,6 @@ export default function Settings() {
     confirmPassword: '',
   });
 
-  /* ---------- Queries ---------- */
-
   const { isLoading: isLoadingShop } = useQuery({
     queryKey: ['shopDetails'],
     queryFn: getShopDetails,
@@ -72,8 +66,6 @@ export default function Settings() {
       setNoticePeriod(data?.notice_period ?? 30);
     },
   });
-
-  /* ---------- Mutations ---------- */
 
   const shopMutation = useMutation({
     mutationFn: updateShopDetails,
@@ -107,8 +99,6 @@ export default function Settings() {
     },
     onError: () => toast.error(t('errors.failedToUpdatePreferences')),
   });
-
-  /* ---------- Handlers (stable) ---------- */
 
   const handlePasswordField = useCallback(
     (field) => (e) =>
@@ -149,13 +139,9 @@ export default function Settings() {
     [languageMutation]
   );
 
-  /* ---------- Render ---------- */
-
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
-      <h1 className="text-3xl font-bold text-neutral-800">
-        {t('common.settings')}
-      </h1>
+    <div className="mx-auto max-w-4xl space-y-8">
+      <h1 className={tw.pageTitle}>{t('common.settings')}</h1>
 
       <SettingsCard
         title={t('common.preferences')}
@@ -167,7 +153,7 @@ export default function Settings() {
           <select
             value={user?.language ?? 'en'}
             onChange={handleLanguageChange}
-            className="min-h-[44px] rounded-md border px-3"
+            className={tw.select}
           >
             <option value="en">English</option>
             <option value="hi">हिंदी</option>
@@ -199,7 +185,7 @@ export default function Settings() {
 
           <button
             disabled={passwordMutation.isPending}
-            className="h-10 w-full max-w-xs rounded-md bg-black text-white"
+            className={cn(buttonPrimary, 'w-full max-w-xs')}
           >
             {passwordMutation.isPending
               ? t('buttons.saving')
@@ -226,7 +212,7 @@ export default function Settings() {
 
             <button
               disabled={shopMutation.isPending || isLoadingShop}
-              className="h-10 w-full max-w-xs rounded-md bg-black text-white"
+              className={cn(buttonPrimary, 'w-full max-w-xs')}
             >
               {shopMutation.isPending
                 ? t('buttons.saving')

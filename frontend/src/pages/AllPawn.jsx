@@ -37,6 +37,7 @@ import { Input } from "../components/ui/Input";
 import PawnTableSkeleton from "../components/PawnTableSkeleton";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { cn } from "../lib/utils";
+import { tw, buttonSystem } from "../shared/ui/tw";
 
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
@@ -164,7 +165,7 @@ export default function AllPawns() {
   };
 
   return (
-    <div className="min-h-[100dvh]">
+    <div className="w-full">
       {/* Settle Modal */}
       <ConfirmationModal
         isOpen={isModalOpen}
@@ -186,9 +187,9 @@ export default function AllPawns() {
 
       {/* Payment Modal (Styled to match context file) */}
       {isPaymentOpen && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50">
-          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto scroll-contain rounded-t-2xl md:rounded-2xl bg-white p-6 pb-32 md:pb-6">
-            <h3 className="text-lg font-semibold text-neutral-800 mb-4">{t("loans.addPayment")}</h3>
+        <div className={cn('z-50', tw.overlay, tw.modalCenter)}>
+          <div className={cn(tw.modalSheet, 'pb-32 md:pb-6')}>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">{t("loans.addPayment")}</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-sm text-neutral-700 mb-1">{t("loans.amount")}</label>
@@ -225,7 +226,7 @@ export default function AllPawns() {
               </button>
               <button
                 onClick={handleCreatePayment}
-                className="min-h-[44px] w-full md:w-auto rounded-md px-4 bg-indigo-600 text-white disabled:opacity-60"
+                className={cn(buttonSystem, 'w-full md:w-auto')}
                 disabled={paymentMutation.isLoading}
               >
                 {paymentMutation.isLoading ? t("buttons.saving") : t("loans.savePayment")}
@@ -539,7 +540,7 @@ export default function AllPawns() {
         </div>
       )}
         {isFilterOpen && (
-  <div className="fixed inset-0 z-50 bg-black/40 flex items-end md:hidden">
+  <div className={cn(tw.overlay, 'flex items-end md:hidden')}>
     <div className="w-full bg-white rounded-t-2xl p-4 pb-[env(safe-area-inset-bottom)]">
       <h3 className="text-lg font-semibold mb-3">Filter by status</h3>
 

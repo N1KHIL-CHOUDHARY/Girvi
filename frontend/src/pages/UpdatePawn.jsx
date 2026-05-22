@@ -168,7 +168,7 @@ export default function UpdatePawn() {
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent via-neutral-700" />
 
           {/* Item Info */}
-          <h3 className="text-lg font-semibold text-neutral-800 text-neutral-200 mb-4">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
             {t('loans.itemDetails')}
           </h3>
 

@@ -7,7 +7,7 @@ export default function NotFound() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-[100dvh] bg-[#f4faf5] px-4 py-16 sm:py-24">
+    <div className="min-h-[100dvh] bg-gray-50 px-4 py-16 sm:py-24">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

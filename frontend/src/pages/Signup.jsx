@@ -91,7 +91,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#f4faf5] px-4 py-12 sm:px-6 sm:py-16">
+    <div className="min-h-[100dvh] w-full bg-gray-50 px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto w-full max-w-lg rounded-[2rem] bg-white p-8 shadow-soft border border-slate-200">
         <div className="space-y-3 text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">Create your account</p>

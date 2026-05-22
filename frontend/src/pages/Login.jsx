@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#f4faf5] px-4 py-12 sm:px-6 sm:py-16">
+    <div className="min-h-[100dvh] w-full bg-gray-50 px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto w-full max-w-md rounded-[2rem] bg-white p-8 shadow-soft border border-slate-200">
         <div className="space-y-3 text-center">
           <h2 className="text-2xl font-semibold text-slate-900">{t('auth.welcomeBack')}</h2>

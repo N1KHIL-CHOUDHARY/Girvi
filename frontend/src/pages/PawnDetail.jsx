@@ -194,7 +194,7 @@ export default function PawnDetail() {
                   <button
                     type="submit"
                     disabled={paymentMutation.isLoading}
-                    className="inline-flex items-center min-h-[44px] rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {paymentMutation.isLoading ? t('buttons.saving') : t('loans.savePayment')}
                   </button>
@@ -202,10 +202,10 @@ export default function PawnDetail() {
               </form>
             </div>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm border-neutral-800 bg-neutral-900">
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <IconClock className="h-5 w-5 text-neutral-500" />
-                <h3 className="text-base font-semibold text-neutral-900 text-neutral-100">{t('loans.paymentHistory')}</h3>
+                <IconClock className="h-5 w-5 text-gray-500" />
+                <h3 className="text-base font-semibold text-gray-900">{t('loans.paymentHistory')}</h3>
               </div>
               {isPaymentsLoading ? (
                 <p className="text-sm text-neutral-500">{t('loans.loadingPayments')}</p>
@@ -215,7 +215,7 @@ export default function PawnDetail() {
                 <div className="overflow-auto">
                   <table className="min-w-full text-sm">
                     <thead>
-                      <tr className="text-left text-neutral-500 border-b border-neutral-200 border-neutral-800">
+                      <tr className="border-b border-gray-200 text-left text-gray-500">
                         <th className="py-2 pr-4">{t('loans.date')}</th>
                         <th className="py-2 pr-4">{t('loans.type')}</th>
                         <th className="py-2 pr-4">{t('loans.amount')}</th>

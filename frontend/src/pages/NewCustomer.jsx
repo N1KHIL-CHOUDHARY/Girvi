@@ -9,7 +9,6 @@ import { Label } from '../components/ui/Label';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/FileUpload';
 
-// Define the initial state for the form
 const initialState = {
   full_name: '',
   phone_number: '',
@@ -28,7 +27,6 @@ export default function NewCustomer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // ✅ Define the mutation using TanStack Query
   const mutation = useMutation({
     mutationFn: async (payload) => {
       const res = await createAccount(payload);
@@ -52,12 +50,10 @@ export default function NewCustomer() {
     },
   });
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -80,11 +76,11 @@ export default function NewCustomer() {
 
   return (
     <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
-        <h2 className="text-xl font-bold text-neutral-800 text-neutral-200">
+      <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+        <h2 className="text-xl font-semibold text-gray-900">
           {t('common.createNewCustomer')}
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-gray-500">
           {t('common.addCustomerDescription')}
         </p>
 
