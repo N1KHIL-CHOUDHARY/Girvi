@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAccountById, updateAccount } from '../services/api';
-import toast from 'react-hot-toast';
-import { cn } from '../lib/utils';
-import { Input } from '../components/ui/Input';
-import { Label } from '../components/ui/Label';
-import FileUpload from '../components/FileUpload';
+import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getAccountById, updateAccount } from '../services/api'
+import toast from 'react-hot-toast'
+import { cn } from '../lib/utils'
+import { Input } from '../components/ui/Input'
+import { Label } from '../components/ui/Label'
+import FileUpload from '../components/FileUpload'
+import { IconUser } from '@tabler/icons-react'
 
 export default function UpdateCustomer() {
-  const { t } = useTranslation();
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { t } = useTranslation()
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState(null)
 
-  // ✅ Fetch existing customer using React Query
   const {
     data: customerData,
     isLoading: loadingCustomer,
@@ -25,38 +25,34 @@ export default function UpdateCustomer() {
   } = useQuery({
     queryKey: ['customer', id],
     queryFn: async () => {
-      const res = await getAccountById(id);
-      return res.data;
+      const res = await getAccountById(id)
+      return res.data
     },
     onError: () => {
-      toast.error(t('errors.failedToLoadCustomer'));
-      navigate('/app/customers');
+      toast.error(t('errors.failedToLoadCustomer'))
+      navigate('/app/customers')
     },
-  });
+  })
 
-  // ✅ Mutation for updating customer
   const updateMutation = useMutation({
     mutationFn: (payload) => updateAccount(id, payload),
     onSuccess: () => {
-      toast.success(t('customers.updatedSuccess'));
-      // Refresh cached data
-      queryClient.invalidateQueries(['customers']);
-      queryClient.invalidateQueries(['customer', id]);
-      navigate('/app/customers');
+      toast.success(t('customers.updatedSuccess'))
+      queryClient.invalidateQueries(['customers'])
+      queryClient.invalidateQueries(['customer', id])
+      navigate('/app/customers')
     },
     onError: (error) => {
       const message = 
         error.response?.data?.error || 
         error.response?.data?.message || 
-        t('errors.failedToUpdateCustomer');
+        t('errors.failedToUpdateCustomer')
         
-    
-      toast.error(message.replace(/"/g, ''));
+      toast.error(message.replace(/"/g, ''))
     },
-  });
+  })
 
-  // Initialize form when data is fetched
-  React.useEffect(() => {
+  useEffect(() => {
     if (customerData) {
       setFormData({
         full_name: customerData.full_name,
@@ -68,17 +64,17 @@ export default function UpdateCustomer() {
         aadhaar_number: customerData.aadhaar_number || '',
         pan_number: customerData.pan_number || '',
         customer_photo_url: customerData.customer_photo_url || '',
-      });
+      })
     }
-  }, [customerData]);
+  }, [customerData])
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData) return;
+    e.preventDefault()
+    if (!formData) return
 
     const payload = {
       full_name: formData.full_name,
@@ -92,45 +88,58 @@ export default function UpdateCustomer() {
       aadhaar_number: formData.aadhaar_number,
       pan_number: formData.pan_number,
       customer_photo_url: formData.customer_photo_url || undefined,
-    };
+    }
 
-    updateMutation.mutate(payload);
-  };
+    updateMutation.mutate(payload)
+  }
 
   if (loadingCustomer || !formData) {
     return (
-      <div className="text-center py-20 text-neutral-500 text-neutral-400">
-        {t('common.loadingCustomerData')}
+      <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] p-10 text-center shadow-sm animate-pulse">
+          <div className="h-6 bg-zinc-200 dark:bg-white/5 rounded w-1/3 mx-auto mb-4"></div>
+          <div className="h-4 bg-zinc-200 dark:bg-white/5 rounded w-1/4 mx-auto"></div>
+        </div>
       </div>
-    );
+    )
   }
 
   if (isError) {
     return (
-      <div className="text-center py-20 text-red-500">
-        {t('common.failedToLoadCustomer')} <br />
-        <Link to="/app/customers" className="text-blue-500 underline">
-          {t('buttons.goBack')}
-        </Link>
+      <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] p-10 text-center shadow-sm">
+          <p className="text-rose-600 dark:text-rose-400 font-medium text-lg mb-4">{t('common.failedToLoadCustomer')}</p>
+          <Link to="/app/customers" className="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-zinc-100 dark:bg-white/5 px-6 text-sm font-medium text-zinc-900 dark:text-white transition-colors hover:bg-zinc-200 dark:hover:bg-white/10">
+            {t('buttons.goBack')}
+          </Link>
+        </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="w-full">
-      <div className="shadow-input mx-auto w-full max-w-2xl rounded-none bg-white p-4 md:rounded-2xl md:p-8 ">
-        <h2 className="text-xl font-bold text-neutral-800 ">
-          {t('common.updateCustomer')}
-        </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 ">
-          {t('common.editingDetailsFor', { name: formData.full_name })}
-        </p>
+    <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] p-4 sm:p-6 md:p-10 font-sans">
+      <div className="mx-auto w-full max-w-3xl relative overflow-hidden rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] p-6 sm:p-10 shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_50%)] pointer-events-none" />
+        
+        <div className="relative z-10 mb-10 flex items-center gap-4">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/[0.05]">
+            <IconUser className="w-6 h-6 text-zinc-400" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-white">
+              {t('common.updateCustomer')}
+            </h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              {t('common.editingDetailsFor', { name: formData.full_name })}
+            </p>
+          </div>
+        </div>
 
-        <form className="my-8" onSubmit={handleSubmit}>
-          {/* Name + Phone */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer className="w-full">
-              <Label htmlFor="full_name">{t('forms.fullName')}</Label>
+        <form className="relative z-10" onSubmit={handleSubmit}>
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <LabelInputContainer>
+              <Label htmlFor="full_name" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.fullName')}</Label>
               <Input
                 id="full_name"
                 name="full_name"
@@ -140,10 +149,11 @@ export default function UpdateCustomer() {
                 value={formData.full_name}
                 onChange={handleChange}
                 required
+                className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all"
               />
             </LabelInputContainer>
-            <LabelInputContainer className="w-full">
-              <Label htmlFor="phone_number">{t('forms.phoneNumber')}</Label>
+            <LabelInputContainer>
+              <Label htmlFor="phone_number" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.phoneNumber')}</Label>
               <Input
                 id="phone_number"
                 name="phone_number"
@@ -154,21 +164,20 @@ export default function UpdateCustomer() {
                 value={formData.phone_number}
                 onChange={handleChange}
                 required
+                className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all"
               />
             </LabelInputContainer>
           </div>
 
-          {/* Gender */}
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="gender">{t('forms.gender')}</Label>
+          <LabelInputContainer className="mb-6">
+            <Label htmlFor="gender" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.gender')}</Label>
             <select
               id="gender"
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               className={cn(
-                `flex min-h-[44px] w-full rounded-md border border-neutral-300 bg-gray-50 px-3 py-2 text-sm
- text-black`
+                "min-h-[48px] w-full rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all appearance-none cursor-pointer"
               )}
             >
               <option value="Male">{t('forms.male')}</option>
@@ -177,9 +186,8 @@ export default function UpdateCustomer() {
             </select>
           </LabelInputContainer>
 
-          {/* Address */}
-          <LabelInputContainer className="mb-6 md:mb-4">
-            <Label htmlFor="line1">{t('forms.addressLine')}</Label>
+          <LabelInputContainer className="mb-6">
+            <Label htmlFor="line1" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.addressLine')}</Label>
             <Input
               id="line1"
               name="line1"
@@ -188,72 +196,64 @@ export default function UpdateCustomer() {
               enterKeyHint="next"
               value={formData.line1}
               onChange={handleChange}
+              className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all"
             />
           </LabelInputContainer>
 
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <LabelInputContainer>
-              <Label htmlFor="city">{t('forms.city')}</Label>
-              <Input id="city" name="city" type="text" autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} />
+              <Label htmlFor="city" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.city')}</Label>
+              <Input id="city" name="city" type="text" autoComplete="address-level2" enterKeyHint="next" value={formData.city} onChange={handleChange} className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all" />
             </LabelInputContainer>
             <LabelInputContainer>
-              <Label htmlFor="pincode">{t('forms.pincode')}</Label>
-              <Input id="pincode" name="pincode" type="text" inputMode="numeric" autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} />
-            </LabelInputContainer>
-          </div>
-
-          {/* Aadhaar + PAN */}
-          <div className="mb-6 md:mb-4 flex flex-col space-y-2 md:flex-row md:space-x-2">
-            <LabelInputContainer>
-              <Label htmlFor="aadhaar_number">{t('forms.aadhaarNumber')}</Label>
-              <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} />
-            </LabelInputContainer>
-            <LabelInputContainer>
-              <Label htmlFor="pan_number">{t('forms.panNumber')}</Label>
-              <Input id="pan_number" name="pan_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} />
+              <Label htmlFor="pincode" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.pincode')}</Label>
+              <Input id="pincode" name="pincode" type="text" inputMode="numeric" autoComplete="postal-code" enterKeyHint="next" value={formData.pincode} onChange={handleChange} className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all" />
             </LabelInputContainer>
           </div>
 
-          {/* Photo */}
-          <LabelInputContainer className="mb-8">
-            <FileUpload
-              value={formData.customer_photo_url}
-              onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
-              label={t('forms.customerPhoto')}
-            />
+          <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <LabelInputContainer>
+              <Label htmlFor="aadhaar_number" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.aadhaarNumber')}</Label>
+              <Input id="aadhaar_number" name="aadhaar_number" type="text" inputMode="numeric" enterKeyHint="next" value={formData.aadhaar_number} onChange={handleChange} className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all" />
+            </LabelInputContainer>
+            <LabelInputContainer>
+              <Label htmlFor="pan_number" className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{t('forms.panNumber')}</Label>
+              <Input id="pan_number" name="pan_number" type="text" autoComplete="off" enterKeyHint="next" value={formData.pan_number} onChange={handleChange} className="min-h-[48px] rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#1A1A1A] px-4 text-sm text-zinc-900 dark:text-white focus-visible:ring-1 focus-visible:ring-zinc-900 dark:focus-visible:ring-white transition-all" />
+            </LabelInputContainer>
+          </div>
+
+          <LabelInputContainer className="mb-10">
+            <Label className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">{t('forms.customerPhoto')}</Label>
+            <div className="rounded-xl border border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-[#1A1A1A] p-4">
+              <FileUpload
+                value={formData.customer_photo_url}
+                onChange={(url) => setFormData(prev => ({ ...prev, customer_photo_url: url }))}
+                label={t('forms.customerPhoto')}
+              />
+            </div>
           </LabelInputContainer>
 
-          {/* Buttons */}
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-zinc-100 dark:border-white/[0.05]">
             <Link
               to="/app/customers"
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gray-100 font-medium text-neutral-700   text-center leading-[44px] md:leading-10"
+              className="flex items-center justify-center min-h-[48px] sm:w-auto rounded-xl bg-zinc-100 dark:bg-white/5 px-8 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition-colors hover:bg-zinc-200 dark:hover:bg-white/10"
             >
               {t('buttons.cancel')}
             </Link>
             <button
-              className="group/btn relative block min-h-[44px] w-full md:w-auto rounded-md bg-gradient-to-br from-indigo-600 to-indigo-500 font-medium text-white shadow-lg"
+              className="flex items-center justify-center min-h-[48px] sm:w-auto rounded-xl bg-zinc-900 dark:bg-white px-8 text-sm font-medium text-white dark:text-zinc-900 transition-colors hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
               type="submit"
               disabled={updateMutation.isPending}
             >
               {updateMutation.isPending ? t('buttons.saving') : t('buttons.saveChanges')}
-              <BottomGradient />
             </button>
           </div>
         </form>
       </div>
     </div>
-  );
+  )
 }
 
-// Helper Components
-const BottomGradient = () => (
-  <>
-    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-  </>
-);
-
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn('flex flex-col space-y-2 w-full', className)}>{children}</div>
-);
+  <div className={cn('flex flex-col space-y-2.5 w-full', className)}>{children}</div>
+)

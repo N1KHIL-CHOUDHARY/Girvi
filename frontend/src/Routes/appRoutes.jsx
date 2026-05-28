@@ -10,8 +10,6 @@ import Landingpage from '@/pages/LandingPage';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import NotFound from '@/pages/NotFound';
-import Features from '@/pages/Features';
-import Pricing from '@/pages/Pricing';
 import PawnShopManagementSoftware from '@/pages/PawnShopManagementSoftware';
 
 // 🔹 LAZY (post-login / heavy)
@@ -48,8 +46,7 @@ export default function AppRoutes() {
     <Routes>
       {/* ===== Public ===== */}
       <Route path="/" element={<Landingpage />} />
-      <Route path="/features" element={<Features />} />
-      <Route path="/pricing" element={<Pricing />} />
+      
       <Route
         path="/pawn-shop-management-software"
         element={<PawnShopManagementSoftware />}

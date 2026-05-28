@@ -15,7 +15,7 @@ import { cn } from "../lib/utils";
 import { X, Menu } from "lucide-react";
 
 const SIDEBAR_EXPANDED = 300;
-const SIDEBAR_COLLAPSED = 64;
+const SIDEBAR_COLLAPSED = 80;
 
 const SidebarContext = createContext(null);
 
@@ -102,8 +102,8 @@ function DesktopSidebar({ className, children, ...props }) {
       className={cn(
         'hidden lg:flex lg:flex-col shrink-0',
         'h-screen overflow-hidden',
-        'bg-white border-r border-gray-200',
-        'px-3 py-4',
+        'bg-white dark:bg-[#121212] border-r border-zinc-200/60 dark:border-white/[0.05]',
+        'px-4 py-6',
         'z-30',
         className
       )}
@@ -116,10 +116,10 @@ function DesktopSidebar({ className, children, ...props }) {
       {...props}
     >
       {!canHover && (
-        <div className="flex items-center justify-end mb-2">
+        <div className="flex items-center justify-end mb-4">
           <button
             onClick={() => setOpen(!open)}
-            className="min-h-[44px] min-w-[44px] rounded-xl p-2 text-gray-600 transition hover:bg-gray-50"
+            className="min-h-[48px] min-w-[48px] rounded-2xl p-2 text-zinc-500 dark:text-zinc-400 transition-colors hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white"
             aria-label={open ? t('nav.closeSidebar') : t('nav.openSidebar')}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -167,7 +167,7 @@ function MobileSidebar({ className, children, ...props }) {
         {open && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-slate-900/30"
+              className="fixed inset-0 z-40 bg-zinc-950/40 backdrop-blur-sm"
               onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -179,11 +179,11 @@ function MobileSidebar({ className, children, ...props }) {
               aria-modal="true"
               className={cn(
                 "fixed bottom-0 left-0 right-0 z-50",
-                "min-h-[100dvh]",
-                "bg-white rounded-t-3xl",
-                "border-t border-gray-200 shadow-xl",
+                "max-h-[90dvh]",
+                "bg-white dark:bg-[#121212] rounded-t-[2rem]",
+                "border-t border-zinc-200/60 dark:border-white/[0.05] shadow-2xl",
                 "flex flex-col",
-                "p-4 pt-6 pb-[calc(4rem+env(safe-area-inset-bottom))]",
+                "p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
                 className
               )}
               initial={{ y: "100%" }}
@@ -192,17 +192,17 @@ function MobileSidebar({ className, children, ...props }) {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               {...props}
             >
-              <div className="flex justify-end mb-2">
+              <div className="flex justify-end mb-4">
                 <button
                   onClick={() => setOpen(false)}
-                  className="min-h-[44px] min-w-[44px] rounded-xl p-2 hover:bg-gray-50"
+                  className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-2xl text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white transition-colors"
                   aria-label={t('nav.closeMenu')}
                 >
-                  <X size={20} />
+                  <X size={24} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto overscroll-contain">
+              <div className="flex-1 overflow-y-auto overscroll-contain pb-6">
                 {children}
               </div>
             </motion.nav>
@@ -226,13 +226,17 @@ export function SidebarLink({ link, className, ...props }) {
       to={link.href}
       onClick={handleClick}
       className={cn(
-        'flex items-center gap-3 px-3 min-h-[44px]',
-        'rounded-xl transition-colors hover:bg-gray-50',
+        'flex items-center gap-4 px-4 min-h-[48px]',
+        'rounded-2xl transition-all duration-200',
+        'text-zinc-500 dark:text-zinc-400',
+        'hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white',
         className
       )}
       {...props}
     >
-      {link.icon}
+      <span className="flex items-center justify-center shrink-0">
+        {link.icon}
+      </span>
 
       <motion.span
         initial={false}
@@ -241,7 +245,7 @@ export function SidebarLink({ link, className, ...props }) {
           width: open ? 'auto' : 0,
         }}
         transition={{ duration: 0.2 }}
-        className="overflow-hidden whitespace-nowrap text-sm text-gray-900"
+        className="overflow-hidden whitespace-nowrap text-sm font-medium"
       >
         {t(link.label)}
       </motion.span>

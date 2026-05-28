@@ -4,8 +4,19 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAccountById, getPawnTicketsByAccountId, getAccountStats, updatePawnTicketStatus } from '../services/api';
 import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { IconPlus, IconEdit, IconCheck, IconCurrencyRupee, IconFileText, IconPhone, IconMapPin, IconChevronRight, IconTicket } from '@tabler/icons-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  IconPlus, 
+  IconEdit, 
+  IconCheck, 
+  IconCurrencyRupee, 
+  IconFileText, 
+  IconPhone, 
+  IconMapPin, 
+  IconTicket,
+  IconEye,
+  IconReceipt
+} from '@tabler/icons-react';
 import {
   Table,
   TableBody,
@@ -19,38 +30,32 @@ import { cn } from '../lib/utils';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { usePermission } from '../hooks/usePermission';
 
-// ✅ Enhanced StatCard for mobile
+// ✅ Premium Bento StatCard
 const StatCard = ({ title, value, className }) => (
-  <div className={cn("shadow-sm rounded-2xl bg-white p-4 border border-gray-100", className)}>
-    <p className="text-xs text-gray-500 font-medium mb-1">{title}</p>
-    <p className="text-2xl font-bold text-gray-900">{value}</p>
+  <div className={cn("relative overflow-hidden shadow-sm rounded-[2rem] bg-white dark:bg-[#121212] p-6 border border-zinc-200/60 dark:border-white/[0.05]", className)}>
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_50%)] pointer-events-none" />
+    <p className="relative z-10 text-[10px] font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mb-2">{title}</p>
+    <p className="relative z-10 text-2xl md:text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">{value}</p>
   </div>
 );
 
-// ✅ Enhanced Skeleton
+// ✅ Premium Bento Skeleton
 const CustomerDetailSkeleton = () => (
-  <div className="min-h-[100dvh] bg-gray-50 md:bg-white">
-    <div className="p-4 md:p-6 animate-pulse">
-      {/* Header skeleton */}
-      <div className="bg-white rounded-2xl p-6 mb-4 shadow-sm">
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-20 h-20 md:w-32 md:h-32 rounded-2xl bg-gray-200"></div>
-          <div className="flex-1 space-y-3">
-            <div className="h-6 md:h-8 w-40 bg-gray-200 rounded-lg"></div>
-            <div className="h-4 w-32 bg-gray-200 rounded-md"></div>
-            <div className="h-4 w-48 bg-gray-200 rounded-md"></div>
+  <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] p-4 md:p-8 max-w-7xl mx-auto">
+    <div className="animate-pulse space-y-6">
+      <div className="bg-white dark:bg-[#121212] rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] p-6 md:p-8">
+        <div className="flex items-start gap-6">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-zinc-200 dark:bg-white/5"></div>
+          <div className="flex-1 space-y-4 pt-2">
+            <div className="h-8 w-48 bg-zinc-200 dark:bg-white/5 rounded-xl"></div>
+            <div className="h-5 w-32 bg-zinc-200 dark:bg-white/5 rounded-lg"></div>
+            <div className="h-5 w-64 bg-zinc-200 dark:bg-white/5 rounded-lg"></div>
           </div>
         </div>
-        <div className="h-10 w-32 bg-gray-200 rounded-xl"></div>
       </div>
-      
-      {/* Stats skeleton */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 h-20 shadow-sm">
-            <div className="h-3 w-20 bg-gray-200 rounded mb-2"></div>
-            <div className="h-6 w-24 bg-gray-200 rounded"></div>
-          </div>
+          <div key={i} className="bg-white dark:bg-[#121212] rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] p-6 h-32"></div>
         ))}
       </div>
     </div>
@@ -65,38 +70,24 @@ export default function CustomerDetail() {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const { hasPermission } = usePermission();
 
-  // ✅ Define queries
-  const {
-    data: customer,
-    isLoading: customerLoading,
-    isError: customerError,
-  } = useQuery({
+  const { data: customer, isLoading: customerLoading, isError: customerError } = useQuery({
     queryKey: ['customer', id],
     queryFn: () => getAccountById(id).then(res => res.data),
     onError: () => toast.error(t('errors.failedToLoadCustomerDetails')),
   });
 
-  const {
-    data: pawns,
-    isLoading: pawnLoading,
-    isError: pawnError,
-  } = useQuery({
+  const { data: pawns, isLoading: pawnLoading, isError: pawnError } = useQuery({
     queryKey: ['pawns', id],
     queryFn: () => getPawnTicketsByAccountId(id).then(res => res.data.tickets),
     onError: () => toast.error(t('errors.failedToLoadPawnTickets')),
   });
 
-  const {
-    data: stats,
-    isLoading: statsLoading,
-    isError: statsError,
-  } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['stats', id],
     queryFn: () => getAccountStats(id).then(res => res.data.stats),
     onError: () => toast.error(t('errors.failedToLoadStats')),
   });
 
-  // SETTLE mutation
   const settleMutation = useMutation({
     mutationFn: (ticketId) => updatePawnTicketStatus(ticketId, 'settled'),
     onSuccess: () => {
@@ -121,313 +112,328 @@ export default function CustomerDetail() {
   const loading = customerLoading || pawnLoading || statsLoading;
   const error = customerError || pawnError || statsError;
 
-  const statusClass = (status) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-700';
-      case 'settled':
-        return 'bg-blue-100 text-blue-700';
-      case 'defaulted':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
+  const statusClass = (status) =>
+    ({
+      active: "bg-emerald-50/80 text-emerald-700 border-emerald-200/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+      settled: "bg-zinc-100 text-zinc-600 border-zinc-200/60 dark:bg-white/5 dark:text-zinc-400 dark:border-white/10",
+      defaulted: "bg-rose-50/80 text-rose-700 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+    }[status] || "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-white/5 dark:text-zinc-400");
 
   if (loading) return <CustomerDetailSkeleton />;
   if (error || !customer) return (
-    <div className="min-h-[100dvh] flex items-center justify-center p-4">
-      <div className="text-center">
-        <p className="text-red-600 font-semibold text-lg">{t('customers.failedToLoad')}</p>
-        <p className="text-gray-500 text-sm mt-2">{t('customers.tryAgainLater')}</p>
+    <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] flex items-center justify-center p-4">
+      <div className="text-center bg-white dark:bg-[#121212] p-8 rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05]">
+        <p className="text-rose-600 dark:text-rose-400 font-medium text-lg">{t('customers.failedToLoad')}</p>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-2">{t('customers.tryAgainLater')}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 md:bg-white pb-6">
-      <AnimatePresence>
-        <motion.div
-          key="customer-detail"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.5 } }}
-          className="p-4 md:p-6"
-        >
-          {/* Settle Modal */}
-          <ConfirmationModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={handleConfirmSettle}
-            title={t('loans.settlePawnTicket')}
-            message={t('loans.settleConfirmMessage')}
-            confirmText={t('loans.yesSettle')}
-          />
+    <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] p-4 md:p-8 font-sans">
+      <div className="max-w-7xl mx-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="customer-detail"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <ConfirmationModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onConfirm={handleConfirmSettle}
+              title={t('loans.settlePawnTicket')}
+              message={t('loans.settleConfirmMessage')}
+              confirmText={t('loans.yesSettle')}
+            />
 
-          {/* Customer Info - Redesigned for mobile */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8 mb-4 md:mb-6">
-            <div className="flex flex-col md:flex-row items-start md:items-start gap-4 md:gap-6">
-              <img
-                src={customer.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${customer.full_name}`}
-                alt={customer.full_name}
-                className="w-20 h-20 md:w-32 md:h-32 rounded-2xl object-cover ring-4 ring-gray-100"
-              />
-              <div className="flex-1 w-full">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{customer.full_name}</h1>
+            {/* Premium Profile Header */}
+            <div className="relative overflow-hidden bg-white dark:bg-[#121212] rounded-[2rem] shadow-sm border border-zinc-200/60 dark:border-white/[0.05] p-6 md:p-8 mb-6">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_50%)] pointer-events-none" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-start gap-6 md:gap-8">
+                <img
+                  src={customer.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${customer.full_name}`}
+                  alt={customer.full_name}
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-[1.5rem] object-cover ring-1 ring-zinc-200 dark:ring-white/10"
+                />
                 
-                <div className="space-y-2 mb-5">
-                  <div className="flex items-center gap-2.5 text-gray-700">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <IconPhone className="w-4 h-4 text-gray-600" />
+                <div className="flex-1 w-full pt-1">
+                  <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-white mb-4">
+                    {customer.full_name}
+                  </h1>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 mb-6">
+                    <div className="flex items-center gap-3 text-zinc-600 dark:text-zinc-300">
+                      <div className="flex items-center justify-center w-8 h-8 bg-zinc-50 dark:bg-white/5 rounded-lg border border-zinc-100 dark:border-white/[0.05]">
+                        <IconPhone className="w-4 h-4 text-zinc-400" />
+                      </div>
+                      <span className="text-sm font-mono">{customer.phone_number}</span>
                     </div>
-                    <span className="text-sm md:text-base font-medium">{customer.phone_number}</span>
-                  </div>
-                  <div className="flex items-start gap-2.5 text-gray-700">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <IconMapPin className="w-4 h-4 text-gray-600" />
+                    <div className="flex items-center gap-3 text-zinc-600 dark:text-zinc-300">
+                      <div className="flex items-center justify-center w-8 h-8 bg-zinc-50 dark:bg-white/5 rounded-lg border border-zinc-100 dark:border-white/[0.05]">
+                        <IconMapPin className="w-4 h-4 text-zinc-400" />
+                      </div>
+                      <span className="text-sm">
+                        {customer.address?.city || 'Location not provided'}
+                        {customer.address?.pincode && `, ${customer.address.pincode}`}
+                      </span>
                     </div>
-                    <span className="text-sm md:text-base">
-                      {customer.address?.line1} {customer.address?.city}, {customer.address?.pincode}
-                    </span>
                   </div>
+
+                  {hasPermission('can_edit_customers') && (
+                    <Link
+                      to={`/app/customer/update/${customer._id}`}
+                      className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
+                    >
+                      <IconEdit className="w-4 h-4" />
+                      <span>{t('common.editCustomer')}</span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Grid Analytics */}
+            <div className="mb-8">
+              <h2 className="text-xl font-medium tracking-tight text-zinc-900 dark:text-white mb-4 px-2">
+                {t('common.analytics')}
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <StatCard 
+                  title={t('common.lifetimeLoans')} 
+                  value={`₹${stats?.total_loan_value?.toLocaleString('en-IN') || 0}`}
+                  className="col-span-2 md:col-span-1"
+                />
+                <StatCard 
+                  title={t('common.activeLoans')} 
+                  value={`₹${stats?.total_active_loan?.toLocaleString('en-IN') || 0}`} 
+                />
+                <StatCard 
+                  title={t('common.activeTickets')} 
+                  value={stats?.active_tickets || 0} 
+                />
+              </div>
+            </div>
+
+            {/* Tickets Header */}
+            <div className="flex justify-between items-center mb-4 px-2">
+              <h2 className="text-xl font-medium tracking-tight text-zinc-900 dark:text-white">
+                {t('common.pawnTicketsList')}
+              </h2>
+              {hasPermission("can_create_tickets") && (
+                <Link
+                  to="/app/pawn/add"
+                  className="flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
+                >
+                  <IconPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t('loans.newTicket')}</span>
+                </Link>
+              )}
+            </div>
+
+            {pawns?.length ? (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block rounded-3xl border border-zinc-200/60 dark:border-white/[0.06] bg-white dark:bg-[#121212] overflow-hidden shadow-sm mb-10">
+                  <Table>
+                    <TableHeader className="bg-zinc-50/50 dark:bg-white/[0.02]">
+                      <TableRow className="border-zinc-200/60 dark:border-white/[0.06] hover:bg-transparent">
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5 pl-6">{t('loans.ticketNumber')}</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">{t('loans.items')}</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">{t('loans.loanAmount')}</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">{t('loans.dateLabel')}</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">{t('loans.status')}</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5 text-right pr-6">{t('customers.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pawns.map((pawn) => (
+                        <TableRow key={pawn._id} className="border-zinc-100 dark:border-white/[0.04] hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                          <TableCell className="font-medium text-zinc-900 dark:text-white pl-6 py-5">
+                            {pawn.ticket_number}
+                          </TableCell>
+                          <TableCell className="text-zinc-600 dark:text-zinc-400 py-5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm">{pawn.items[0]?.name}</span>
+                              {pawn.items.length > 1 && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-white/10 text-zinc-500 dark:text-zinc-400 font-medium">
+                                  +{pawn.items.length - 1}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium text-zinc-900 dark:text-white py-5">
+                            ₹{pawn.loan_amount.toLocaleString('en-IN')}
+                          </TableCell>
+                          <TableCell className="text-zinc-600 dark:text-zinc-400 py-5 font-mono text-sm">
+                            {new Date(pawn.pawned_date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="py-5">
+                            <span className={cn('px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-md border shrink-0', statusClass(pawn.status))}>
+                              {pawn.status}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right pr-6 py-5">
+                            {/* Always visible actions */}
+                            <div className="flex items-center justify-end gap-2">
+                              <Link
+                                to={`/app/pawns/${pawn._id}`}
+                                title="View Details"
+                                className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                              >
+                                <IconEye className="w-[18px] h-[18px]" />
+                              </Link>
+                              {hasPermission('can_edit_tickets') && (
+                                <Link
+                                  to={`/app/pawn/update/${pawn._id}`}
+                                  title="Edit Ticket"
+                                  className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                >
+                                  <IconEdit className="w-[18px] h-[18px]" />
+                                </Link>
+                              )}
+                              {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
+                                <>
+                                  <button
+                                    onClick={() => openSettleModal(pawn._id)}
+                                    disabled={settleMutation.isLoading}
+                                    title="Settle"
+                                    className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
+                                  >
+                                    <IconCheck className="w-[18px] h-[18px]" />
+                                  </button>
+                                  <Link
+                                    to={`/app/pawns/${pawn._id}`}
+                                    title="Record Payment"
+                                    className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                                  >
+                                    <IconReceipt className="w-[18px] h-[18px]" />
+                                  </Link>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
 
-                <Link
-                  to={`/app/customer/update/${customer._id}`}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all active:scale-95 shadow-sm text-sm md:text-base"
-                >
-                  <IconEdit className="w-4 h-4" />
-                  <span>{t('common.editCustomer')}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
+                {/* Mobile Bento Card View */}
+                <div className="md:hidden space-y-4 mb-10">
+                  {pawns.map((pawn, index) => (
+                    <motion.div
+                      key={pawn._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.05 }}
+                      className="group flex flex-col p-6 rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.06] bg-white dark:bg-[#121212] overflow-hidden shadow-sm relative"
+                    >
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_50%)] pointer-events-none" />
 
-          {/* Analytics - Enhanced mobile grid */}
-          <div className="mb-4 md:mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 px-1">
-              {t('common.analytics')}
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <StatCard 
-                title={t('common.lifetimeLoans')} 
-                value={`₹${stats?.total_loan_value?.toLocaleString('en-IN') || 0}`}
-                className="col-span-2 md:col-span-1"
-              />
-              <StatCard 
-                title={t('common.activeLoans')} 
-                value={`₹${stats?.total_active_loan?.toLocaleString('en-IN') || 0}`} 
-              />
-              <StatCard 
-                title={t('common.activeTickets')} 
-                value={stats?.active_tickets || 0} 
-              />
-            </div>
-          </div>
-
-          {/* Pawn History - Enhanced header */}
-          <div className="flex justify-between items-center mb-3 md:mb-4 px-1">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              {t('common.pawnTicketsList')}
-            </h2>
-            <Link
-              to="/app/pawn/add"
-              className="flex items-center justify-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-sm"
-            >
-              <IconPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('loans.newTicket')}</span>
-              <span className="sm:hidden">{t('auth.next')}</span>
-            </Link>
-          </div>
-
-          {pawns?.length ? (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden md:block shadow-input rounded-2xl bg-white text-base">
-                <Table>
-                  <TableCaption className="pb-1.5 text-neutral-700">
-                    {t('common.ticketsForCustomer', { name: customer.full_name })}
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('loans.ticketNumber')}</TableHead>
-                      <TableHead>{t('loans.items')}</TableHead>
-                      <TableHead>{t('loans.loanAmount')}</TableHead>
-                      <TableHead>{t('loans.dateLabel')}</TableHead>
-                      <TableHead>{t('loans.status')}</TableHead>
-                      <TableHead className="text-center">{t('customers.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pawns.map((pawn) => (
-                      <TableRow key={pawn._id}>
-                        <TableCell className="font-medium text-neutral-800">{pawn.ticket_number}</TableCell>
-                        <TableCell className="text-neutral-600">
-                          {pawn.items[0]?.name}{pawn.items.length > 1 && ` (+${pawn.items.length - 1})`}
-                        </TableCell>
-                        <TableCell className="font-medium text-neutral-800">
-                          {`₹${pawn.loan_amount.toLocaleString('en-IN')}`}
-                        </TableCell>
-                        <TableCell className="text-neutral-600">
-                          {new Date(pawn.pawned_date).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <span className={cn('px-2 py-1 text-xs font-medium rounded-full', statusClass(pawn.status))}>
-                            {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Link
-                              to={`/app/pawn/update/${pawn._id}`}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-                            >
-                              <IconEdit size={16} />
-                              <span>{t('customers.edit')}</span>
-                            </Link>
-                            {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
-                              <button
-                                onClick={() => openSettleModal(pawn._id)}
-                                disabled={settleMutation.isLoading}
-                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Mark as Settled"
-                              >
-                                <IconCheck size={16} />
-                                <span>{t('loans.settle')}</span>
-                              </button>
-                            )}
-                            <Link
-                              to={`/app/pawns/${pawn._id}`}
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                            >
-                              <IconCurrencyRupee size={16} />
-                              <span>{t('loans.payment')}</span>
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Mobile Card View - Completely Redesigned */}
-              <div className="md:hidden space-y-3">
-                {pawns.map((pawn, index) => (
-                  <motion.div
-                    key={pawn._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
-                  >
-                    {/* Header with Ticket Number and Status */}
-                    <div className="px-4 pt-4 pb-3 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 bg-white rounded-lg shadow-sm">
-                            <IconTicket className="w-4 h-4 text-emerald-600" />
+                      {/* Header */}
+                      <div className="relative z-10 flex items-start justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-zinc-50 dark:bg-white/5 border border-zinc-100 dark:border-white/[0.05] rounded-xl shadow-sm">
+                            <IconTicket className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Ticket Number</p>
-                            <p className="font-bold text-base text-gray-900">{pawn.ticket_number}</p>
+                            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 dark:text-zinc-500 block">
+                              Ticket No.
+                            </p>
+                            <p className="font-semibold text-zinc-900 dark:text-white">{pawn.ticket_number}</p>
                           </div>
                         </div>
-                        <span className={cn('px-3 py-1.5 text-xs font-semibold rounded-full', statusClass(pawn.status))}>
-                          {pawn.status.charAt(0).toUpperCase() + pawn.status.slice(1)}
+                        <span className={cn('px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest rounded-lg border shrink-0', statusClass(pawn.status))}>
+                          {pawn.status}
                         </span>
                       </div>
-                    </div>
 
-                    {/* Details */}
-                    <div className="p-4 space-y-3">
-                      {/* Item Details */}
-                      <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                        <IconFileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-500 font-medium mb-0.5">{t('common.itemsLabel')}</p>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {pawn.items[0]?.name}
+                      {/* Sub-cards */}
+                      <div className="relative z-10 grid grid-cols-2 gap-3 mb-6 flex-grow">
+                        <div className="rounded-2xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.02] p-4 flex flex-col justify-center">
+                          <span className="text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-2">
+                            Pledged Items
+                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 line-clamp-2 leading-snug">
+                              {pawn.items[0]?.name || "N/A"}
+                            </span>
                             {pawn.items.length > 1 && (
-                              <span className="text-gray-500 font-normal ml-1">
-                                +{pawn.items.length - 1} more
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/50 dark:bg-white/10 text-zinc-600 dark:text-zinc-400 font-medium">
+                                +{pawn.items.length - 1}
                               </span>
                             )}
-                          </p>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Amount and Date */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-emerald-50 rounded-xl">
-                          <p className="text-xs text-emerald-600 font-medium mb-1">{t('common.loanAmountLabel')}</p>
-                          <p className="text-lg font-bold text-emerald-700">
+                        <div className="rounded-2xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100/50 dark:border-emerald-500/10 p-4 flex flex-col justify-center">
+                          <span className="text-[10px] uppercase tracking-widest text-emerald-600/70 dark:text-emerald-500/70 mb-2">
+                            Loan Amount
+                          </span>
+                          <span className="text-xl md:text-2xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-400">
                             ₹{pawn.loan_amount.toLocaleString('en-IN')}
-                          </p>
-                        </div>
-                        <div className="p-3 bg-blue-50 rounded-xl">
-                          <p className="text-xs text-blue-600 font-medium mb-1">Date</p>
-                          <p className="text-sm font-semibold text-blue-700">
-                            {new Date(pawn.pawned_date).toLocaleDateString('en-IN', { 
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </p>
+                          </span>
                         </div>
                       </div>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 pt-2">
+                      {/* Action Dock */}
+                      <div className="relative z-10 flex items-center gap-2 pt-4 border-t border-zinc-100 dark:border-white/[0.05]">
                         <Link
-                          to={`/app/pawn/update/${pawn._id}`}
-                          className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all active:scale-95 font-semibold text-sm shadow-sm"
+                          to={`/app/pawns/${pawn._id}`}
+                          className="flex-1 flex items-center justify-center gap-2 h-[42px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors text-xs font-medium"
                         >
-                          <IconEdit className="w-4 h-4" />
-                          <span>{t('customers.edit')}</span>
+                          <IconEye className="w-[18px] h-[18px]" />
+                          <span>View Details</span>
                         </Link>
+                        
+                        {hasPermission('can_edit_tickets') && (
+                          <Link
+                            to={`/app/pawn/update/${pawn._id}`}
+                            className="flex items-center justify-center w-[42px] h-[42px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors shrink-0"
+                          >
+                            <IconEdit className="w-[18px] h-[18px]" />
+                          </Link>
+                        )}
                         
                         {hasPermission('can_settle_tickets') && pawn.status === 'active' && (
                           <button
                             onClick={() => openSettleModal(pawn._id)}
                             disabled={settleMutation.isLoading}
-                            className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 text-white hover:bg-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shadow-sm"
+                            className="flex items-center justify-center w-[42px] h-[42px] rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors shrink-0"
                           >
-                            <IconCheck className="w-4 h-4" />
-                            <span>{t('loans.settle')}</span>
+                            <IconCheck className="w-[18px] h-[18px]" />
                           </button>
                         )}
                       </div>
-
-                      {/* Payment Link */}
-                      <Link
-                        to={`/app/pawns/${pawn._id}`}
-                        className="block w-full py-2.5 text-center rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-semibold text-sm border border-emerald-200"
-                      >
-                        {t('common.viewPaymentsAndDetails')}
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-16 bg-white dark:bg-[#121212] rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] shadow-sm">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-zinc-50 dark:bg-white/5 rounded-2xl mb-4">
+                  <IconTicket className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
+                </div>
+                <p className="text-zinc-900 dark:text-white font-medium mb-1">{t('empty.noPawnTicketsYet')}</p>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">{t('empty.createFirstPawnTicket')}</p>
+                {hasPermission("can_create_tickets") && (
+                  <Link
+                    to="/app/pawn/add"
+                    className="inline-flex items-center gap-2 h-11 px-6 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium shadow-sm"
+                  >
+                    <IconPlus className="w-4 h-4" />
+                    {t('empty.createPawnTicket')}
+                  </Link>
+                )}
               </div>
-            </>
-          ) : (
-            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                <IconTicket className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-600 font-semibold text-lg mb-1">{t('empty.noPawnTicketsYet')}</p>
-              <p className="text-gray-500 text-sm mb-6">{t('empty.createFirstPawnTicket')}</p>
-              <Link
-                to="/app/pawn/add"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all active:scale-95 font-semibold shadow-sm"
-              >
-                <IconPlus className="w-5 h-5" />
-                {t('empty.createPawnTicket')}
-              </Link>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

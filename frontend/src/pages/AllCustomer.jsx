@@ -1,224 +1,171 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { getAccounts, deleteAccount } from '../services/api';
-import { usePermission } from '../hooks/usePermission';
-import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { getAccounts, deleteAccount } from '../services/api'
+import { usePermission } from '../hooks/usePermission'
+import toast from 'react-hot-toast'
+import { motion, AnimatePresence } from 'motion/react'
 import { 
   IconCircleArrowLeftFilled, 
   IconCircleArrowRightFilled, 
   IconEye, 
-  IconTrashFilled, 
+  IconTrash, 
   IconEdit, 
   IconPlus,
-  IconPhone,
-  IconMapPin,
   IconSearch,
-  IconX,
-  IconDotsVertical
-} from '@tabler/icons-react';
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+  IconUsers,
+  IconMapPin
+} from '@tabler/icons-react'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "../components/ui/table";
-import { Input } from "../components/ui/Input";
-import TableSkeleton from "../components/TableSkeleton";
-import ConfirmationModal from "../components/ConfirmationModal";
+} from "../components/ui/table"
+import { Input } from "../components/ui/Input"
+import TableSkeleton from "../components/TableSkeleton"
+import ConfirmationModal from "../components/ConfirmationModal"
+import { useDebounce } from '../hooks/useDebounce'
+import { cn } from '../lib/utils'
 
 export default function AllCustomers() {
-  const { t } = useTranslation();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+
+  const [page, setPage] = useState(1)
+  const [searchInput, setSearchInput] = useState('')
+  const debouncedSearch = useDebounce(searchInput, 400)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   
-  const { hasPermission } = usePermission();
-  const queryClient = useQueryClient();
+  const { hasPermission } = usePermission()
 
   const { data: queryData, isLoading, isError } = useQuery({
-    queryKey: ['customers', page, search],
-    queryFn: () => getAccounts(page, search),
+    queryKey: ['customers', page, debouncedSearch],
+    queryFn: () => getAccounts(page, debouncedSearch),
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
-  });
+  })
   
-  const accounts = queryData?.data?.customers || [];
-  const totalPages = queryData?.data?.totalPages || 1;
-  const totalCustomers = queryData?.data?.totalCustomers || 0;
+  const accounts = queryData?.data?.customers || []
+  const totalPages = queryData?.data?.totalPages || 1
+  const totalCustomers = queryData?.data?.totalCustomers || 0
 
   const deleteMutation = useMutation({
     mutationFn: deleteAccount,
     onSuccess: () => {
-      toast.success(t('customers.deletedSuccess'));
-      queryClient.invalidateQueries(['customers']); 
-      setDeleteTarget(null);
-      setOpenMenuId(null);
+      toast.success(t('customers.deletedSuccess'))
+      queryClient.invalidateQueries(['customers', page, debouncedSearch]) 
+      setDeleteTarget(null)
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || t('customers.failedToDelete'));
+      toast.error(err.response?.data?.message || t('customers.failedToDelete'))
     },
-  });
+  })
 
-  const handleDelete = async (id) => {
-    setDeleteTarget(id);
-  };
+  const handleDelete = (id) => {
+    setDeleteTarget(id)
+  }
 
   const confirmDelete = () => {
     if (deleteTarget) {
-      deleteMutation.mutate(deleteTarget); 
+      deleteMutation.mutate(deleteTarget) 
     }
-  };
-  
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setPage(1); 
-  };
+  }
   
   const goToPage = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
+      setPage(newPage)
     }
-  };
-
-  const toggleMenu = (id) => {
-    setOpenMenuId(openMenuId === id ? null : id);
-  };
+  }
 
   return (
-    <div className="min-h-[100dvh] bg-gray-50 md:bg-white">
-      {/* Mobile Header - Fixed */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-2xl font-bold text-gray-900">{t('customers.title')}</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                {isSearchOpen ? (
-                  <IconX className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <IconSearch className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
-              {hasPermission('can_create_customers') && (
-                <Link
-                  to="/app/customer/add"
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                >
-                  <IconPlus className="w-4 h-4" />
-                  {t('customers.add')}
-                </Link>
-              )}
-            </div>
-          </div>
-          
-          {/* Search Bar - Collapsible on Mobile */}
-          <AnimatePresence>
-            {isSearchOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <Input
-                  type="text"
-                  placeholder={t('customers.searchByName')}
-                  value={search}
-                  onChange={handleSearch}
-                  className="w-full"
-                  autoFocus
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        
-        {/* Results Count */}
-        {!isLoading && accounts.length > 0 && (
-          <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-            <p className="text-xs text-gray-600">
-              {t('customers.totalCount', { count: totalCustomers })}
+    <div className="min-h-[100dvh] bg-[#FAFAF9] dark:bg-[#0A0A0A] p-4 sm:p-6 md:p-10 font-sans">
+      
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
+              <IconUsers className="w-8 h-8 text-zinc-400" />
+              {t('customers.title')}
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 ml-11">
+              Manage client profiles, KYC details, and histories.
             </p>
           </div>
-        )}
-      </div>
+          
+          <div className="flex flex-wrap w-full lg:w-auto gap-3">
+            <div className="relative w-full sm:w-72 flex-grow">
+              <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Input
+                type="text"
+                placeholder={t('customers.searchByName')}
+                value={searchInput}
+                onChange={(e) => {
+                  setPage(1)
+                  setSearchInput(e.target.value)
+                }}
+                className="w-full pl-10 min-h-[44px] rounded-xl border-zinc-200 dark:border-white/[0.08] bg-white dark:bg-[#121212] focus:ring-zinc-900 dark:focus:ring-white"
+              />
+            </div>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <h1 className="text-3xl font-bold text-black">{t('customers.title')}</h1>
-          <div className="flex w-full sm:w-auto gap-2">
-            <Input
-              type="text"
-              placeholder={t('customers.searchByName')}
-              value={search}
-              onChange={handleSearch}
-              className="w-full md:w-64"
-            />
             {hasPermission('can_create_customers') && (
               <Link
                 to="/app/customer/add"
-                className="flex items-center justify-center gap-2 h-10 px-4 rounded-md font-medium whitespace-nowrap text-black hover:bg-gray-100"
+                className="flex items-center justify-center gap-2 min-h-[44px] px-6 rounded-xl font-medium text-sm whitespace-nowrap bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shrink-0 shadow-sm"
               >
-                <IconPlus className="text-black" />
-                <span>{t('customers.newCustomer')}</span>
+                <IconPlus className="w-4 h-4" />
+                <span className="hidden sm:block">{t('customers.newCustomer')}</span>
               </Link>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Content Area */}
-      <div className="pt-32 md:pt-0 pb-20 md:pb-6 px-4 md:px-6">
+        {/* Content Area */}
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div
               key="loader"
               initial={false}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="shadow-input rounded-2xl bg-white p-4 min-h-[320px]"
+              className="rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] p-6 min-h-[400px] shadow-sm"
             >
               <TableSkeleton />
             </motion.div>
           ) : (
             <motion.div
               key="data"
-              initial={false}
-              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               {isError ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                    <IconX className="w-8 h-8 text-red-600" />
+                <div className="flex flex-col items-center justify-center min-h-[400px] rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] text-center p-8">
+                  <div className="w-16 h-16 bg-rose-50 dark:bg-rose-500/10 rounded-2xl flex items-center justify-center mb-4">
+                    <IconUsers className="w-6 h-6 text-rose-400" />
                   </div>
-                  <p className="text-red-600 font-medium">{t('customers.failedToLoad')}</p>
-                  <p className="text-gray-500 text-sm mt-1">{t('customers.tryAgainLater')}</p>
+                  <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-1">{t('customers.failedToLoad')}</h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    {t('customers.tryAgainLater')}
+                  </p>
                 </div>
               ) : accounts.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                    <IconSearch className="w-8 h-8 text-gray-400" />
+                <div className="flex flex-col items-center justify-center min-h-[400px] rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.05] bg-white dark:bg-[#121212] text-center p-8">
+                  <div className="w-16 h-16 bg-zinc-50 dark:bg-white/5 rounded-2xl flex items-center justify-center mb-4">
+                    <IconSearch className="w-6 h-6 text-zinc-300 dark:text-zinc-600" />
                   </div>
-                  <p className="text-gray-600 font-medium">
-                    {search ? t('customers.noCustomersMatching', { search }) : t('customers.noCustomersYet')}
+                  <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-1">No customers found</h3>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                    {searchInput ? t('customers.noCustomersMatching', { search: searchInput }) : t('customers.noCustomersYet')}
                   </p>
-                  {!search && hasPermission('can_create_customers') && (
+                  {!searchInput && hasPermission('can_create_customers') && (
                     <Link
                       to="/app/customer/add"
-                      className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 rounded-xl font-medium text-sm whitespace-nowrap bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-sm"
                     >
                       <IconPlus className="w-4 h-4" />
                       {t('customers.addFirstCustomer')}
@@ -228,65 +175,72 @@ export default function AllCustomers() {
               ) : (
                 <>
                   {/* Desktop Table View */}
-                  <div className="hidden md:block shadow-input rounded-2xl bg-white p-4">
+                  <div className="hidden md:block rounded-3xl border border-zinc-200/60 dark:border-white/[0.06] bg-white dark:bg-[#121212] overflow-hidden shadow-sm">
                     <Table>
-                      <TableCaption className="pb-4">
-                        {t('customers.showingOf', { shown: accounts.length, total: totalCustomers })}
-                      </TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('customers.photo')}</TableHead>
-                          <TableHead>{t('customers.name')}</TableHead>
-                          <TableHead>{t('customers.phone')}</TableHead>
-                          <TableHead>{t('customers.address')}</TableHead>
-                          <TableHead className="text-center">{t('customers.actions')}</TableHead>
+                      <TableHeader className="bg-zinc-50/50 dark:bg-white/[0.02]">
+                        <TableRow className="border-zinc-200/60 dark:border-white/[0.06] hover:bg-transparent">
+                          <TableHead className="w-[80px] pl-6 py-5"></TableHead>
+                          <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">
+                            {t('customers.name')}
+                          </TableHead>
+                          <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">
+                            {t('customers.phone')}
+                          </TableHead>
+                          <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5">
+                            {t('customers.address')}
+                          </TableHead>
+                          <TableHead className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium py-5 text-right pr-6">
+                            {t('customers.actions')}
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {accounts.map((account) => (
-                          <TableRow key={account._id} className="hover:bg-gray-50">
-                            <TableCell>
-                            <img
-                              src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
-                              alt={account.full_name}
-                              width={40}
-                              height={40}
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
+                          <TableRow key={account._id} className="border-zinc-100 dark:border-white/[0.04] hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                            <TableCell className="pl-6 py-4">
+                              <img
+                                src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                                alt={account.full_name}
+                                className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-white/10"
+                              />
                             </TableCell>
-                            <TableCell className="font-medium text-black">
+                            <TableCell className="font-medium text-zinc-900 dark:text-white py-4">
                               {account.full_name}
                             </TableCell>
-                            <TableCell className="text-black">
+                            <TableCell className="text-zinc-600 dark:text-zinc-400 py-4 font-mono text-sm">
                               {account.phone_number}
                             </TableCell>
-                            <TableCell className="text-black">
+                            <TableCell className="text-zinc-600 dark:text-zinc-400 py-4">
                               {account.address?.city || 'N/A'}
                               {account.address?.pincode && `, ${account.address.pincode}`}
                             </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-2">
+                            <TableCell className="text-right pr-6 py-4">
+                              {/* Desktop Actions - ALWAYS VISIBLE */}
+                              <div className="flex items-center justify-end gap-2">
                                 <Link
                                   to={`/app/customer/${account._id}`}
-                                  className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
+                                  title={t('customers.view')}
+                                  className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors"
                                 >
-                                  <IconEye className="text-indigo-500 w-5 h-5" />
+                                  <IconEye className="w-[18px] h-[18px]" />
                                 </Link>
                                 {hasPermission('can_edit_customers') && (
                                   <Link
                                     to={`/app/customer/update/${account._id}`}
-                                    className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
+                                    title={t('customers.edit')}
+                                    className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors"
                                   >
-                                    <IconEdit className="text-blue-500 w-5 h-5" />
+                                    <IconEdit className="w-[18px] h-[18px]" />
                                   </Link>
                                 )}
                                 {hasPermission('can_delete_customers') && (
                                   <button
                                     onClick={() => handleDelete(account._id)}
-                                    className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100"
                                     disabled={deleteMutation.isLoading}
+                                    title={t('customers.delete')}
+                                    className="flex items-center justify-center w-[36px] h-[36px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                   >
-                                    <IconTrashFilled className="text-red-500 w-5 h-5" />
+                                    <IconTrash className="w-[18px] h-[18px]" />
                                   </button>
                                 )}
                               </div>
@@ -297,120 +251,78 @@ export default function AllCustomers() {
                     </Table>
                   </div>
 
-                  {/* Mobile Card View - Improved */}
-                  <div className="md:hidden space-y-3">
-                    {accounts.map((account) => (
+                  {/* Mobile Bento Card View */}
+                  <div className="md:hidden flex flex-col gap-5">
+                    {accounts.map((account, i) => (
                       <motion.div
                         key={account._id}
-                        initial={false}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: i * 0.05 }}
+                        className="flex flex-col p-6 rounded-[2rem] border border-zinc-200/60 dark:border-white/[0.06] bg-white dark:bg-[#121212] overflow-hidden shadow-sm relative"
                       >
-                        {/* Card Header */}
-                        <div className="p-4">
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
-                              alt={account.full_name}
-                              width={48}
-                              height={48}
-                              className="h-12 w-12 rounded-full object-cover flex-shrink-0 ring-2 ring-gray-100"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-base text-gray-900 truncate">
-                                {account.full_name}
-                              </h3>
-                              <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-600">
-                                <IconPhone className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="truncate">{account.phone_number}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 mt-1 text-sm text-gray-600">
-                                <IconMapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                                <span className="truncate">
-                                  {account.address?.city || 'N/A'}
-                                  {account.address?.pincode && `, ${account.address.pincode}`}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {/* Menu Button */}
-                            <div className="relative">
-                              <button
-                                onClick={() => toggleMenu(account._id)}
-                                className="p-2 -mr-2 rounded-lg hover:bg-gray-100 transition-colors"
-                              >
-                                <IconDotsVertical className="w-5 h-5 text-gray-600" />
-                              </button>
-                              
-                              {/* Dropdown Menu */}
-                              <AnimatePresence>
-                                {openMenuId === account._id && (
-                                  <>
-                                    {/* Backdrop */}
-                                    <div
-                                      className="fixed inset-0 z-40"
-                                      onClick={() => setOpenMenuId(null)}
-                                    />
-                                    
-                                    {/* Menu */}
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                      transition={{ duration: 0.15 }}
-                                      className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-                                    >
-                                      <Link
-                                        to={`/app/customer/${account._id}`}
-                                        onClick={() => setOpenMenuId(null)}
-                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
-                                      >
-                                        <IconEye className="w-4 h-4 text-indigo-500" />
-                                        <span className="text-sm font-medium">{t('customers.view')}</span>
-                                      </Link>
-                                      
-                                      {hasPermission('can_edit_customers') && (
-                                        <Link
-                                          to={`/app/customer/update/${account._id}`}
-                                          onClick={() => setOpenMenuId(null)}
-                                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-gray-700"
-                                        >
-                                          <IconEdit className="w-4 h-4 text-blue-500" />
-                                          <span className="text-sm font-medium">{t('customers.edit')}</span>
-                                        </Link>
-                                      )}
-                                      
-                                      {hasPermission('can_delete_customers') && (
-                                        <>
-                                          <div className="h-px bg-gray-200 my-1" />
-                                          <button
-                                            onClick={() => {
-                                              handleDelete(account._id);
-                                              setOpenMenuId(null);
-                                            }}
-                                            disabled={deleteMutation.isLoading}
-                                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-red-600 w-full disabled:opacity-50"
-                                          >
-                                            <IconTrashFilled className="w-4 h-4" />
-                                            <span className="text-sm font-medium">{t('customers.delete')}</span>
-                                          </button>
-                                        </>
-                                      )}
-                                    </motion.div>
-                                  </>
-                                )}
-                              </AnimatePresence>
-                            </div>
+                        {/* Subtle Texture */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.015),transparent_50%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.015),transparent_50%)] pointer-events-none" />
+
+                        {/* Top: Avatar & Name */}
+                        <div className="relative z-10 flex items-center gap-4 mb-6">
+                          <img
+                            src={account.customer_photo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${account.full_name}`}
+                            alt={account.full_name}
+                            className="w-14 h-14 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-white/5"
+                          />
+                          <div>
+                            <h3 className="text-lg font-medium text-zinc-900 dark:text-white leading-tight">
+                              {account.full_name}
+                            </h3>
+                            <p className="text-sm font-mono text-zinc-500 dark:text-zinc-400 mt-1">
+                              {account.phone_number}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Quick Action Button - View Details */}
-                        <Link
-                          to={`/app/customer/${account._id}`}
-                          className="block px-4 py-3 bg-gray-50 border-t border-gray-100 text-center text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          {t('customers.viewDetails')}
-                        </Link>
+                        {/* Middle: Bento Sub-card for Address */}
+                        <div className="relative z-10 rounded-2xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-100 dark:border-white/[0.02] p-4 mb-6 flex flex-col justify-center">
+                          <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-2">
+                            <IconMapPin className="w-3.5 h-3.5" />
+                            Location
+                          </span>
+                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            {account.address?.city || 'Location not provided'}
+                            {account.address?.pincode && `, ${account.address.pincode}`}
+                          </span>
+                        </div>
+
+                        {/* Bottom: Action Dock */}
+                        <div className="relative z-10 flex items-center gap-2 pt-4 border-t border-zinc-100 dark:border-white/[0.05]">
+                          <Link
+                            to={`/app/customer/${account._id}`}
+                            className="flex-1 flex items-center justify-center gap-2 h-[42px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors text-xs font-medium"
+                          >
+                            <IconEye className="w-[18px] h-[18px]" />
+                            <span>{t('customers.view')}</span>
+                          </Link>
+                          
+                          {hasPermission('can_edit_customers') && (
+                            <Link
+                              to={`/app/customer/update/${account._id}`}
+                              className="flex items-center justify-center w-[42px] h-[42px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white transition-colors shrink-0"
+                            >
+                              <IconEdit className="w-[18px] h-[18px]" />
+                            </Link>
+                          )}
+                          
+                          {hasPermission('can_delete_customers') && (
+                            <button
+                              onClick={() => handleDelete(account._id)}
+                              disabled={deleteMutation.isLoading}
+                              className="flex items-center justify-center w-[42px] h-[42px] rounded-xl bg-zinc-50 dark:bg-white/[0.03] text-zinc-500 dark:text-zinc-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 transition-colors shrink-0"
+                            >
+                              <IconTrash className="w-[18px] h-[18px]" />
+                            </button>
+                          )}
+                        </div>
                       </motion.div>
                     ))}
                   </div>
@@ -420,38 +332,28 @@ export default function AllCustomers() {
           )}
         </AnimatePresence>
 
-        {/* Pagination - Fixed Bottom on Mobile */}
+        {/* Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="fixed md:relative bottom-0 left-0 right-0 md:mt-6 bg-white md:bg-transparent border-t md:border-0 border-gray-200 px-4 py-3 md:p-0 z-30">
-            <div className="flex justify-between items-center max-w-7xl mx-auto">
-              <button
-                onClick={() => goToPage(page - 1)}
-                disabled={page === 1}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-30 transition-opacity"
-              >
-                <IconCircleArrowLeftFilled 
-                  className={`h-8 w-8 ${page === 1 ? 'text-gray-300' : 'text-gray-700'}`}
-                />
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.previous')}</span>
-              </button>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">
-                  {t('customers.pageOf', { page, total: totalPages })}
-                </span>
-              </div>
-              
-              <button
-                onClick={() => goToPage(page + 1)}
-                disabled={page === totalPages}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg disabled:opacity-30 transition-opacity"
-              >
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">{t('customers.next')}</span>
-                <IconCircleArrowRightFilled 
-                  className={`h-8 w-8 ${page === totalPages ? 'text-gray-300' : 'text-gray-700'}`}
-                />
-              </button>
-            </div>
+          <div className="flex justify-between items-center mt-12 px-2">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 1}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-[#121212] border border-zinc-200 dark:border-white/[0.08] text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-white transition-colors shadow-sm"
+            >
+              <IconCircleArrowLeftFilled className="w-7 h-7" />
+            </button>
+            
+            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+              Page {page} of {totalPages}
+            </span>
+            
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page === totalPages}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-[#121212] border border-zinc-200 dark:border-white/[0.08] text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-white transition-colors shadow-sm"
+            >
+              <IconCircleArrowRightFilled className="w-7 h-7" />
+            </button>
           </div>
         )}
       </div>
@@ -466,5 +368,5 @@ export default function AllCustomers() {
         confirmText={deleteMutation.isLoading ? t('customers.deleting') : t('customers.delete')}
       />
     </div>
-  );
+  )
 }

@@ -15,8 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:5173"
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 
@@ -54,7 +53,6 @@ app.use((req, res) => {
 
 
 app.use(errorHandler);
-console.log("Allowed Origins:", allowedOrigins);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
