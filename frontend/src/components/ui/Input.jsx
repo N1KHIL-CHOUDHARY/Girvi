@@ -8,11 +8,11 @@ const Input = React.forwardRef(({ className, type = 'text', ...props }, ref) => 
 
   return (
     <div className="relative w-full group">
-      <div className="relative overflow-hidden rounded-2xl bg-zinc-50 dark:bg-[#1A1A1A] border border-zinc-200/60 dark:border-white/[0.08] transition-all duration-300">
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-50 dark:bg-[#1A1A1A] border border-zinc-200/60 dark:border-white/[0.08] theme-transition">
         <input
           type={type}
           className={cn(
-            "w-full min-h-[48px] bg-transparent px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none transition-all duration-300",
+            "w-full min-h-[48px] bg-transparent px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none",
             className
           )}
           ref={ref}

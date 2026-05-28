@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/* Centralized theme variables and transition utilities */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
 
+  /* Colors */
   --color-bg-primary: #f9fafb;
   --color-bg-secondary: #ffffff;
   --color-surface-muted: #edf7f2;
@@ -25,6 +29,31 @@
   --color-chart-3: #f59e0b;
   --color-chart-4: #f97316;
   --color-chart-stroke: #cbd5e1;
+
+  /* Global transition tokens (centralized) */
+  --transition-duration: 300ms;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Explicit properties to avoid `transition: all` (GPU and perf friendly) */
+  --transition-properties: background-color  var(--transition-duration) var(--transition-easing),
+                           color  var(--transition-duration) var(--transition-easing),
+                           border-color  var(--transition-duration) var(--transition-easing),
+                           box-shadow  var(--transition-duration) var(--transition-easing),
+                           fill  var(--transition-duration) var(--transition-easing),
+                           stroke  var(--transition-duration) var(--transition-easing);
+}
+
+/* Dark overrides */
+.dark {
+  color-scheme: dark;
+  --color-bg-primary: #0f1720;
+  --color-bg-secondary: #111111;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-border: #1f2937;
+  --color-field: #0b0b0b;
+  --color-field-border: #111827;
+  --color-overlay: rgba(255,255,255,0.03);
 }
 
 @layer base {
@@ -58,17 +87,51 @@
   }
 }
 
+/* Theme transition utility
+   - Apply `.theme-transition` on the document element after initial theme is set.
+   - Avoid transitions during initial paint by toggling `.disable-transitions`.
+*/
+.disable-transitions *,
+.disable-transitions *::before,
+.disable-transitions *::after {
+  transition: none !important;
+}
+
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: var(--transition-properties) !important;
+  will-change: background-color, color, border-color, box-shadow, fill, stroke;
+}
+
+/* Provide an opt-out when needed */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+/* Respect user reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
+  }
+}
+
 @layer components {
   .app-surface {
-    background-color: #ffffff;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
   .app-surface-muted {
-    background-color: #f8fafc;
-    color: #0f172a;
-    border: 1px solid #e2e8f0;
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
   .app-border {
@@ -76,15 +139,15 @@
   }
 
   .app-text-muted {
-    color: #64748b;
+    color: var(--color-text-secondary);
   }
 
   .app-accent {
-    color: #166534;
+    color: var(--color-accent);
   }
 
   .app-bg-accent {
-    background-color: #16a34a;
+    background-color: var(--color-accent);
     color: #ffffff;
   }
 

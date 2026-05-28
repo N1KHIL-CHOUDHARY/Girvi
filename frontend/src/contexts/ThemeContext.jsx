@@ -7,17 +7,40 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
+    const applyClass = (useDark) => {
+      if (useDark) root.classList.add('dark');
+      else root.classList.remove('dark');
+    };
+
+    const updateTheme = () => {
+      if (theme === 'system') {
+        applyClass(mediaQuery.matches);
+      } else if (theme === 'dark') {
+        applyClass(true);
+      } else {
+        applyClass(false);
+      }
+    };
+
+    root.classList.add('disable-transitions');
+    updateTheme();
     localStorage.setItem('theme', theme);
-  }, [theme]);
 
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        root.classList.remove('disable-transitions');
+        if (!root.classList.contains('theme-transition')) {
+          root.classList.add('theme-transition');
+        }
+      });
+    });
+
+    const handlePrefChange = () => updateTheme();
+    mediaQuery.addEventListener('change', handlePrefChange);
+    return () => mediaQuery.removeEventListener('change', handlePrefChange);
+  }, [theme]);
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
