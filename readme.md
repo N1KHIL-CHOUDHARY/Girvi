@@ -2,12 +2,8 @@
 
 **PawnManager** is a modern, full-stack web application designed to streamline operations for pawn shops. It manages customers, pawn tickets, loans, interest calculations, and employee roles with a secure, responsive, and intuitive interface.
 
-![Project Status](https://img.shields.io/badge/Status-Active-succes)
-![Tech Stack](https://img.shields.io/badge/Stack-MERN-yellow)
 
-## 🚀 Live Demo
-
-[Link](https://pawnmanager.vercel.app)  
+  
 
 
 ---
