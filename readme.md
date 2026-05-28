@@ -7,7 +7,7 @@
 
 ## 🚀 Live Demo
 
-[Link](https://pawn-manager.vercel.app)  
+[Link](https://pawnmanager.vercel.app)  
 
 
 ---
