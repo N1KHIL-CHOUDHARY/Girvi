@@ -1,8 +1,8 @@
 import type { Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { PreferencesBody } from './app.types';
-import { getMe, updatePreferences } from './app.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { PreferencesBody } from './app.types.js';
+import { getMe, updatePreferences } from './app.service.js';
 
 export const getMeController = asyncHandler(async (req, res) => {
   if (!req.user) {

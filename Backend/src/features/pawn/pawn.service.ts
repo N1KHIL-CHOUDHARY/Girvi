@@ -1,11 +1,11 @@
 import { type Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { logActivity } from '../../lib/activity';
-import { parseDecimal, decimalToString } from '../../lib/decimal';
-import { parsePagination } from '../../lib/http';
-import type { AuthSession } from '../auth/auth.types';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { logActivity } from '../../lib/activity.js';
+import { parseDecimal, decimalToString } from '../../lib/decimal.js';
+import { parsePagination } from '../../lib/http.js';
+import type { AuthSession } from '../auth/auth.types.js';
 import type {
   CustomerPawnTicketsParams,
   PawnItemInput,
@@ -14,7 +14,7 @@ import type {
   PawnTicketQuery,
   PawnTicketRecord,
   PawnTicketUpdateBody,
-} from './pawn.types';
+} from './pawn.types.js';
 
 const mapItem = (item: {
   id: string;

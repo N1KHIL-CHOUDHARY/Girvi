@@ -1,25 +1,75 @@
-export interface CustomerIdentity {
-  type: 'passport' | 'driving_license' | 'national_id' | 'other';
-  number: string;
-  expiryDate?: string;
-  scannedUrl?: string;
+import type { CustomerGender } from "@/types/dashboard";
+
+export interface CustomerAddress {
+  line1?: string;
+  city?: string;
+  pincode?: string;
 }
 
-export interface Customer {
+export interface CustomerListItem {
   id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
-  identity: CustomerIdentity;
-  isFlagged: boolean;
-  notes?: string;
+  full_name: string;
+  phone_number: string;
+  address?: CustomerAddress;
+  gender?: CustomerGender | null;
+  customer_photo_url?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CustomerDetail extends CustomerListItem {
+  aadhaar_number?: string | null;
+  pan_number?: string | null;
+  shopId: string;
+  createdByUserId?: string | null;
+}
+
+export interface CustomerListResponse {
+  customers: CustomerListItem[];
+  totalCustomers: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface CustomerAddressInput {
+  line1?: string;
+  city?: string;
+  pincode?: string;
+}
+
+export interface CustomerCreatePayload {
+  full_name: string;
+  phone_number: string;
+  address?: CustomerAddressInput;
+  gender?: CustomerGender;
+  customer_photo_url?: string;
+  aadhaar_number?: string;
+  pan_number?: string;
+}
+
+export interface CustomerUpdatePayload {
+  full_name?: string;
+  phone_number?: string;
+  address?: CustomerAddressInput;
+  gender?: CustomerGender;
+  customer_photo_url?: string;
+  aadhaar_number?: string;
+  pan_number?: string;
+}
+
+export interface CustomerStats {
+  total_loan_value: string;
+  total_active_loan: string;
+  total_tickets: number;
+  active_tickets: number;
+}
+
+export interface CustomerPaymentStat {
+  payment_for: "interest" | "principal";
+  total_paid: string;
+}
+
+export interface CustomerStatsResponse {
+  stats: CustomerStats;
+  payments: CustomerPaymentStat[];
 }

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import { ApiError } from '../../lib/errors';
-import { issueOAuthState } from '../../lib/tokens';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import { ApiError } from '../../lib/errors.js';
+import { issueOAuthState } from '../../lib/tokens.js';
 import {
   changePassword,
   createOAuthState,
@@ -11,7 +11,7 @@ import {
   logout,
   signup,
   updatePreferences,
-} from './auth.service';
+} from './auth.service.js';
 import type {
   AuthResponse,
   ChangePasswordBody,
@@ -20,7 +20,7 @@ import type {
   OAuthStateResponse,
   ProfileResponse,
   SignupBody,
-} from './auth.types';
+} from './auth.types.js';
 
 export const signupController = asyncHandler<unknown, AuthResponse, SignupBody>(async (_req, res: Response<AuthResponse>) => {
   const result = await signup(_req.body);

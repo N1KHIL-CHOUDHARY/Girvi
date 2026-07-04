@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
+import { authenticate } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
 import {
   changePasswordController,
   getMeController,
@@ -11,7 +11,7 @@ import {
   logoutController,
   signupController,
   updatePreferencesController,
-} from './auth.controller';
+} from './auth.controller.js';
 
 const router = Router();
 

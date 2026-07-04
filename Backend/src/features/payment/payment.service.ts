@@ -1,11 +1,11 @@
 import { type Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { logActivity } from '../../lib/activity';
-import { decimalToString, parseDecimal } from '../../lib/decimal';
-import type { AuthSession } from '../auth/auth.types';
-import type { PaymentBody, PaymentRecord } from './payment.types';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { logActivity } from '../../lib/activity.js';
+import { decimalToString, parseDecimal } from '../../lib/decimal.js';
+import type { AuthSession } from '../auth/auth.types.js';
+import type { PaymentBody, PaymentRecord } from './payment.types.js';
 
 const mapPayment = (payment: {
   id: string;

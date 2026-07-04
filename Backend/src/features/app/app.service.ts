@@ -1,5 +1,5 @@
-import type { AuthSession } from '../auth/auth.types';
-import { getProfile, updatePreferences as updateAuthPreferences } from '../auth/auth.service';
+import type { AuthSession } from '../auth/auth.types.js';
+import { getProfile, updatePreferences as updateAuthPreferences } from '../auth/auth.service.js';
 
 export const getMe = async (session: AuthSession) => {
   return getProfile(session);

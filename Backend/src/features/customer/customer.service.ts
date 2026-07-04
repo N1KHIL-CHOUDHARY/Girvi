@@ -1,10 +1,10 @@
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { encryptText, decryptText } from '../../lib/encryption';
-import { logActivity } from '../../lib/activity';
-import { parsePagination } from '../../lib/http';
-import type { AuthSession } from '../auth/auth.types';
-import type { CustomerAddressInput, CustomerBody, CustomerDetail, CustomerListItem, CustomerListResponse, CustomerQuery } from './customer.types';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { encryptText, decryptText } from '../../lib/encryption.js';
+import { logActivity } from '../../lib/activity.js';
+import { parsePagination } from '../../lib/http.js';
+import type { AuthSession } from '../auth/auth.types.js';
+import type { CustomerAddressInput, CustomerBody, CustomerDetail, CustomerListItem, CustomerListResponse, CustomerQuery } from './customer.types.js';
 
 const mapCustomerListItem = (customer: {
   id: string;

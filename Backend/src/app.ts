@@ -1,18 +1,15 @@
-import axios from 'axios';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
-import cron from 'node-cron';
-import { errorHandler } from './middlewares/errorHandler';
-import { sendError } from './lib/http';
-import authRoutes from './features/auth/auth.routes';
-import appRoutes from './features/app/app.routes';
+import { errorHandler } from './middlewares/errorHandler.js';
+import { sendError } from './lib/http.js';
+import authRoutes from './features/auth/auth.routes.js';
+import appRoutes from './features/app/app.routes.js';
 
 dotenv.config();
 
 const app = express();
-const port = Number(process.env.PORT ?? 5000);
-const allowedOrigins = [process.env.FRONTEND_URL].filter((origin): origin is string => Boolean(origin));
+const allowedOrigins = [process.env.FRONTEND_URL,"http://localhost:5173","http://localhost:3000"].filter((origin): origin is string => Boolean(origin));
 
 app.use(
   cors({
@@ -55,19 +52,5 @@ app.use((_req, res) => {
 });
 
 app.use(errorHandler);
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log('Allowed Origins:', allowedOrigins);
-});
-
-cron.schedule('*/15 * * * *', async () => {
-  try {
-    const url = process.env.BACKEND_URL || `http://localhost:${port}`;
-    await axios.get(url + '/');
-  } catch {
-    return;
-  }
-});
 
 export default app;

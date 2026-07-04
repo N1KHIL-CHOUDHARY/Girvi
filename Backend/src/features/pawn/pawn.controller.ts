@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
 import type {
   CustomerPawnTicketsParams,
   PawnTicketBody,
@@ -9,7 +9,7 @@ import type {
   PawnTicketQuery,
   PawnTicketRecord,
   PawnTicketUpdateBody,
-} from './pawn.types';
+} from './pawn.types.js';
 import {
   createPawnTicket,
   deletePawnTicket,
@@ -18,7 +18,7 @@ import {
   listPawnTickets,
   settlePawnTicket,
   updatePawnTicket,
-} from './pawn.service';
+} from './pawn.service.js';
 
 export const createPawnTicketController = asyncHandler<unknown, PawnTicketRecord, PawnTicketBody>(async (req, res: Response<PawnTicketRecord>) => {
   if (!req.user) {

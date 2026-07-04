@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { RoleBody, RoleRecord } from './role.types';
-import { createRole, deleteRole, getRoles, updateRole } from './role.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { RoleBody, RoleRecord } from './role.types.js';
+import { createRole, deleteRole, getRoles, updateRole } from './role.service.js';
 
 export const getRolesController = asyncHandler(async (req, res: Response) => {
   if (!req.user) {

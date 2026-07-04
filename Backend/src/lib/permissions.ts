@@ -1,3 +1,5 @@
+import type { Prisma } from '@prisma/client';
+
 export type UserRole = 'owner' | 'worker';
 
 export interface PermissionSet {
@@ -49,4 +51,15 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, PermissionSet> = {
 export const normalizeRoleName = (role: string): string => {
   const trimmed = role.trim();
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+};
+
+export const toPermissionJson = (permissions: PermissionSet): Prisma.InputJsonValue =>
+  permissions as unknown as Prisma.InputJsonValue;
+
+export const parsePermissionSet = (value: unknown): PermissionSet => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Invalid permissions payload.');
+  }
+
+  return value as PermissionSet;
 };

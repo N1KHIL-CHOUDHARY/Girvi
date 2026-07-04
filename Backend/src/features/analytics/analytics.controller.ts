@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { CustomerStatsResponse, DashboardStatsResponse, FinancialReportQuery, FinancialReportResponse } from './analytics.types';
-import { getCustomerStats, getDashboardStats, getFinancialReport } from './analytics.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { CustomerStatsResponse, DashboardStatsResponse, FinancialReportQuery, FinancialReportResponse } from './analytics.types.js';
+import { getCustomerStats, getDashboardStats, getFinancialReport } from './analytics.service.js';
 
 export const getDashboardStatsController = asyncHandler(async (req, res: Response) => {
   if (!req.user) {

@@ -1,16 +1,15 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate, checkPermission } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
+import { authenticate, checkPermission } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
 import {
   createPawnTicketController,
   deletePawnTicketController,
   getPawnTicketByIdController,
-  getPawnTicketsForCustomerController,
   listPawnTicketsController,
   settlePawnTicketController,
   updatePawnTicketController,
-} from './pawn.controller';
+} from './pawn.controller.js';
 
 const router = Router();
 
@@ -24,7 +23,7 @@ const itemSchema = Joi.object({
 });
 
 const pawnTicketSchema = Joi.object({
-  customer_id: Joi.string().length(24).required(),
+  customer_id: Joi.string().min(1).required(),
   ticket_number: Joi.string().min(1).required(),
   loan_amount: Joi.number().positive().required(),
   interest_rate: Joi.number().min(0).required(),
@@ -50,6 +49,5 @@ router.get('/:id', checkPermission('can_view_tickets'), getPawnTicketByIdControl
 router.patch('/:id', checkPermission('can_create_tickets'), validate(pawnTicketUpdateSchema), updatePawnTicketController);
 router.delete('/:id', checkPermission('can_delete_tickets'), deletePawnTicketController);
 router.patch('/:id/settle', checkPermission('can_settle_tickets'), settlePawnTicketController);
-router.get('/:id/pawns', checkPermission('can_view_tickets'), getPawnTicketsForCustomerController);
 
 export default router;

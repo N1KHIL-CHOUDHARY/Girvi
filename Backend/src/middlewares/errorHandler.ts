@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { ApiError } from '../lib/errors';
-import { sendError } from '../lib/http';
+import { ApiError } from '../lib/errors.js';
+import { sendError } from '../lib/http.js';
 
 export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
   if (res.headersSent) {

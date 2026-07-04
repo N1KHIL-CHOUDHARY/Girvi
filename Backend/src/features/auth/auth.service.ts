@@ -1,12 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import type { Prisma } from '@prisma/client';
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName } from '../../lib/permissions';
-import { issueAccessToken, issueOAuthState, verifyOAuthState } from '../../lib/tokens';
-import { decryptText, encryptText } from '../../lib/encryption';
-import { logActivity } from '../../lib/activity';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName, toPermissionJson } from '../../lib/permissions.js';
+import { issueAccessToken, issueOAuthState, verifyOAuthState } from '../../lib/tokens.js';
+import { decryptText, encryptText } from '../../lib/encryption.js';
+import { logActivity } from '../../lib/activity.js';
 import type {
   AuthResponse,
   AuthSession,
@@ -17,7 +17,7 @@ import type {
   ProfileResponse,
   SignupBody,
   UserSummary,
-} from './auth.types';
+} from './auth.types.js';
 
 const googleAuth = new OAuth2Client();
 
@@ -67,7 +67,7 @@ const resolveRole = async (shopId: string, roleName: 'owner' | 'worker') => {
         shopId,
         name: normalizedName,
         isOwnerRole: roleName === 'owner',
-        permissions: DEFAULT_ROLE_PERMISSIONS[roleName],
+        permissions: toPermissionJson(DEFAULT_ROLE_PERMISSIONS[roleName]),
       },
       select: { id: true, permissions: true, isOwnerRole: true },
     });
@@ -93,7 +93,7 @@ const resolveRoleInTransaction = async (
         shopId,
         name: normalizedName,
         isOwnerRole: roleName === 'owner',
-        permissions: DEFAULT_ROLE_PERMISSIONS[roleName],
+        permissions: toPermissionJson(DEFAULT_ROLE_PERMISSIONS[roleName]),
       },
       select: { id: true, permissions: true, isOwnerRole: true },
     });
@@ -148,7 +148,7 @@ export const signup = async (body: SignupBody): Promise<AuthResponse> => {
         shopId: shop.id,
         name: normalizeRoleName('owner'),
         isOwnerRole: true,
-        permissions: DEFAULT_ROLE_PERMISSIONS.owner,
+        permissions: toPermissionJson(DEFAULT_ROLE_PERMISSIONS.owner),
       },
       select: { id: true, permissions: true },
     });

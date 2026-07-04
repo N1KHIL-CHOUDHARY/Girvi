@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate, checkPermission } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
-import { createRoleController, deleteRoleController, getRolesController, updateRoleController } from './role.controller';
+import { authenticate, checkPermission } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
+import { createRoleController, deleteRoleController, getRolesController, updateRoleController } from './role.controller.js';
 
 const router = Router();
 

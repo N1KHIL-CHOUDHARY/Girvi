@@ -1,16 +1,14 @@
 export interface ApiResponse<T> {
   success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: Record<string, string[]>;
-  };
+  message?: string;
+  data: T;
+  error?: unknown;
   meta?: {
     page?: number;
     limit?: number;
-    totalCount?: number;
+    totalItems?: number;
     totalPages?: number;
+    totalCount?: number;
   };
 }
 
@@ -19,5 +17,5 @@ export interface PaginatedQueryParams {
   limit?: number;
   search?: string;
   sortBy?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }

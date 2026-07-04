@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate, checkPermission } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
+import { authenticate, checkPermission } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
 import {
   createCustomerController,
   deleteCustomerController,
   getCustomerByIdController,
   listCustomersController,
   updateCustomerController,
-} from './customer.controller';
+} from './customer.controller.js';
+import { getCustomerStatsController } from '../analytics/analytics.controller.js';
+import { getPawnTicketsForCustomerController } from '../pawn/pawn.controller.js';
 
 const router = Router();
 
@@ -44,6 +46,8 @@ router.use(authenticate);
 router.get('/', checkPermission('can_view_customers'), listCustomersController);
 router.post('/', checkPermission('can_create_customers'), validate(customerSchema), createCustomerController);
 router.get('/:id', checkPermission('can_view_customers'), getCustomerByIdController);
+router.get('/:id/pawns', checkPermission('can_view_tickets'), getPawnTicketsForCustomerController);
+router.get('/:id/stats', getCustomerStatsController);
 router.patch('/:id', checkPermission('can_edit_customers'), validate(customerUpdateSchema), updateCustomerController);
 router.delete('/:id', checkPermission('can_delete_customers'), deleteCustomerController);
 

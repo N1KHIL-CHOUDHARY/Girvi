@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
-import analyticsRoutes from '../analytics/analytics.routes';
-import customerRoutes from '../customer/customer.routes';
-import employeeRoutes from '../employee/employee.routes';
-import pawnRoutes from '../pawn/pawn.routes';
-import paymentRoutes from '../payment/payment.routes';
-import roleRoutes from '../role/role.routes';
-import { getMeController, updatePreferencesController } from './app.controller';
+import { authenticate } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
+import analyticsRoutes from '../analytics/analytics.routes.js';
+import customerRoutes from '../customer/customer.routes.js';
+import employeeRoutes from '../employee/employee.routes.js';
+import pawnRoutes from '../pawn/pawn.routes.js';
+import paymentRoutes from '../payment/payment.routes.js';
+import roleRoutes from '../role/role.routes.js';
+import uploadRoutes from '../upload/upload.routes.js';
+import { getMeController, updatePreferencesController } from './app.controller.js';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/customers', customerRoutes);
 router.use('/employees', employeeRoutes);
 router.use('/pawns', pawnRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/upload', uploadRoutes);
 router.use('/stat', analyticsRoutes);
 
 export default router;

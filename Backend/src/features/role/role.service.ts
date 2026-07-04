@@ -1,8 +1,8 @@
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName } from '../../lib/permissions';
-import type { AuthSession } from '../auth/auth.types';
-import type { RoleBody, RoleRecord } from './role.types';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName, toPermissionJson } from '../../lib/permissions.js';
+import type { AuthSession } from '../auth/auth.types.js';
+import type { RoleBody, RoleRecord } from './role.types.js';
 
 const mapRole = (role: {
   id: string;
@@ -63,10 +63,10 @@ export const createRole = async (session: AuthSession, body: RoleBody): Promise<
       shopId,
       name: normalizedName,
       isOwnerRole: false,
-      permissions: {
+      permissions: toPermissionJson({
         ...DEFAULT_ROLE_PERMISSIONS.worker,
         ...(body.permissions ?? {}),
-      },
+      }),
     },
   });
 
@@ -109,10 +109,10 @@ export const updateRole = async (session: AuthSession, roleId: string, body: Rol
     where: { id: roleId },
     data: {
       name: normalizedName,
-      permissions: {
+      permissions: toPermissionJson({
         ...DEFAULT_ROLE_PERMISSIONS.worker,
         ...(body.permissions ?? {}),
-      },
+      }),
     },
   });
 

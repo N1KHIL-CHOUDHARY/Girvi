@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../config/prisma';
-import { ApiError } from '../../lib/errors';
-import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName } from '../../lib/permissions';
-import type { AuthSession } from '../auth/auth.types';
-import type { EmployeeBody, EmployeeRecord, EmployeeUpdateBody } from './employee.types';
+import { prisma } from '../../config/prisma.js';
+import { ApiError } from '../../lib/errors.js';
+import { DEFAULT_ROLE_PERMISSIONS, normalizeRoleName, toPermissionJson } from '../../lib/permissions.js';
+import type { AuthSession } from '../auth/auth.types.js';
+import type { EmployeeBody, EmployeeRecord, EmployeeUpdateBody } from './employee.types.js';
 
 const mapEmployee = (user: {
   id: string;
@@ -36,7 +36,7 @@ const getOrCreateWorkerRole = async (shopId: string) => {
       shopId,
       name: normalizeRoleName('worker'),
       isOwnerRole: false,
-      permissions: DEFAULT_ROLE_PERMISSIONS.worker,
+      permissions: toPermissionJson(DEFAULT_ROLE_PERMISSIONS.worker),
     },
     select: { id: true, isOwnerRole: true },
   });

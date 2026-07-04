@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { authenticate, checkPermission } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validate';
+import { authenticate, checkPermission } from '../../middlewares/auth.middleware.js';
+import { validate } from '../../middlewares/validate.js';
 import {
   createEmployeeController,
   deleteEmployeeController,
   listEmployeesController,
   updateEmployeeController,
-} from './employee.controller';
+} from './employee.controller.js';
 
 const router = Router();
 

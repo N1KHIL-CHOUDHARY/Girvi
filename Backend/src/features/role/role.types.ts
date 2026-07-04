@@ -1,4 +1,4 @@
-import type { PermissionSet } from '../../lib/permissions';
+import type { PermissionSet } from '../../lib/permissions.js';
 
 export interface RoleBody {
   name: string;

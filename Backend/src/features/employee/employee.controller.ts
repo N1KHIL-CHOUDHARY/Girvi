@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { EmployeeBody, EmployeeRecord, EmployeeUpdateBody } from './employee.types';
-import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from './employee.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { EmployeeBody, EmployeeRecord, EmployeeUpdateBody } from './employee.types.js';
+import { createEmployee, deleteEmployee, listEmployees, updateEmployee } from './employee.service.js';
 
 export const listEmployeesController = asyncHandler(async (req, res: Response<EmployeeRecord[]>) => {
   if (!req.user) {

@@ -1,6 +1,6 @@
 import jwt, { type JwtPayload } from 'jsonwebtoken';
-import { ApiError } from './errors';
-import type { AuthSession, OAuthStatePayload } from '../features/auth/auth.types';
+import { ApiError } from './errors.js';
+import type { AuthSession, OAuthStatePayload } from '../features/auth/auth.types.js';
 
 const resolveSecret = (): string => {
   const secret = process.env.JWT_SECRET;

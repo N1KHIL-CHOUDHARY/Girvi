@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { PaymentBody, PaymentParams, PaymentRecord } from './payment.types';
-import { createPayment, getPaymentsForTicket } from './payment.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { PaymentBody, PaymentParams, PaymentRecord } from './payment.types.js';
+import { createPayment, getPaymentsForTicket } from './payment.service.js';
 
 export const createPaymentController = asyncHandler<unknown, PaymentRecord, PaymentBody>(async (req, res: Response) => {
   if (!req.user) {

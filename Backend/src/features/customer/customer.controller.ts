@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { ApiError } from '../../lib/errors';
-import { asyncHandler, sendSuccess } from '../../lib/http';
-import type { CustomerBody, CustomerDetail, CustomerListResponse, CustomerQuery } from './customer.types';
-import { createCustomer, deleteCustomer, getCustomerById, listCustomers, updateCustomer } from './customer.service';
+import { ApiError } from '../../lib/errors.js';
+import { asyncHandler, sendSuccess } from '../../lib/http.js';
+import type { CustomerBody, CustomerDetail, CustomerListResponse, CustomerQuery } from './customer.types.js';
+import { createCustomer, deleteCustomer, getCustomerById, listCustomers, updateCustomer } from './customer.service.js';
 
 export const createCustomerController = asyncHandler<unknown, CustomerDetail, CustomerBody>(async (req, res: Response<CustomerDetail>) => {
   if (!req.user) {

@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import { prisma } from '../config/prisma';
-import { ApiError } from '../lib/errors';
-import { verifyAccessToken } from '../lib/tokens';
-import type { PermissionSet } from '../lib/permissions';
-import type { AuthSession } from '../features/auth/auth.types';
+import { prisma } from '../config/prisma.js';
+import { ApiError } from '../lib/errors.js';
+import { verifyAccessToken } from '../lib/tokens.js';
+import { parsePermissionSet, type PermissionSet } from '../lib/permissions.js';
+import type { AuthSession } from '../features/auth/auth.types.js';
 
 const extractBearerToken = (authorizationHeader?: string): string => {
   if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
@@ -37,7 +37,7 @@ const loadPermissions = async (session: AuthSession): Promise<PermissionSet> => 
     throw new ApiError(401, 'Not authorized. Token invalid.');
   }
 
-  return role.permissions as PermissionSet;
+  return parsePermissionSet(role.permissions);
 };
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {

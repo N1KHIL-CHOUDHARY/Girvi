@@ -1,4 +1,4 @@
-import type { PermissionSet, UserRole } from '../../lib/permissions';
+import type { PermissionSet, UserRole } from '../../lib/permissions.js';
 
 export type LanguageCode = 'en' | 'hi' | 'ta';
 export type AuthProvider = 'LOCAL' | 'GOOGLE';

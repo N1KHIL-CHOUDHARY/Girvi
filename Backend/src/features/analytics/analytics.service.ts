@@ -1,9 +1,9 @@
 import { type Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { prisma } from '../../config/prisma';
-import { decimalToString } from '../../lib/decimal';
-import { parsePagination } from '../../lib/http';
-import type { AuthSession } from '../auth/auth.types';
+import { prisma } from '../../config/prisma.js';
+import { decimalToString } from '../../lib/decimal.js';
+import { parsePagination } from '../../lib/http.js';
+import type { AuthSession } from '../auth/auth.types.js';
 import type {
   CustomerStatsResponse,
   DashboardAreaDatum,
@@ -11,7 +11,7 @@ import type {
   DashboardStatsResponse,
   FinancialReportQuery,
   FinancialReportResponse,
-} from './analytics.types';
+} from './analytics.types.js';
 
 const mapStatus = (status: 'ACTIVE' | 'SETTLED' | 'DEFAULTED'): 'active' | 'settled' | 'defaulted' => {
   if (status === 'ACTIVE') {

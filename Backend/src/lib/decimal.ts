@@ -1,5 +1,5 @@
 import { Decimal } from '@prisma/client/runtime/library';
-import { ApiError } from './errors';
+import { ApiError } from './errors.js';
 
 export type DecimalLike = string | number | Decimal | null | undefined;
 
