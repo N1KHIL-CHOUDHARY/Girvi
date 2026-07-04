@@ -10,7 +10,7 @@ import axios, {
 ========================= */
 
 const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 
 const TOKEN_KEY = 'auth_token';
 const LANGUAGE_KEY = 'app_language';
@@ -35,14 +35,16 @@ export interface ApiErrorResponse {
   meta?: unknown;
 }
 
-export interface ExtendedAxiosResponse<T = unknown>
-  extends AxiosResponse<ApiResponse<T>> {
+export type ExtendedAxiosResponse<T = unknown> = Omit<
+  AxiosResponse<ApiResponse<T>>,
+  'data'
+> & {
   success?: boolean;
   message?: string;
   meta?: unknown;
   error?: unknown;
   data: T;
-}
+};
 
 /* =========================
    TOKEN HELPERS
@@ -70,6 +72,28 @@ export const setStoredLanguage = (lang: string): void => {
   if (lang) {
     localStorage.setItem(LANGUAGE_KEY, lang);
   }
+};
+
+export const getApiErrorMessage = (
+  error: unknown,
+  fallbackMessage: string
+): string => {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    const payload = error.response?.data;
+    const message =
+      (typeof payload?.error === 'string' && payload.error) ||
+      (typeof payload?.message === 'string' && payload.message) ||
+      error.message ||
+      fallbackMessage;
+
+    return message.replace(/"/g, '');
+  }
+
+  if (error instanceof Error) {
+    return error.message.replace(/"/g, '') || fallbackMessage;
+  }
+
+  return fallbackMessage;
 };
 
 /* =========================

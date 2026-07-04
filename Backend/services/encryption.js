@@ -2,9 +2,8 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const ALGORITHM = 'aes-256-gcm';
-// Ensure your key is 32 bytes (64 hex characters)
 const KEY = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
-const IV_LENGTH = 16; // For GCM, the IV is 16 bytes
+const IV_LENGTH = 16; 
 const AUTH_TAG_LENGTH = 16;
 
 function encrypt(text) {

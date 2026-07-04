@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum UserRole {
+  OWNER
+  WORKER
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum TicketStatus {
+  ACTIVE
+  SETTLED
+  DEFAULTED
+}
+
+enum PaymentFor {
+  INTEREST
+  PRINCIPAL
+}
+
+model Shop {
+  id           String       @id @default(cuid())
+  shopName     String
+  address      String?
+  phone        String?
+  ownerId      String?      @unique
+  owner        User?        @relation("ShopOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  users        User[]
+  roles        Role[]
+  customers    Customer[]
+  pawnTickets  PawnTicket[]
+  payments     Payment[]
+  activities   Activity[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Role {
+  id           String   @id @default(cuid())
+  shopId       String
+  name         String
+  isOwnerRole  Boolean  @default(false)
+  permissions  Json     @default("{}")
+  shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  users        User[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([shopId, name])
+  @@index([shopId])
+}
+
+model User {
+  id              String        @id @default(cuid())
+  shopId          String
+  roleId          String?
+  email           String        @unique
+  passwordHash    String
+  fullName        String
+  role            UserRole      @default(WORKER)
+  language        String        @default("en")
+  provider        AuthProvider  @default(LOCAL)
+  providerSubject String?       @unique
+  oauthProfile    Json?
+  shop            Shop          @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  roleRef         Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  ownedShop       Shop?         @relation("ShopOwner")
+  customersCreated Customer[]  @relation("CustomerCreatedBy")
+  ticketsCreated PawnTicket[]  @relation("TicketCreatedBy")
+  paymentsCreated Payment[]    @relation("PaymentCreatedBy")
+  activitiesCreated Activity[] @relation("ActivityCreatedBy")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([shopId])
+  @@index([roleId])
+}
+
+model Customer {
+  id                    String        @id @default(cuid())
+  shopId                String
+  createdByUserId       String?
+  fullName              String
+  phoneNumber           String
+  addressLine1          String?
+  city                  String?
+  pincode               String?
+  gender                Gender?
+  customerPhotoUrl      String?
+  aadhaarNumberEncrypted String?
+  panNumberEncrypted    String?
+  isDeleted             Boolean       @default(false)
+  shop                  Shop          @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  createdBy             User?         @relation("CustomerCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  pawnTickets           PawnTicket[]
+  payments              Payment[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([shopId])
+  @@index([createdByUserId])
+}
+
+model PawnTicket {
+  id                  String           @id @default(cuid())
+  shopId              String
+  customerId          String
+  createdByUserId       String?
+  ticketNumber        String
+  loanAmount          Decimal          @db.Decimal(18, 2)
+  originalLoanAmount  Decimal          @db.Decimal(18, 2)
+  interestRate        Decimal          @db.Decimal(10, 4)
+  advAmount           Decimal          @db.Decimal(18, 2)
+  pawnedDate          DateTime         @default(now())
+  status              TicketStatus     @default(ACTIVE)
+  settledDate         DateTime?
+  isDeleted           Boolean          @default(false)
+  shop                Shop             @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  customer            Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdBy           User?            @relation("TicketCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items               PawnTicketItem[]
+  payments            Payment[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@unique([shopId, ticketNumber])
+  @@index([shopId])
+  @@index([customerId])
+}
+
+model PawnTicketItem {
+  id             String       @id @default(cuid())
+  ticketId       String
+  name           String
+  type           String       @default("gold")
+  weightGrams    Decimal      @db.Decimal(18, 4)
+  purity         Decimal?     @db.Decimal(10, 4)
+  description    String?
+  itemPhotoUrl   String?
+  ticket         PawnTicket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([ticketId])
+}
+
+model Payment {
+  id              String       @id @default(cuid())
+  shopId          String
+  customerId      String
+  ticketId        String
+  createdByUserId String?
+  amountPaid      Decimal      @db.Decimal(18, 2)
+  paymentFor      PaymentFor
+  paymentDate     DateTime     @default(now())
+  shop            Shop         @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  customer        Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  ticket          PawnTicket   @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  createdBy       User?        @relation("PaymentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([shopId])
+  @@index([ticketId])
+  @@index([customerId])
+}
+
+model Activity {
+  id            String    @id @default(cuid())
+  shopId        String
+  userId        String?
+  type          String
+  message       String
+  customerId    String?
+  ticketId      String?
+  shop          Shop      @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  user          User?     @relation("ActivityCreatedBy", fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([shopId])
+  @@index([customerId])
+  @@index([ticketId])
+}
