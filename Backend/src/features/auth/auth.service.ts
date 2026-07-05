@@ -129,20 +129,16 @@ export const createOAuthState = async (): Promise<OAuthStateResponse> => {
 export const signup = async (body: SignupBody): Promise<AuthResponse> => {
   const email = body.email.toLowerCase();
   const existingUser = await prisma.user.findUnique({ where: { email } });
-
   if (existingUser) {
     throw new ApiError(409, 'Unable to create user. Email already exists.');
   }
-
   const passwordHash = await bcrypt.hash(body.password, 10);
-
   const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const shop = await tx.shop.create({
       data: {
         shopName: body.shop_name,
       },
     });
-
     const role = await tx.role.create({
       data: {
         shopId: shop.id,
@@ -152,7 +148,6 @@ export const signup = async (body: SignupBody): Promise<AuthResponse> => {
       },
       select: { id: true, permissions: true },
     });
-
     const user = await tx.user.create({
       data: {
         shopId: shop.id,
@@ -179,10 +174,8 @@ export const signup = async (body: SignupBody): Promise<AuthResponse> => {
       where: { id: shop.id },
       data: { ownerId: user.id },
     });
-
     return user;
   });
-
   const token = issueAccessToken(buildSession(result));
 
   return {

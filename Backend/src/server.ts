@@ -6,7 +6,11 @@ import { prisma } from './config/prisma.js';
 
 dotenv.config();
 
-const port = Number(process.env.PORT ?? 5000);
+let port = Number(process.env.PORT ?? 3001);
+if (port === 5432) {
+  console.warn('Port 5432 is reserved for database connection string, defaulting server port to 3001.');
+  port = 3001;
+}
 
 const startServer = async (): Promise<void> => {
   try {
@@ -25,7 +29,7 @@ const startServer = async (): Promise<void> => {
 
   cron.schedule('*/15 * * * *', async () => {
     try {
-      const url = process.env.BACKEND_URL || `http://localhost:${port}`;
+      const url = `http://localhost:${port}`;
       await axios.get(`${url}/`);
     } catch {
       return;
