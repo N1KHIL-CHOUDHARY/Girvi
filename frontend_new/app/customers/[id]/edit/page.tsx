@@ -12,17 +12,16 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import FileUpload from "@/components/ui/FileUpload";
 import { getAccountById, updateAccount } from "@/services/api";
+import type { CustomerDetail } from "@/types/customer";
 
 interface CustomerFormState {
-  firstName: string;
-  lastName: string;
-  phone: string;
+  full_name: string;
+  phone_number: string;
   gender: "Male" | "Female" | "Other";
-  street: string;
+  line1: string;
   city: string;
-  state: string;
-  zipCode: string;
-  idNumber: string;
+  pincode: string;
+  aadhaar_number: string;
   pan_number: string;
   customer_photo_url: string;
 }
@@ -44,7 +43,7 @@ export default function UpdateCustomer() {
   } = useQuery({
     queryKey: ["customer", id],
     queryFn: async () => {
-      const res = await getAccountById(id);
+      const res = await getAccountById<CustomerDetail>(id);
       return res.data;
     },
   });
@@ -59,17 +58,15 @@ export default function UpdateCustomer() {
   useEffect(() => {
     if (customerData) {
       setFormData({
-        firstName: customerData.firstName || "",
-        lastName: customerData.lastName || "",
-        phone: customerData.phone || "",
-        gender: (customerData as any).gender || "Male",
-        street: customerData.address?.street || "",
+        full_name: customerData.full_name || "",
+        phone_number: customerData.phone_number || "",
+        gender: customerData.gender || "Male",
+        line1: customerData.address?.line1 || "",
         city: customerData.address?.city || "",
-        state: customerData.address?.state || "",
-        zipCode: customerData.address?.zipCode || "",
-        idNumber: customerData.identity?.number || "",
-        pan_number: (customerData as any).pan_number || "",
-        customer_photo_url: (customerData as any).customer_photo_url || "",
+        pincode: customerData.address?.pincode || "",
+        aadhaar_number: customerData.aadhaar_number || "",
+        pan_number: customerData.pan_number || "",
+        customer_photo_url: customerData.customer_photo_url || "",
       });
     }
   }, [customerData]);
@@ -102,20 +99,15 @@ export default function UpdateCustomer() {
     if (!formData) return;
 
     updateMutation.mutate({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      phone: formData.phone,
+      full_name: formData.full_name,
+      phone_number: formData.phone_number,
       gender: formData.gender,
       address: {
-        street: formData.street,
+        line1: formData.line1,
         city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
+        pincode: formData.pincode,
       },
-      identity: {
-        type: "national_id",
-        number: formData.idNumber,
-      },
+      aadhaar_number: formData.aadhaar_number,
       pan_number: formData.pan_number,
       customer_photo_url: formData.customer_photo_url || undefined,
     });
@@ -144,7 +136,7 @@ export default function UpdateCustomer() {
               Update Customer
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Editing details for {formData.firstName} {formData.lastName}
+              Editing details for {formData.full_name}
             </p>
           </div>
         </div>
@@ -155,23 +147,23 @@ export default function UpdateCustomer() {
         >
           <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="full_name">Full Name</Label>
               <Input
-                id="firstName"
-                name="firstName"
-                autoComplete="given-name"
-                value={formData.firstName}
+                id="full_name"
+                name="full_name"
+                value={formData.full_name}
                 onChange={handleChange}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="phone_number">Phone Number</Label>
               <Input
-                id="lastName"
-                name="lastName"
-                autoComplete="family-name"
-                value={formData.lastName}
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                inputMode="numeric"
+                value={formData.phone_number}
                 onChange={handleChange}
                 required
               />
@@ -179,19 +171,6 @@ export default function UpdateCustomer() {
           </div>
 
           <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                inputMode="numeric"
-                autoComplete="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
             <div>
               <Label htmlFor="gender">Gender</Label>
               <select
@@ -206,48 +185,34 @@ export default function UpdateCustomer() {
                 <option value="Other">Other</option>
               </select>
             </div>
+            <div>
+              <Label htmlFor="line1">Address Line</Label>
+              <Input
+                id="line1"
+                name="line1"
+                value={formData.line1}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
-          <div className="mb-5">
-            <Label htmlFor="street">Street Address</Label>
-            <Input
-              id="street"
-              name="street"
-              autoComplete="street-address"
-              value={formData.street}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
                 name="city"
-                autoComplete="address-level2"
                 value={formData.city}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <Label htmlFor="state">State</Label>
+              <Label htmlFor="pincode">Pincode</Label>
               <Input
-                id="state"
-                name="state"
-                autoComplete="address-level1"
-                value={formData.state}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="zipCode">Pincode / Zip</Label>
-              <Input
-                id="zipCode"
-                name="zipCode"
+                id="pincode"
+                name="pincode"
                 inputMode="numeric"
-                autoComplete="postal-code"
-                value={formData.zipCode}
+                value={formData.pincode}
                 onChange={handleChange}
               />
             </div>
@@ -255,12 +220,12 @@ export default function UpdateCustomer() {
 
           <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor="idNumber">National ID Number</Label>
+              <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
               <Input
-                id="idNumber"
-                name="idNumber"
+                id="aadhaar_number"
+                name="aadhaar_number"
                 inputMode="numeric"
-                value={formData.idNumber}
+                value={formData.aadhaar_number}
                 onChange={handleChange}
               />
             </div>
