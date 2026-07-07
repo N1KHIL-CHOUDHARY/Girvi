@@ -15,6 +15,7 @@ import {
   getApiErrorMessage,
   getPawnTicketById,
   updatePawnTicket,
+  uploadFile,
 } from "@/services/api";
 
 type CustomerReference =
@@ -438,6 +439,10 @@ export default function UpdatePawn() {
               <Label htmlFor="itemPhotoUrl">Item Photo</Label>
               <FileUpload
                 value={formData.itemPhotoUrl}
+                onUpload={async (file) => {
+                  const res = await uploadFile<{ url: string }>(file);
+                  return res.data.url;
+                }}
                 onChange={(url) =>
                   setFormData((prev) => ({
                     ...prev,

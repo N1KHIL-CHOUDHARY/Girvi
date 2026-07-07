@@ -11,7 +11,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import FileUpload from "@/components/ui/FileUpload";
-import { createAccount } from "@/services/api";
+import { createAccount, uploadFile } from "@/services/api";
 
 interface CustomerFormState {
   full_name: string;
@@ -217,6 +217,10 @@ export default function NewCustomer() {
             <Label>Customer Photo</Label>
             <FileUpload
               value={formData.customer_photo_url}
+              onUpload={async (file) => {
+                const res = await uploadFile<{ url: string }>(file);
+                return res.data.url;
+              }}
               onChange={(url) =>
                 setFormData((prev) => ({ ...prev, customer_photo_url: url }))
               }

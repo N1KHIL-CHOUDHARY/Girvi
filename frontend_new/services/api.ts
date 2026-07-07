@@ -84,7 +84,7 @@ export const getPawnTickets = <T = unknown>(
   status = "active"
 ) =>
   api.get<T>("/app/pawns", {
-    params: { page, search, status, limit: 10 },
+    params: { page, search, status: status === "all" ? undefined : status, limit: 10 },
   });
 
 export const getPawnTicketsByAccountId = <T = unknown>(accountId: string) =>
