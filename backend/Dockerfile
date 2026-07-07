@@ -31,6 +31,12 @@ COPY prisma ./prisma/
 # Install only production dependencies
 RUN pnpm install --prod --frozen-lockfile
 
+# Generate Prisma Client for the production environment
+RUN pnpm prisma generate
+
+# Ensure uploads storage folder exists
+RUN mkdir -p storage/uploads
+
 # Copy compiled JavaScript files from build stage
 COPY --from=builder /usr/src/app/dist ./dist
 

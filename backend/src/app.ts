@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import xss from 'xss-clean';
 import path from 'path';
 
 // Middleware Imports
@@ -44,8 +43,8 @@ app.use(cors({
 
 // 2. Request parsing and compression
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 // 3. Request Logging (Morgan for console and Pino Http for request tracing)
@@ -54,8 +53,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use(loggerMiddleware);
 
-// 4. XSS Protection & Custom Sanitizer Middleware
-app.use(xss());
+// 4. Custom Sanitizer Middleware
 app.use(sanitizeMiddleware);
 
 // 5. Serve static uploads
@@ -111,4 +109,3 @@ app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 export default app;
-export { app };

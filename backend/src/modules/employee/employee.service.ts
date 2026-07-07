@@ -54,7 +54,7 @@ export class EmployeeService {
     await prisma.auditLog.create({
       data: {
         shopId,
-        userId: getTenantUserId(),
+        userId: getTenantUserId() ?? null,
         entityName: 'Employee',
         entityId: employee.id,
         action: 'create',
@@ -67,7 +67,7 @@ export class EmployeeService {
 
   async updateEmployee(id: string, data: any): Promise<User> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId();
+    const actorId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // 1. Check if employee exists
@@ -172,7 +172,7 @@ export class EmployeeService {
 
   async deleteEmployee(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId();
+    const actorId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const employee = await employeeRepository.findById(id);

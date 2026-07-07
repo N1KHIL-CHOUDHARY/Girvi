@@ -1,5 +1,1 @@
-declare module 'xss-clean' {
-  import { RequestHandler } from 'express';
-  const xssClean: () => RequestHandler;
-  export default xssClean;
-}
+// Module xss-clean removed from dependencies.

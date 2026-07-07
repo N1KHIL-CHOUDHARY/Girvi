@@ -55,4 +55,15 @@ async function bootstrap() {
   }
 }
 
+// Global Process Event Listeners
+process.on('uncaughtException', (error) => {
+  logger.fatal({ error }, 'Uncaught Exception detected! Force exiting process...');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.fatal({ reason, promise }, 'Unhandled Promise Rejection detected! Force exiting process...');
+  process.exit(1);
+});
+
 bootstrap();

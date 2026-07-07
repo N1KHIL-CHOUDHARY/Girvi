@@ -15,21 +15,25 @@ if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
   useUpstash = true;
   logger.info('✓ Using Upstash Redis REST Client for caching and sessions');
 } else {
-  standardClient = createClient({
-    url: env.REDIS_URL
-  });
-  
-  standardClient.on('error', (err: any) => {
-    logger.error({ err }, 'Redis connection error');
-  });
+  try {
+    standardClient = createClient({
+      url: env.REDIS_URL
+    });
+    
+    standardClient.on('error', (err: any) => {
+      logger.error({ err }, 'Redis connection error');
+    });
 
-  standardClient.on('connect', () => {
-    logger.info('Connecting to Redis...');
-  });
+    standardClient.on('connect', () => {
+      logger.info('Connecting to Redis...');
+    });
 
-  standardClient.on('ready', () => {
-    logger.info('✓ Redis client ready and connected');
-  });
+    standardClient.on('ready', () => {
+      logger.info('✓ Redis client ready and connected');
+    });
+  } catch (err) {
+    logger.error({ err }, 'Failed to create Redis client instance. Verify REDIS_URL.');
+  }
 }
 
 export const redisClient = {
@@ -156,7 +160,11 @@ export const redisClient = {
 };
 
 export const connectRedis = async (): Promise<void> => {
-  await redisClient.connect();
+  try {
+    await redisClient.connect();
+  } catch (err) {
+    logger.error({ err }, 'Could not establish initial connection to Redis');
+  }
 };
 
 export const disconnectRedis = async (): Promise<void> => {
