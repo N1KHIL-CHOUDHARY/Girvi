@@ -22,12 +22,9 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Customers", href: "/customers", icon: Users },
-  { label: "Loans", href: "/loans", icon: Landmark },
-  { label: "Jewellery", href: "/jewellery", icon: Gem },
   { label: "Pawn Tickets", href: "/pawn-tickets", icon: Ticket },
   { label: "Payments", href: "/payments", icon: CreditCard },
   { label: "Employees", href: "/employees", icon: UserCog },
-  { label: "Roles", href: "/roles", icon: ShieldCheck },
   { label: "Reports", href: "/reports", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
