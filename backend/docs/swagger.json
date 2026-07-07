@@ -1,0 +1,307 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Pawn Manager API",
+    "description": "Enterprise Pawn Shop Management System Backend API Documentation",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API Version 1 Prefix"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Shop Owner Registration",
+        "description": "Registers a new shop and its owner account atomically, seeding default permissions.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["full_name", "shop_name", "email", "password"],
+                "properties": {
+                  "full_name": { "type": "string", "example": "Bala Murugan" },
+                  "shop_name": { "type": "string", "example": "Vels Pawn Shop" },
+                  "email": { "type": "string", "example": "owner@vels.com" },
+                  "password": { "type": "string", "example": "securePassword123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Signup successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "Registration successful" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": { "type": "string" },
+                        "user": { "$ref": "#/components/schemas/UserSummary" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "User Login",
+        "description": "Authenticates user across the multi-tenant database by checking email and matching password.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "owner@vels.com" },
+                  "password": { "type": "string", "example": "securePassword123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": { "type": "string" },
+                        "refreshToken": { "type": "string" },
+                        "user": { "$ref": "#/components/schemas/UserSummary" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/me": {
+      "get": {
+        "summary": "Get Profile and Shop Details",
+        "description": "Retrieves the active user and shop metadata context based on JWT authorization.",
+        "responses": {
+          "200": {
+            "description": "Details retrieved"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Shop Details",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "address": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Shop updated" }
+        }
+      }
+    },
+    "/app/customers": {
+      "get": {
+        "summary": "List Customers",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List returned" }
+        }
+      },
+      "post": {
+        "summary": "Create Customer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomerInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created" }
+        }
+      }
+    },
+    "/app/pawns": {
+      "get": {
+        "summary": "List Pawn Tickets",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List returned" }
+        }
+      },
+      "post": {
+        "summary": "Create Pawn Ticket",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PawnTicketInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Issued" }
+        }
+      }
+    },
+    "/app/payments": {
+      "post": {
+        "summary": "Post Payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ticket_id", "amount_paid", "payment_for"],
+                "properties": {
+                  "ticket_id": { "type": "string", "format": "uuid" },
+                  "amount_paid": { "type": "number" },
+                  "payment_for": { "type": "string", "enum": ["principal", "interest", "penalty", "fine", "processing_fee", "service_fee"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Posted" }
+        }
+      }
+    },
+    "/app/stat/dashboard": {
+      "get": {
+        "summary": "Retrieve Dashboard Metrics",
+        "responses": {
+          "200": { "description": "Dashboard payload returned" }
+        }
+      }
+    },
+    "/app/stat/financial-report": {
+      "get": {
+        "summary": "Retrieve Financial Report",
+        "responses": {
+          "200": { "description": "Report pages returned" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "shopId": { "type": "string", "format": "uuid" },
+          "role": { "type": "string" },
+          "full_name": { "type": "string" },
+          "email": { "type": "string" },
+          "language": { "type": "string" }
+        }
+      },
+      "CustomerInput": {
+        "type": "object",
+        "required": ["full_name", "phone_number"],
+        "properties": {
+          "full_name": { "type": "string" },
+          "phone_number": { "type": "string" },
+          "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+          "aadhaar_number": { "type": "string" },
+          "pan_number": { "type": "string" },
+          "address": {
+            "type": "object",
+            "properties": {
+              "line1": { "type": "string" },
+              "city": { "type": "string" },
+              "pincode": { "type": "string" }
+            }
+          }
+        }
+      },
+      "PawnTicketInput": {
+        "type": "object",
+        "required": ["customer_id", "ticket_number", "loan_amount", "interest_rate", "items"],
+        "properties": {
+          "customer_id": { "type": "string", "format": "uuid" },
+          "ticket_number": { "type": "string" },
+          "loan_amount": { "type": "number" },
+          "interest_rate": { "type": "number" },
+          "adv_amount": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "weight_grams"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "weight_grams": { "type": "number" },
+                "purity": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

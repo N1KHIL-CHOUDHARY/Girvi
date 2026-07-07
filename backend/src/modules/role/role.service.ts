@@ -1,0 +1,210 @@
+import { Role } from '@prisma/client';
+import { roleRepository } from './role.repository';
+import { prisma } from '../../config/database';
+import { redisClient } from '../../config/redis';
+import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+  AppError
+} from '../../common/errors/AppError';
+
+export class RoleService {
+  async getAllRoles(): Promise<(Role & { permissions: string[] })[]> {
+    const roles = await roleRepository.findAll();
+    return roles.map((role) => ({
+      ...role,
+      permissions: role.permissions.map((rp) => rp.permission.code)
+    }));
+  }
+
+  async getRoleById(id: string): Promise<Role & { permissions: string[] }> {
+    const role = await roleRepository.findById(id);
+    if (!role) {
+      throw new NotFoundError('Role not found');
+    }
+    return {
+      ...role,
+      permissions: role.permissions.map((rp) => rp.permission.code)
+    };
+  }
+
+  async createRole(data: { name: string; description: string; permissions: string[] }): Promise<Role> {
+    const shopId = getTenantShopId();
+    if (!shopId) throw new AppError('Tenant context required', 400);
+
+    // 1. Block duplicate name
+    const existing = await roleRepository.findByName(data.name);
+    if (existing) {
+      throw new ConflictError('A role with this name already exists in your shop');
+    }
+
+    // 2. Validate all permissions exist in database
+    const dbPermissions = await prisma.permission.findMany({
+      where: { code: { in: data.permissions } }
+    });
+    if (dbPermissions.length !== data.permissions.length) {
+      throw new ValidationError('One or more selected permissions are invalid');
+    }
+
+    // 3. Atomically create role and role-permissions
+    const role = await prisma.$transaction(async (tx) => {
+      const createdRole = await tx.role.create({
+        data: {
+          shopId,
+          name: data.name.toLowerCase().trim(),
+          description: data.description
+        }
+      });
+
+      await tx.rolePermission.createMany({
+        data: dbPermissions.map((perm) => ({
+          roleId: createdRole.id,
+          permissionId: perm.id
+        }))
+      });
+
+      return createdRole;
+    });
+
+    // 4. Audit
+    await prisma.auditLog.create({
+      data: {
+        shopId,
+        userId: getTenantUserId(),
+        entityName: 'Role',
+        entityId: role.id,
+        action: 'create',
+        newValue: { name: role.name, permissions: data.permissions }
+      }
+    });
+
+    return role;
+  }
+
+  async updateRole(id: string, data: { name?: string; description?: string; permissions?: string[] }): Promise<Role> {
+    const shopId = getTenantShopId();
+    const actorId = getTenantUserId();
+    if (!shopId) throw new AppError('Tenant context required', 400);
+
+    const role = await roleRepository.findById(id);
+    if (!role) {
+      throw new NotFoundError('Role not found');
+    }
+
+    // 1. Protect the owner role
+    if (role.name === 'owner') {
+      throw new ValidationError('The owner role is protected and cannot be modified');
+    }
+
+    // 2. Check duplicates
+    if (data.name && data.name.toLowerCase().trim() !== role.name) {
+      const existing = await roleRepository.findByName(data.name);
+      if (existing) {
+        throw new ConflictError('A role with this name already exists');
+      }
+    }
+
+    // 3. Update database
+    const updatedRole = await prisma.$transaction(async (tx) => {
+      const updated = await tx.role.update({
+        where: { id },
+        data: {
+          name: data.name ? data.name.toLowerCase().trim() : undefined,
+          description: data.description || undefined
+        }
+      });
+
+      if (data.permissions) {
+        // Validate all permissions
+        const dbPermissions = await tx.permission.findMany({
+          where: { code: { in: data.permissions } }
+        });
+        if (dbPermissions.length !== data.permissions.length) {
+          throw new ValidationError('One or more selected permissions are invalid');
+        }
+
+        // Delete old permissions and link new ones
+        await tx.rolePermission.deleteMany({
+          where: { roleId: id }
+        });
+
+        await tx.rolePermission.createMany({
+          data: dbPermissions.map((perm) => ({
+            roleId: id,
+            permissionId: perm.id
+          }))
+        });
+      }
+
+      return updated;
+    });
+
+    // 4. Invalidate Redis permission cache for all users of this role
+    if (data.permissions) {
+      const users = await prisma.user.findMany({
+        where: { roleId: id }
+      });
+      for (const u of users) {
+        await redisClient.del(`user:permissions:${u.id}`);
+      }
+    }
+
+    // 5. Audit
+    await prisma.auditLog.create({
+      data: {
+        shopId,
+        userId: actorId,
+        entityName: 'Role',
+        entityId: id,
+        action: 'update',
+        newValue: data
+      }
+    });
+
+    return updatedRole;
+  }
+
+  async deleteRole(id: string): Promise<void> {
+    const shopId = getTenantShopId();
+    const actorId = getTenantUserId();
+    if (!shopId) throw new AppError('Tenant context required', 400);
+
+    const role = await roleRepository.findById(id);
+    if (!role) {
+      throw new NotFoundError('Role not found');
+    }
+
+    // 1. Cannot delete owner
+    if (role.name === 'owner') {
+      throw new ValidationError('The owner role is protected and cannot be deleted');
+    }
+
+    // 2. Cannot delete role if in use by active users
+    const usersCount = await prisma.user.count({
+      where: { roleId: id }
+    });
+    if (usersCount > 0) {
+      throw new ConflictError(`Cannot delete role. It is currently assigned to ${usersCount} employee(s)`);
+    }
+
+    // 3. Delete
+    await roleRepository.delete(id);
+
+    // 4. Audit
+    await prisma.auditLog.create({
+      data: {
+        shopId,
+        userId: actorId,
+        entityName: 'Role',
+        entityId: id,
+        action: 'delete',
+        oldValue: { name: role.name }
+      }
+    });
+  }
+}
+
+export const roleService = new RoleService();
+export default roleService;
