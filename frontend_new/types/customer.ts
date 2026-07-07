@@ -25,10 +25,10 @@ export interface CustomerDetail extends CustomerListItem {
 }
 
 export interface CustomerListResponse {
-  customers: CustomerListItem[];
-  totalCustomers: number;
+  items: CustomerListItem[];
+  total: number;
   totalPages: number;
-  currentPage: number;
+  page: number;
 }
 
 export interface CustomerAddressInput {

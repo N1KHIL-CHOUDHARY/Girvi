@@ -26,9 +26,9 @@ export default function Reports() {
   const totalPages = data?.totalPages ?? 1;
 
   // Simple aggregation totals based on loaded list
-  const totalPrincipalLent = records.reduce((sum, r) => sum + Number(r.original_loan_amount || 0), 0);
-  const totalInterestCollected = records.reduce((sum, r) => sum + Number(r.total_interest_paid || 0), 0);
-  const activeCount = records.filter((r) => r.status === "active").length;
+  const totalPrincipalLent = records.reduce((sum: number, r: FinancialReportRow) => sum + Number(r.original_loan_amount || 0), 0);
+  const totalInterestCollected = records.reduce((sum: number, r: FinancialReportRow) => sum + Number(r.total_interest_paid || 0), 0);
+  const activeCount = records.filter((r: FinancialReportRow) => r.status === "active").length;
 
   const handlePrint = () => {
     window.print();

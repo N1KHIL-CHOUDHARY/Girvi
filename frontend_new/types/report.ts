@@ -28,8 +28,8 @@ export interface FinancialReportRow {
 }
 
 export interface FinancialReportResponse {
-  report: FinancialReportRow[];
-  totalItems: number;
+  items: FinancialReportRow[];
+  total: number;
   totalPages: number;
   page: number;
   limit: number;

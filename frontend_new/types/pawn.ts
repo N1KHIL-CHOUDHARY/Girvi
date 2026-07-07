@@ -37,10 +37,10 @@ export interface PawnTicketRecord {
 }
 
 export interface PawnTicketListResponse {
-  tickets: PawnTicketRecord[];
-  totalPawnTickets: number;
+  items: PawnTicketRecord[];
+  total: number;
   totalPages: number;
-  currentPage: number;
+  page: number;
 }
 
 export interface PawnItemInput {

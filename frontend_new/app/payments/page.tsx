@@ -16,6 +16,7 @@ import {
 import { usePaymentsLedger } from "@/hooks/usePaymentsLedger";
 import { formatCurrency } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/Badge";
+import type { FinancialReportRow } from "@/types/report";
 
 function TableSkeleton() {
   return (
@@ -59,7 +60,7 @@ export default function PaymentsLedger() {
     setPage(1); // Reset to page 1 on new search
   };
 
-  const records = data?.report ?? [];
+  const records = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
 
   return (
@@ -90,7 +91,7 @@ export default function PaymentsLedger() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
             <div>
               <p className="text-sm font-medium text-rose-900">Error loading ledger records</p>
-              <p className="mt-1 text-sm text-rose-700">{error}</p>
+              <p className="mt-1 text-sm text-rose-700">{error.message}</p>
             </div>
           </div>
         </div>
@@ -154,7 +155,7 @@ export default function PaymentsLedger() {
               </tbody>
             ) : (
               <tbody className="divide-y divide-slate-50">
-                {records.map((r) => {
+                {records.map((r: FinancialReportRow) => {
                   const statusFormatted = r.status.charAt(0).toUpperCase() + r.status.slice(1);
                   return (
                     <tr key={r.id} className="text-sm text-slate-700 hover:bg-slate-50/60">

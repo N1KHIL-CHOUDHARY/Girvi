@@ -14,3 +14,5 @@ export interface Employee {
   createdAt: string;
   updatedAt: string;
 }
+
+export type EmployeeListResponse = Employee[];

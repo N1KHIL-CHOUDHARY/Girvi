@@ -15,7 +15,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { cn, formatShortcutKey } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 
 interface SearchResult {

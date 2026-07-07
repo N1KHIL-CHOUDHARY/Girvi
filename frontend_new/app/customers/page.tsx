@@ -72,7 +72,7 @@ export default function Customers() {
     setPage(1); // Reset to page 1 on new search query
   };
 
-  const customers = data?.customers ?? [];
+  const customers = data?.items ?? [];
   const totalPages = data?.totalPages ?? 1;
 
   return (
@@ -108,7 +108,7 @@ export default function Customers() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
             <div>
               <p className="text-sm font-medium text-rose-900">Error loading customer accounts</p>
-              <p className="mt-1 text-sm text-rose-700">{error}</p>
+              <p className="mt-1 text-sm text-rose-700">{error.message}</p>
             </div>
           </div>
         </div>

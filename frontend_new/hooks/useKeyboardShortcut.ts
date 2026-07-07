@@ -8,12 +8,8 @@ interface ShortcutOptions {
   disableOnInput?: boolean;
 }
 
-/**
- * Hook to register global keyboard shortcuts.
- * @param keys Key combination (e.g. ['Control', 'k'] or ['Alt', 'n'])
- * @param callback Callback function when combination triggers
- * @param options Configurations (preventDefault, disableOnInput)
- */
+
+
 export function useKeyboardShortcut(
   keys: string[],
   callback: (e: KeyboardEvent) => void,
