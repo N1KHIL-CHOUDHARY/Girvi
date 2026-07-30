@@ -17,12 +17,36 @@ export function Topbar({
   userName?: string;
   userRole?: string;
 }) {
-  const initials = userName
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await getProfile<UserProfileResponse>();
+      return res.data;
+    },
+    retry: false,
+  });
+
+  const displayUserName = profile?.full_name ?? userName;
+  const displayUserRole = profile?.role
+    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+    : userRole;
+
+  const initials = displayUserName
     .split(" ")
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "U";
+  const initials = userName
+    ? userName
+        .split(" ")
+        .map((part) => part[0])
+        .filter(Boolean)
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 backdrop-blur md:px-8">
