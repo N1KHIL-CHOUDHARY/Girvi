@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { app } from "../../src/app";
+import app from "../../src/app";
 
 vi.mock("../../src/config/database", () => {
   const mockPrisma = {

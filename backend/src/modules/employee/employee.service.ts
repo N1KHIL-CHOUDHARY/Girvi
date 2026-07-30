@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
-import { User, Role } from '@prisma/client';
+import bcrypt from "bcryptjs";
+import { User, Role } from "@prisma/client";
 import { employeeRepository } from './employee.repository';
 import { getTenantUserId, getTenantShopId } from '../../common/context/tenant.context';
 import { prisma } from '../../config/database';
