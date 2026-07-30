@@ -38,15 +38,7 @@ export function Topbar({
     .join("")
     .slice(0, 2)
     .toUpperCase() || "U";
-  const initials = userName
-    ? userName
-        .split(" ")
-        .map((part) => part[0])
-        .filter(Boolean)
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "";
+  
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 backdrop-blur md:px-8">
