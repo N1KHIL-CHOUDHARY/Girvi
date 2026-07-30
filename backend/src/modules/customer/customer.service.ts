@@ -83,7 +83,7 @@ export class CustomerService {
 
   async createCustomer(data: any): Promise<Customer> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // Prepare encrypted values and plain search tags
@@ -143,7 +143,7 @@ export class CustomerService {
 
   async updateCustomer(id: string, data: any): Promise<Customer> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const customer = await customerRepository.findById(id);
@@ -238,7 +238,7 @@ export class CustomerService {
 
   async deleteCustomer(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const customer = await customerRepository.findById(id);

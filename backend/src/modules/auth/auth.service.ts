@@ -330,7 +330,7 @@ export class AuthService {
   /* Helper Methods */
 
   private generateAccessToken(payload: TokenPayload): string {
-    return jwt.sign({ ...payload }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES as any });
+    return jwt.sign({ ...payload }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES as jwt.SignOptions['expiresIn'] });
   }
 
   private async createRefreshToken(userId: string, shopId: string): Promise<string> {

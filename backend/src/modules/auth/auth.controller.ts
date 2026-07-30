@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service';
 import { sendResponse } from '../../common/utils/apiResponse';
+import { getTenantUserId } from '../../common/context/tenant.context';
 
 export class AuthController {
   async signup(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -141,7 +142,7 @@ export class AuthController {
   async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { currentPassword, newPassword } = req.body;
-      const userId = (req as any).user?.id || (req.headers['x-user-id'] as string) || '';
+      const userId = getTenantUserId() || '';
       
       await authService.changePassword(userId, currentPassword, newPassword);
 

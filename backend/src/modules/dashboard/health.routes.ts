@@ -27,9 +27,12 @@ router.get('/health', async (_req: Request, res: Response): Promise<void> => {
     redisStatus = 'DOWN';
   }
 
-  res.status(dbStatus === 'UP' && redisStatus === 'UP' ? 200 : 503).json({
-    success: dbStatus === 'UP' && redisStatus === 'UP',
-    status: dbStatus === 'UP' && redisStatus === 'UP' ? 'healthy' : 'degraded',
+  const isHealthy = dbStatus === 'UP' && redisStatus === 'UP';
+  const isOperational = dbStatus === 'UP';
+
+  res.status(isOperational ? 200 : 503).json({
+    success: isOperational,
+    status: isHealthy ? 'healthy' : (isOperational ? 'degraded' : 'down'),
     version: '1.0.0',
     services: {
       database: dbStatus,

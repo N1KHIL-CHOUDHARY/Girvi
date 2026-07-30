@@ -58,8 +58,8 @@ export default function Signup() {
         password: form.password,
       });
 
-      const payload = response.data as { data?: AuthResponse };
-      const token = payload?.data?.token;
+      const payload = response.data as unknown as AuthResponse;
+      const token = payload?.token;
       if (token) {
         setStoredToken(token);
       }

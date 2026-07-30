@@ -18,6 +18,14 @@ export const errorMiddleware = (
     message = err.message;
     errors = err.errors;
   } else {
+    // Sanitize body to hide passwords before logging
+    const loggedBody = req.body ? { ...req.body } : {};
+    for (const key in loggedBody) {
+      if (key.toLowerCase().includes('password')) {
+        loggedBody[key] = '[REDACTED]';
+      }
+    }
+
     // Log unexpected errors
     logger.error(
       {
@@ -29,7 +37,7 @@ export const errorMiddleware = (
         request: {
           method: req.method,
           url: req.originalUrl,
-          body: req.body,
+          body: loggedBody,
           params: req.params,
           query: req.query
         }
@@ -43,7 +51,7 @@ export const errorMiddleware = (
       message = 'Database operations constraint violation';
       if (env.NODE_ENV === 'development') {
         message = err.message;
-        errors = [err];
+        errors = [{ name: err.name, message: err.message }];
       }
     }
   }

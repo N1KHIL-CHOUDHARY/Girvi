@@ -90,31 +90,37 @@ export class DashboardService {
       count: a._count.address_pincode
     }));
 
-    // Calculate top customers by aggregate loan amount
-    const allTickets = await prisma.pawnTicket.findMany({
+    // Calculate top customers by aggregate loan amount using database-level aggregation
+    const topCustomersGrouped = await prisma.pawnTicket.groupBy({
+      by: ['customerId'],
       where: { shopId },
-      include: { customer: true }
+      _sum: {
+        original_loan_amount: true
+      },
+      orderBy: {
+        _sum: {
+          original_loan_amount: 'desc'
+        }
+      },
+      take: 5
     });
 
-    const customerMap: Record<string, { full_name: string; total: Prisma.Decimal }> = {};
-    for (const t of allTickets) {
-      if (t.customer) {
-        const id = t.customerId;
-        if (!customerMap[id]) {
-          customerMap[id] = { full_name: t.customer.full_name, total: new Prisma.Decimal(0) };
-        }
-        customerMap[id].total = customerMap[id].total.plus(t.original_loan_amount);
-      }
-    }
+    const topCustomerIds = topCustomersGrouped.map((cg) => cg.customerId);
+    const customersInfo = await prisma.customer.findMany({
+      where: { id: { in: topCustomerIds } }
+    });
 
-    const top_customers = Object.entries(customerMap)
-      .map(([id, details]) => ({
-        id,
-        full_name: details.full_name,
-        total_loan: details.total.toFixed(2)
-      }))
-      .sort((a, b) => parseFloat(b.total_loan) - parseFloat(a.total_loan))
-      .slice(0, 5);
+    const infoMap = new Map(customersInfo.map((c) => [c.id, c.full_name]));
+
+    const top_customers = topCustomersGrouped.map((cg) => {
+      const fullName = infoMap.get(cg.customerId) || 'Walk-in Customer';
+      const totalSum = cg._sum.original_loan_amount || new Prisma.Decimal(0);
+      return {
+        id: cg.customerId,
+        full_name: fullName,
+        total_loan: totalSum.toFixed(2)
+      };
+    });
 
     // Format activities
     const recent_activity = activityLogs.map((log) => ({

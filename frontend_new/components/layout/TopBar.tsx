@@ -1,6 +1,14 @@
 "use client";
 
 import { Search, Bell } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getProfile } from "@/services/api";
+
+interface UserProfileResponse {
+  full_name: string;
+  role: string;
+  email: string;
+}
 
 export function Topbar({
   userName = "",
@@ -10,14 +18,11 @@ export function Topbar({
   userRole?: string;
 }) {
   const initials = userName
-    ? userName
-        .split(" ")
-        .map((part) => part[0])
-        .filter(Boolean)
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "";
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 backdrop-blur md:px-8">
@@ -42,8 +47,8 @@ export function Topbar({
             {initials}
           </div>
           <div className="hidden leading-tight sm:block">
-            <p className="text-[13px] font-medium text-slate-900">{userName}</p>
-            <p className="text-xs text-slate-400">{userRole}</p>
+            <p className="text-[13px] font-medium text-slate-900">{displayUserName}</p>
+            <p className="text-xs text-slate-400">{displayUserRole}</p>
           </div>
         </div>
       </div>

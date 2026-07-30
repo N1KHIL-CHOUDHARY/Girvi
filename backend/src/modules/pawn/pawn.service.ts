@@ -108,7 +108,7 @@ export class PawnService {
 
   async createTicket(data: any): Promise<PawnTicket> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // 1. Verify customer exists
@@ -187,7 +187,7 @@ export class PawnService {
 
   async updateTicket(id: string, data: any): Promise<PawnTicket> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const ticket = await pawnRepository.findById(id);
@@ -269,7 +269,7 @@ export class PawnService {
 
   async deleteTicket(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const ticket = await pawnRepository.findById(id);
@@ -293,7 +293,7 @@ export class PawnService {
 
   async updateTicketStatus(id: string, status: string): Promise<PawnTicket> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const ticket = await pawnRepository.findById(id);

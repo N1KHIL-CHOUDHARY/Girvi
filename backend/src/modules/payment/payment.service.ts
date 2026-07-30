@@ -27,7 +27,7 @@ export class PaymentService {
     payment_date?: string;
   }): Promise<any> {
     const shopId = getTenantShopId();
-    const userId = getTenantUserId();
+    const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // 1. Fetch pawn ticket

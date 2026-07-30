@@ -9,14 +9,13 @@ import { getStoredLanguage, setStoredLanguage } from "@/lib/api";
 import toast from "react-hot-toast";
 
 interface UserProfile {
-  user: {
-    id: string;
-    full_name: string;
-    email: string;
-    role: string;
-    language: string;
-  };
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  language: string;
 }
+
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -32,9 +31,9 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    if (profileData?.user?.language) {
-      setLang(profileData.user.language);
-      setStoredLanguage(profileData.user.language);
+    if (profileData?.language) {
+      setLang(profileData.language);
+      setStoredLanguage(profileData.language);
     } else {
       setLang(getStoredLanguage());
     }
@@ -120,15 +119,15 @@ export default function SettingsPage() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-slate-500">Authorized User: </span>
-                  <span className="font-semibold text-slate-800">{profileData?.user?.full_name}</span>
+                  <span className="font-semibold text-slate-800">{profileData?.full_name}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">Role level: </span>
-                  <span className="font-semibold text-slate-800 capitalize">{profileData?.user?.role}</span>
+                  <span className="font-semibold text-slate-800 capitalize">{profileData?.role}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">Email Reference: </span>
-                  <span className="font-semibold text-[#1E3A66]">{profileData?.user?.email}</span>
+                  <span className="font-semibold text-[#1E3A66]">{profileData?.email}</span>
                 </div>
               </div>
             </div>

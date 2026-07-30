@@ -72,7 +72,7 @@ export class RoleService {
     await prisma.auditLog.create({
       data: {
         shopId,
-        userId: getTenantUserId(),
+        userId: getTenantUserId() ?? null,
         entityName: 'Role',
         entityId: role.id,
         action: 'create',
@@ -85,7 +85,7 @@ export class RoleService {
 
   async updateRole(id: string, data: { name?: string; description?: string; permissions?: string[] }): Promise<Role> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId();
+    const actorId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const role = await roleRepository.findById(id);
@@ -168,7 +168,7 @@ export class RoleService {
 
   async deleteRole(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId();
+    const actorId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const role = await roleRepository.findById(id);
