@@ -30,10 +30,7 @@ export class AuthService {
     email: string;
     password: string;
   }): Promise<{ user: User; token: string }> {
-    // 1. Check if email is already registered in a shop (email uniqueness is scoped per shop,
-    // but the owner cannot create two owners with the same email under the same new shop because the shop is new anyway.
-    // However, as a guard, check if this email is already registered anywhere. It's fine to register the same email
-    // under a different shop, but under this exact signup it creates a new shop, so it will always be unique).
+    
     
     // 2. Hash password
     const salt = await bcrypt.genSalt(10);

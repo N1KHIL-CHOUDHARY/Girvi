@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FileQuestion, MoveLeft } from "lucide-react";
-
 import { AppShell } from "@/components/layout/AppShell";
 
 export default function NotFound() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isRecordNotFound =
+    pathname?.includes("/customers/") ||
+    pathname?.includes("/pawn-tickets/") ||
+    pathname?.includes("/payments/");
+
+  const title = isRecordNotFound ? "Record Not Found" : "Page Not Found";
+  const description = isRecordNotFound
+    ? "The requested database record does not exist, has been removed, or you do not have permission to access it."
+    : "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.";
 
   return (
     <AppShell>
@@ -20,10 +30,10 @@ export default function NotFound() {
           404
         </h1>
         <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-800">
-          Page Not Found
+          {title}
         </h2>
         <p className="mt-3 max-w-md text-sm text-slate-500">
-          The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+          {description}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

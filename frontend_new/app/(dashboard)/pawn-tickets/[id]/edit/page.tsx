@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ticket } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import toast from "react-hot-toast";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -227,12 +227,9 @@ export default function UpdatePawn() {
     },
   });
 
-  useEffect(() => {
-    if (isError) {
-      toast.error("Failed to load pawn ticket");
-      router.push("/pawn-tickets");
-    }
-  }, [isError, router]);
+  if (isError) {
+    notFound();
+  }
 
   useEffect(() => {
     if (pawnTicket) {

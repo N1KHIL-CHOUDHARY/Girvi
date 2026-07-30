@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -77,16 +77,7 @@ export default function PawnTicketDetailPage() {
   }
 
   if (ticketError || !ticket) {
-    return (
-      <AppShell>
-        <div className="py-16 text-center">
-          <p className="text-lg font-medium text-slate-900">Pawn ticket not found</p>
-          <Link href="/pawn-tickets" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#1E3A66]">
-            <ChevronLeft className="h-4 w-4" /> Back to Tickets
-          </Link>
-        </div>
-      </AppShell>
-    );
+    notFound();
   }
 
   const paymentList = payments ?? [];

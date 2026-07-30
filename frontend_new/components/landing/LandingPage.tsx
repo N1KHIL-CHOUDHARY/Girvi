@@ -147,13 +147,13 @@ export function LandingPage() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/auth/login"
+              href="/login"
               className="px-4 py-2 text-[14px] font-semibold text-slate-600 hover:text-[#314259] transition-colors"
             >
               Login
             </Link>
             <Link
-              href="/auth/signup"
+              href="/signup"
               className="px-4 py-2.5 rounded-xl text-[14px] font-semibold bg-[#314259] text-white hover:bg-[#233041] transition-all hover:shadow-sm"
             >
               Try Pawn Manager
@@ -182,7 +182,7 @@ export function LandingPage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 w-full sm:w-auto">
               <Link
-                href="/auth/signup"
+                href="/signup"
                 className="px-6 py-3.5 rounded-xl text-[15px] font-semibold bg-[#314259] text-white hover:bg-[#233041] transition-all hover:shadow-md text-center flex items-center justify-center gap-2 group"
               >
                 Try Pawn Manager
@@ -1250,7 +1250,7 @@ export function LandingPage() {
           </p>
           <div className="pt-4">
             <Link
-              href="/auth/signup"
+              href="/signup"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold bg-[#314259] text-white hover:bg-[#233041] hover:shadow-md transition-all text-sm"
             >
               Start Using Pawn Manager
@@ -1351,7 +1351,7 @@ export function LandingPage() {
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                href="/auth/signup"
+                href="/signup"
                 className="px-6 py-3.5 rounded-xl font-bold bg-white text-[#314259] hover:bg-slate-100 transition-all text-sm w-full sm:w-auto shadow-sm"
               >
                 Try Pawn Manager

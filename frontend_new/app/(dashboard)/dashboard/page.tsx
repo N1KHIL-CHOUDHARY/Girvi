@@ -1,6 +1,5 @@
 "use client";
 
-import { AppShell } from "@/components/layout/AppShell";
 import AreaPieChart from "@/components/ui/AreaPieChart";
 import GenderPieChart from "@/components/ui/GenderPieChart";
 import { StatCard } from "@/components/ui/StatCard";
@@ -77,7 +76,7 @@ export default function Dashboard() {
   const areaData = data?.area_data ?? [];
 
   return (
-    <AppShell>
+    <>
       <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -211,6 +210,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -3,18 +3,21 @@
 import { Search, Bell } from "lucide-react";
 
 export function Topbar({
-  userName = "Nikhil H",
-  userRole = "Owner",
+  userName = "",
+  userRole = "",
 }: {
   userName?: string;
   userRole?: string;
 }) {
   const initials = userName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+    ? userName
+        .split(" ")
+        .map((part) => part[0])
+        .filter(Boolean)
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 backdrop-blur md:px-8">

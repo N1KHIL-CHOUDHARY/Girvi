@@ -1,23 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  Landmark,
-  Gem,
   Ticket,
   CreditCard,
   BarChart3,
   Settings,
-  ShieldCheck,
   UserCog,
   User,
   LogOut,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logout, setStoredToken } from "@/services/api";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,6 +29,17 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+    } finally {
+      setStoredToken(null);
+      router.push("/login");
+    }
+  };
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-100 bg-white px-4 py-6 md:flex">
@@ -66,13 +75,16 @@ export function Sidebar() {
 
       <div className="space-y-1 border-t border-slate-100 pt-4">
         <Link
-          href="/profile"
+          href="/settings"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
         >
           <User className="h-[18px] w-[18px]" strokeWidth={2} />
           Profile
         </Link>
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+        >
           <LogOut className="h-[18px] w-[18px]" strokeWidth={2} />
           Logout
         </button>

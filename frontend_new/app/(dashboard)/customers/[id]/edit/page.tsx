@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { User } from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import FileUpload from "@/components/ui/FileUpload";
@@ -35,6 +34,7 @@ export default function UpdateCustomer() {
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<CustomerFormState | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const {
     data: customerData,
@@ -48,12 +48,9 @@ export default function UpdateCustomer() {
     },
   });
 
-  useEffect(() => {
-    if (isError) {
-      toast.error("Failed to load customer");
-      router.push("/customers");
-    }
-  }, [isError, router]);
+  if (isError) {
+    notFound();
+  }
 
   useEffect(() => {
     if (customerData) {
@@ -88,15 +85,53 @@ export default function UpdateCustomer() {
     },
   });
 
+  const validate = (): boolean => {
+    if (!formData) return false;
+    const newErrors: Record<string, string> = {};
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = "Full name is required";
+    }
+    if (!formData.phone_number.trim()) {
+      newErrors.phone_number = "Phone number is required";
+    } else if (!/^\d{10,}$/.test(formData.phone_number.trim())) {
+      newErrors.phone_number = "Phone number must be at least 10 digits";
+    }
+    if (formData.aadhaar_number.trim()) {
+      if (!/^\d{12}$/.test(formData.aadhaar_number.trim())) {
+        newErrors.aadhaar_number = "Aadhaar number must be exactly 12 digits";
+      }
+    }
+    if (formData.pan_number.trim()) {
+      if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan_number.trim().toUpperCase())) {
+        newErrors.pan_number = "Invalid PAN card format (e.g. ABCDE1234F)";
+      }
+    }
+    if (formData.pincode.trim()) {
+      if (!/^\d{6}$/.test(formData.pincode.trim())) {
+        newErrors.pincode = "Pincode must be exactly 6 digits";
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData((prev) => (prev ? { ...prev, [e.target.name]: e.target.value } : prev));
+    const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : prev));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData) return;
+    if (!formData || !validate()) return;
 
     updateMutation.mutate({
       full_name: formData.full_name,
@@ -108,24 +143,22 @@ export default function UpdateCustomer() {
         pincode: formData.pincode,
       },
       aadhaar_number: formData.aadhaar_number,
-      pan_number: formData.pan_number,
+      pan_number: formData.pan_number.toUpperCase(),
       customer_photo_url: formData.customer_photo_url || undefined,
     });
   };
 
   if (loadingCustomer || !formData) {
     return (
-      <AppShell>
-        <div className="mx-auto w-full max-w-3xl animate-pulse rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
-          <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
-          <div className="h-4 w-1/4 rounded bg-slate-100" />
-        </div>
-      </AppShell>
+      <div className="mx-auto w-full max-w-3xl animate-pulse rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
+        <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
+        <div className="h-4 w-1/4 rounded bg-slate-100" />
+      </div>
     );
   }
 
   return (
-    <AppShell>
+    <>
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-6 flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-100 bg-slate-50">
@@ -153,8 +186,12 @@ export default function UpdateCustomer() {
                 name="full_name"
                 value={formData.full_name}
                 onChange={handleChange}
-                required
+                disabled={updateMutation.isPending}
+                className={errors.full_name ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
               />
+              {errors.full_name && (
+                <span className="mt-1 block text-xs text-rose-500">{errors.full_name}</span>
+              )}
             </div>
             <div>
               <Label htmlFor="phone_number">Phone Number</Label>
@@ -165,8 +202,12 @@ export default function UpdateCustomer() {
                 inputMode="numeric"
                 value={formData.phone_number}
                 onChange={handleChange}
-                required
+                disabled={updateMutation.isPending}
+                className={errors.phone_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
               />
+              {errors.phone_number && (
+                <span className="mt-1 block text-xs text-rose-500">{errors.phone_number}</span>
+              )}
             </div>
           </div>
 
@@ -178,6 +219,7 @@ export default function UpdateCustomer() {
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
                 className={selectClass}
               >
                 <option value="Male">Male</option>
@@ -192,6 +234,7 @@ export default function UpdateCustomer() {
                 name="line1"
                 value={formData.line1}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
               />
             </div>
           </div>
@@ -204,6 +247,7 @@ export default function UpdateCustomer() {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
               />
             </div>
             <div>
@@ -214,7 +258,12 @@ export default function UpdateCustomer() {
                 inputMode="numeric"
                 value={formData.pincode}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
+                className={errors.pincode ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
               />
+              {errors.pincode && (
+                <span className="mt-1 block text-xs text-rose-500">{errors.pincode}</span>
+              )}
             </div>
           </div>
 
@@ -227,7 +276,12 @@ export default function UpdateCustomer() {
                 inputMode="numeric"
                 value={formData.aadhaar_number}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
+                className={errors.aadhaar_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
               />
+              {errors.aadhaar_number && (
+                <span className="mt-1 block text-xs text-rose-500">{errors.aadhaar_number}</span>
+              )}
             </div>
             <div>
               <Label htmlFor="pan_number">PAN Number</Label>
@@ -237,7 +291,12 @@ export default function UpdateCustomer() {
                 autoComplete="off"
                 value={formData.pan_number}
                 onChange={handleChange}
+                disabled={updateMutation.isPending}
+                className={errors.pan_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
               />
+              {errors.pan_number && (
+                <span className="mt-1 block text-xs text-rose-500">{errors.pan_number}</span>
+              )}
             </div>
           </div>
 
@@ -262,13 +321,13 @@ export default function UpdateCustomer() {
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="flex items-center justify-center rounded-xl bg-[#1E3A66] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:opacity-50"
+              className="flex items-center justify-center rounded-xl bg-[#1E3A66] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
       </div>
-    </AppShell>
+    </>
   );
 }
