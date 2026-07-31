@@ -5,6 +5,7 @@ import { sendSuccess } from '../../common/utils/apiResponse';
 import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
 import { NotFoundError, AppError } from '../../common/errors/AppError';
 import { asyncHandler } from '../../common/utils/asyncHandler';
+import { employeeService } from './employee.service';
 
 const router = Router();
 
@@ -67,32 +68,62 @@ router.get('/me', asyncHandler(async (_req: Request, res: Response): Promise<voi
 router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const shopId = getTenantShopId();
   const userId = getTenantUserId();
-  if (!shopId) throw new AppError('Tenant context required', 400);
+  if (!userId || !shopId) throw new AppError('Unauthenticated context', 401);
 
-  const { name, email, phone, address } = req.body;
+  const { firstName, lastName, email, phone, shopName, shopPhone, shopAddress } = req.body;
 
-  const updatedShop = await prisma.shop.update({
-    where: { id: shopId },
-    data: {
-      name,
-      email,
-      phone,
-      address
+  const userUpdateData: any = {};
+  if (firstName !== undefined) userUpdateData.firstName = firstName;
+  if (lastName !== undefined) userUpdateData.lastName = lastName;
+  if (email !== undefined) userUpdateData.email = email;
+  if (phone !== undefined) userUpdateData.phone = phone;
+
+  if (Object.keys(userUpdateData).length > 0) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: userUpdateData
+    });
+  }
+
+  const shopUpdateData: any = {};
+  if (shopName !== undefined) shopUpdateData.name = shopName;
+  if (shopPhone !== undefined) shopUpdateData.phone = shopPhone;
+  if (shopAddress !== undefined) shopUpdateData.address = shopAddress;
+
+  if (Object.keys(shopUpdateData).length > 0) {
+    await prisma.shop.update({
+      where: { id: shopId },
+      data: shopUpdateData
+    });
+  }
+
+  const freshUser = await prisma.user.findFirst({
+    where: { id: userId },
+    include: {
+      role: true,
+      shop: true
     }
   });
 
-  await prisma.auditLog.create({
-    data: {
-      shopId,
-      userId,
-      entityName: 'Shop',
-      entityId: shopId,
-      action: 'update',
-      newValue: { name, email, phone, address }
-    }
-  });
+  if (!freshUser) {
+    throw new NotFoundError('User profile not found');
+  }
 
-  sendSuccess(res, updatedShop, 'Shop details updated successfully');
+  sendSuccess(res, {
+    id: freshUser.id,
+    shopId: freshUser.shopId,
+    role: freshUser.role?.name || 'worker',
+    full_name: `${freshUser.firstName} ${freshUser.lastName}`.trim(),
+    email: freshUser.email,
+    language: freshUser.language,
+    shop: {
+      id: freshUser.shop.id,
+      name: freshUser.shop.name,
+      email: freshUser.shop.email,
+      phone: freshUser.shop.phone,
+      address: freshUser.shop.address
+    }
+  }, 'Profile updated successfully');
 }));
 
 router.put('/users/preferences', asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -111,6 +142,20 @@ router.put('/users/preferences', asyncHandler(async (req: Request, res: Response
   });
 
   sendSuccess(res, { language: updatedUser.language }, 'User preference updated successfully');
+}));
+
+router.post('/change-password', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = getTenantUserId();
+  if (!userId) throw new AppError('Unauthenticated context', 401);
+
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new AppError('Old password and new password are required', 400);
+  }
+
+  await employeeService.changePassword(userId, oldPassword, newPassword);
+
+  sendSuccess(res, undefined, 'Password changed successfully');
 }));
 
 export default router;

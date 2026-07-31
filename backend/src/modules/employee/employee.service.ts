@@ -205,6 +205,25 @@ export class EmployeeService {
       }
     });
   }
+
+  async changePassword(userId: string, oldPass: string, newPass: string): Promise<void> {
+    const user = await employeeRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundError('Employee not found');
+    }
+
+    const match = await bcrypt.compare(oldPass, user.password);
+    if (!match) {
+      throw new ValidationError('Incorrect current password');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPass, salt);
+
+    await employeeRepository.update(userId, {
+      password: passwordHash
+    });
+  }
 }
 
 export const employeeService = new EmployeeService();

@@ -107,7 +107,7 @@ export class AuthController {
 
   forgotPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { email } = req.body;
-    await authService.requestPasswordReset(email);
+    await authService.forgotPassword(email);
 
     sendSuccess(
       res,

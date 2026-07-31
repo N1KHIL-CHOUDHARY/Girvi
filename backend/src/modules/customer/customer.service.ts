@@ -265,7 +265,54 @@ export class CustomerService {
     if (!customer) {
       throw new NotFoundError('Customer not found');
     }
-    return customerRepository.getCustomerStats(id);
+
+    const tickets = await prisma.pawnTicket.findMany({
+      where: { customerId: id }
+    });
+
+    const payments = await prisma.payment.findMany({
+      where: { customerId: id }
+    });
+
+    const activeTickets = tickets.filter((t) => (t.status || "").toLowerCase() === "active");
+
+    const totalLoanValue = tickets.reduce((acc, t) => acc + Number(t.original_loan_amount || 0), 0);
+    const totalActiveLoan = activeTickets.reduce((acc, t) => acc + Number(t.loan_amount || 0), 0);
+
+    const totalInterestPaid = payments
+      .filter((p) => {
+        const pf = (p.payment_for || "").toLowerCase();
+        return pf === 'interest' || pf === 'penalty' || pf === 'fine';
+      })
+      .reduce((acc, p) => acc + Number(p.amount_paid || 0), 0);
+
+    const totalPrincipalPaid = payments
+      .filter((p) => (p.payment_for || "").toLowerCase() === 'principal')
+      .reduce((acc, p) => acc + Number(p.amount_paid || 0), 0);
+
+    const statsDataObj = {
+      total_loan_value: totalLoanValue,
+      totalActiveLoan: totalActiveLoan,
+      total_active_loan: totalActiveLoan,
+      totalLoanValue: totalLoanValue,
+      total_tickets: tickets.length,
+      totalTickets: tickets.length,
+      active_tickets: activeTickets.length,
+      activeTickets: activeTickets.length,
+      total_interest_paid: totalInterestPaid,
+      totalInterestPaid: totalInterestPaid,
+      total_principal_paid: totalPrincipalPaid,
+      totalPrincipalPaid: totalPrincipalPaid,
+    };
+
+    return {
+      ...statsDataObj,
+      stats: statsDataObj,
+      payments: [
+        { payment_for: 'interest', total_paid: totalInterestPaid },
+        { payment_for: 'principal', total_paid: totalPrincipalPaid }
+      ]
+    };
   }
 
   async getCustomerTickets(id: string) {

@@ -24,6 +24,7 @@ import reportsRouter from './modules/reports/reports.routes';
 import profileRouter from './modules/employee/profile.routes';
 import uploadRouter from './modules/upload/upload.routes';
 import healthRouter from './modules/dashboard/health.routes';
+import searchRouter from './modules/search/search.routes';
 
 import { apiReference } from '@scalar/express-api-reference';
 
@@ -75,7 +76,7 @@ const apiPrefix = '/api/v1';
 app.use(`${apiPrefix}/auth`, authRouter);
 
 app.use(`${apiPrefix}/app`, apiRateLimiter);
-app.use(`${apiPrefix}/app`, profileRouter);
+app.use(`${apiPrefix}/app/profile`, profileRouter);
 app.use(`${apiPrefix}/app/customers`, customerRouter);
 app.use(`${apiPrefix}/app/pawns`, pawnRouter);
 app.use(`${apiPrefix}/app/payments`, paymentRouter);
@@ -85,6 +86,7 @@ app.use(`${apiPrefix}/app/stat`, dashboardRouter);
 app.use(`${apiPrefix}/app/stat`, reportsRouter);
 app.use(`${apiPrefix}/app/reports`, reportsRouter);
 app.use(`${apiPrefix}/app/upload`, uploadRouter);
+app.use(`${apiPrefix}/app/search`, searchRouter);
 
 app.use('/', healthRouter);
 

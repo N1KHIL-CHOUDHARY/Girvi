@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
+import crypto from "crypto";
 import { User, Shop, Role } from '@prisma/client';
 import { authRepository } from './auth.repository';
 import { env } from '../../config/env';
+import { prisma } from '../../config/database';
 import { redisClient } from '../../config/redis';
 import { queueEmail } from '../../jobs';
 import { logger } from '../../common/logger';
@@ -216,64 +218,68 @@ export class AuthService {
     };
   }
 
-  /**
-   * Reset password flow: request reset token
-   */
-  async requestPasswordReset(email: string): Promise<void> {
+  async forgotPassword(email: string): Promise<void> {
     const users = await authRepository.findUsersByEmail(email);
     if (users.length === 0) {
-      // Gracefully exit without revealing email exists
       return;
     }
 
-    const resetToken = uuidv4();
-    const primaryUser = users[0];
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000);
 
-    if (redisClient.isOpen) {
-      // Expire in 1 hour
-      await redisClient.setEx(`password_reset:${resetToken}`, 3600, primaryUser.id);
+    for (const user of users) {
+      await authRepository.updateUser(user.id, {
+        resetPasswordToken,
+        resetPasswordExpires,
+      });
     }
 
+    const primaryUser = users[0];
     await queueEmail({
       to: primaryUser.email,
       subject: 'Pawn Manager - Password Reset Request',
       text: `Hello,\n\nYou requested a password reset. Please click on the link below to set a new password:\n` +
             `${env.FRONTEND_URL}/reset-password?token=${resetToken}\n\n` +
-            `This link will expire in 1 hour. If you did not request this, please ignore this email.`
+            `This link will expire in 30 minutes. If you did not request this, please ignore this email.`
     });
   }
 
-  /**
-   * Reset password execution.
-   */
-  async resetPassword(resetToken: string, newPass: string): Promise<void> {
-    if (!redisClient.isOpen) {
-      throw new AppError('Caching service offline, cannot verify reset token', 503);
-    }
+  async resetPassword(token: string, newPass: string): Promise<void> {
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
-    const cacheKey = `password_reset:${resetToken}`;
-    const userId = await redisClient.get(cacheKey);
-    
-    if (!userId) {
-      throw new ValidationError('Invalid or expired password reset token');
-    }
+    const users = await prisma.user.findMany({
+      where: {
+        resetPasswordToken,
+        resetPasswordExpires: {
+          gt: new Date(),
+        },
+      },
+    });
 
-    const user = await authRepository.findUserById(userId);
-    if (!user) {
-      throw new NotFoundError('User not found');
+    if (users.length === 0) {
+      throw new ValidationError("Invalid or expired password reset token");
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPass, salt);
 
-    await authRepository.updateUser(user.id, {
-      password: passwordHash,
-      loginAttempts: 0,
-      lockedUntil: null
-    });
-
-    await redisClient.del(cacheKey);
-    await this.revokeAllUserSessions(user.id); // Revoke active logins to force reconnect
+    for (const user of users) {
+      await authRepository.updateUser(user.id, {
+        password: passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+        loginAttempts: 0,
+        lockedUntil: null,
+      });
+      await this.revokeAllUserSessions(user.id);
+    }
   }
 
   /**

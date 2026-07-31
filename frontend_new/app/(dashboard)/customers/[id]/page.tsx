@@ -73,8 +73,8 @@ export default function CustomerDetailPage() {
 
   const tickets = ticketsData?.data ?? [];
   const rawStats = statsData?.data as any;
-  const stats = rawStats?.stats ?? rawStats ?? {};
-  const payments = (rawStats?.payments ?? []) as any[];
+  const stats = (statsData?.data?.stats ?? statsData?.data ?? {}) as any;
+  const payments = (statsData?.meta as any)?.payments ?? rawStats?.payments ?? [];
 
   const activeTicketsList = tickets.filter(
     (t) => (t.status || "").toLowerCase() === "active"
@@ -113,13 +113,13 @@ export default function CustomerDetailPage() {
   const interestPaid =
     stats?.total_interest_paid ??
     stats?.totalInterestPaid ??
-    payments.find((p) => p.payment_for === "interest")?.total_paid ??
+    payments.find((p: any) => (p.payment_for || "").toLowerCase() === "interest")?.total_paid ??
     "0";
 
   const principalPaid =
     stats?.total_principal_paid ??
     stats?.totalPrincipalPaid ??
-    payments.find((p) => p.payment_for === "principal")?.total_paid ??
+    payments.find((p: any) => (p.payment_for || "").toLowerCase() === "principal")?.total_paid ??
     "0";
 
   return (
@@ -198,7 +198,7 @@ export default function CustomerDetailPage() {
                   <span className="text-xs font-medium tracking-wider uppercase">Total Active Loan Balance</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(totalActiveLoan)}
+                  {formatCurrency(Number(totalActiveLoan))}
                 </p>
               </div>
 
@@ -208,7 +208,7 @@ export default function CustomerDetailPage() {
                   <span className="text-xs font-medium tracking-wider uppercase">Historical Total Valuation</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(totalLoanValue)}
+                  {formatCurrency(Number(totalLoanValue))}
                 </p>
               </div>
 
@@ -218,7 +218,7 @@ export default function CustomerDetailPage() {
                   <span className="text-xs font-medium tracking-wider uppercase">Total Interest Paid</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(interestPaid)}
+                  {formatCurrency(Number(interestPaid))}
                 </p>
               </div>
 
@@ -228,7 +228,7 @@ export default function CustomerDetailPage() {
                   <span className="text-xs font-medium tracking-wider uppercase">Total Principal Paid</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(principalPaid)}
+                  {formatCurrency(Number(principalPaid))}
                 </p>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function CustomerDetailPage() {
                           {ticket.items.map((i) => `${i.name} (${i.weight_grams}g)`).join(", ")}
                         </td>
                         <td className="py-4 px-4 font-medium text-slate-900">
-                          {formatCurrency(ticket.loan_amount)}
+                          {formatCurrency(Number(ticket.loan_amount))}
                         </td>
                         <td className="py-4 px-4 font-medium">{ticket.interest_rate}%</td>
                         <td className="py-4 px-4 text-slate-500">

@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAccounts, getPawnTickets, type ApiResponse } from "@/services/api";
-import type { CustomerListResponse } from "@/types/customer";
-import type { PawnTicketListResponse } from "@/types/pawn";
+import apiClient from "@/services/api";
+import { formatCurrency } from "@/lib/format";
+import type { ApiResponse } from "@/types/api";
 
 export interface GlobalSearchResult {
   id: string;
@@ -11,6 +11,21 @@ export interface GlobalSearchResult {
   title: string;
   subtitle: string;
   href: string;
+}
+
+interface SearchResponse {
+  customers: Array<{
+    id: string;
+    full_name: string;
+    phone_number: string;
+    customerCode?: string;
+  }>;
+  tickets: Array<{
+    id: string;
+    ticket_number: string;
+    loan_amount: string | number;
+    status: string;
+  }>;
 }
 
 export function useGlobalSearch(query: string) {
@@ -22,13 +37,11 @@ export function useGlobalSearch(query: string) {
       if (!normalizedQuery) return [];
 
       try {
-        // Query both endpoints in parallel
-        const [customersRes, ticketsRes] = await Promise.all([
-          getAccounts<CustomerListResponse>(1, normalizedQuery),
-          getPawnTickets<PawnTicketListResponse>(1, normalizedQuery, "all"),
-        ]);
+        const res = (await apiClient.get<ApiResponse<SearchResponse>>("/app/search", {
+          params: { q: normalizedQuery }
+        })) as unknown as ApiResponse<SearchResponse>;
 
-        const customerResults: GlobalSearchResult[] = (customersRes.data?.items || []).map((c) => ({
+        const customerResults: GlobalSearchResult[] = (res.data?.customers || []).map((c) => ({
           id: `customer-${c.id}`,
           type: "customer",
           title: c.full_name,
@@ -36,11 +49,11 @@ export function useGlobalSearch(query: string) {
           href: `/customers/${c.id}`,
         }));
 
-        const ticketResults: GlobalSearchResult[] = (ticketsRes.data?.items || []).map((t) => ({
+        const ticketResults: GlobalSearchResult[] = (res.data?.tickets || []).map((t) => ({
           id: `ticket-${t.id}`,
           type: "ticket",
           title: t.ticket_number,
-          subtitle: `Pawn Ticket · Amt: ₹${Number(t.loan_amount).toLocaleString("en-IN")} · ${t.status}`,
+          subtitle: `Pawn Ticket · Amt: ${formatCurrency(Number(t.loan_amount))} · ${t.status}`,
           href: `/pawn-tickets/${t.id}`,
         }));
 
@@ -50,7 +63,7 @@ export function useGlobalSearch(query: string) {
         return [];
       }
     },
-    enabled: normalizedQuery.length >= 2, // Only query if at least 2 characters
+    enabled: normalizedQuery.length >= 2,
     staleTime: 5000,
   });
 }

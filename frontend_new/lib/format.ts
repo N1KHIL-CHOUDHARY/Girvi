@@ -10,11 +10,38 @@ export function parseDecimal(value: string | number | null | undefined): number 
 export function formatCurrency(
   value: string | number | null | undefined
 ): string {
-  const amount = parseDecimal(value);
+  if (value === null || value === undefined || value === "") {
+    return "₹0";
+  }
+
+  const amount = typeof value === "string" ? Number.parseFloat(value) : Number(value);
+  if (!Number.isFinite(amount)) {
+    return "₹0";
+  }
+
   return `₹${amount.toLocaleString("en-IN", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
+}
+
+export function formatDate(
+  date: string | Date | null | undefined
+): string {
+  if (!date) {
+    return "N/A";
+  }
+
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) {
+    return "N/A";
+  }
+
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 export function formatRelativeTime(isoDate: string): string {
