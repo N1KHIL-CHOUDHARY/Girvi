@@ -12,7 +12,6 @@ import {
 
 const router = Router();
 
-// Apply auth check globally to all pawn ticket paths
 router.use(authMiddleware);
 
 router.get(
@@ -27,6 +26,19 @@ router.post(
   requirePermission('manage:pawns'),
   validateRequest({ body: createPawnTicketSchema }),
   pawnController.createPawnTicket
+);
+
+router.get(
+  '/:id/stats',
+  requirePermission('manage:pawns'),
+  pawnController.getPawnTicketStats
+);
+
+router.patch(
+  '/:id/settle',
+  requirePermission('manage:pawns'),
+  validateRequest({ body: settlePawnTicketSchema }),
+  pawnController.updatePawnTicketStatus
 );
 
 router.get(
@@ -46,13 +58,6 @@ router.delete(
   '/:id',
   requirePermission('manage:pawns'),
   pawnController.deletePawnTicket
-);
-
-router.patch(
-  '/:id/settle',
-  requirePermission('manage:pawns'),
-  validateRequest({ body: settlePawnTicketSchema }),
-  pawnController.updatePawnTicketStatus
 );
 
 export default router;

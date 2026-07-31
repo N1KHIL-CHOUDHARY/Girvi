@@ -11,6 +11,7 @@ import {
   UserX,
 } from "lucide-react";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useDebounce } from "@/hooks/useDebounce";
 import { deleteAccount } from "@/services/api";
 import toast from "react-hot-toast";
 import { DataTable, Column } from "@/components/ui/DataTable";
@@ -19,7 +20,8 @@ import type { CustomerListItem } from "@/types/customer";
 export default function Customers() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const { data, isLoading, error, refetch } = useCustomers(page, search);
+  const debouncedSearch = useDebounce(search, 300);
+  const { data, isLoading, error, refetch } = useCustomers(page, debouncedSearch);
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete customer "${name}"?`)) {
@@ -40,8 +42,8 @@ export default function Customers() {
     setPage(1);
   };
 
-  const customers = data?.items ?? [];
-  const totalPages = data?.totalPages ?? 1;
+  const customers = data?.data ?? [];
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   const columns: Column<CustomerListItem>[] = [
     {

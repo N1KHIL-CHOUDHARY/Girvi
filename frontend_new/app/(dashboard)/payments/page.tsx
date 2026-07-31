@@ -14,6 +14,7 @@ import {
   FileText,
 } from "lucide-react";
 import { usePaymentsLedger } from "@/hooks/usePaymentsLedger";
+import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/Badge";
 import type { FinancialReportRow } from "@/types/report";
@@ -53,15 +54,16 @@ function TableSkeleton() {
 export default function PaymentsLedger() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const { data, isLoading, error, refetch } = usePaymentsLedger(page, search);
+  const debouncedSearch = useDebounce(search, 300);
+  const { data, isLoading, error, refetch } = usePaymentsLedger(page, debouncedSearch);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1); // Reset to page 1 on new search
   };
 
-  const records = data?.items ?? [];
-  const totalPages = data?.totalPages ?? 1;
+  const records = data?.data ?? [];
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   return (
     <AppShell>

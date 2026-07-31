@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import FileUpload from "@/components/ui/FileUpload";
 import { createAccount, uploadFile } from "@/services/api";
+import { customerKeys } from "@/lib/queryKeys";
 
 interface CustomerFormState {
   full_name: string;
@@ -49,13 +50,26 @@ export default function NewCustomer() {
     mutationFn: (payload: Record<string, unknown>) => createAccount(payload),
     onSuccess: () => {
       toast.success("Customer created successfully");
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
       router.push("/customers");
     },
     onError: (error: any) => {
+      const payload = error?.response?.data;
+      if (payload?.error && typeof payload.error === "object") {
+        const details = payload.error.details;
+        if (details && typeof details === "object") {
+          const fieldErrors: Record<string, string> = {};
+          Object.entries(details).forEach(([key, val]) => {
+            fieldErrors[key] = Array.isArray(val) ? val.join(", ") : String(val);
+          });
+          setErrors(fieldErrors);
+          toast.error("Please resolve validation errors.");
+          return;
+        }
+      }
       const message =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
+        payload?.error ||
+        payload?.message ||
         "Failed to create customer";
       toast.error(message.replace(/"/g, ""));
     },

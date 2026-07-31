@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { getAccountById, getAccountStats, getPawnTicketsByAccountId } from "@/services/api";
+import { customerKeys } from "@/lib/queryKeys";
 import { formatCurrency } from "@/lib/format";
 import type { CustomerDetail, CustomerStatsResponse } from "@/types/customer";
 import type { PawnTicketRecord } from "@/types/pawn";
@@ -25,34 +26,32 @@ export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  // Query Customer Details
-  const { data: customer, isLoading: isLoadingCustomer } = useQuery({
-    queryKey: ["customer", id],
+  const { data: customerData, isLoading: isLoadingCustomer } = useQuery({
+    queryKey: customerKeys.detail(id),
     queryFn: async () => {
       const res = await getAccountById<CustomerDetail>(id);
-      return res.data;
+      return res;
     },
   });
 
-  // Query Customer Stats
   const { data: statsData, isLoading: isLoadingStats } = useQuery({
-    queryKey: ["customerStats", id],
+    queryKey: customerKeys.stats(id),
     queryFn: async () => {
       const res = await getAccountStats<CustomerStatsResponse>(id);
-      return res.data;
+      return res;
     },
   });
 
-  // Query Customer Tickets
   const { data: ticketsData, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ["customerTickets", id],
+    queryKey: customerKeys.tickets(id),
     queryFn: async () => {
-      const res = await getPawnTicketsByAccountId<{ tickets: PawnTicketRecord[] }>(id);
-      return res.data;
+      const res = await getPawnTicketsByAccountId<PawnTicketRecord[]>(id);
+      return res;
     },
   });
 
   const isLoading = isLoadingCustomer || isLoadingStats || isLoadingTickets;
+  const customer = customerData?.data;
 
   if (isLoading) {
     return (
@@ -72,17 +71,60 @@ export default function CustomerDetailPage() {
     notFound();
   }
 
-  const tickets = ticketsData?.tickets ?? [];
-  const stats = statsData?.stats;
-  const payments = statsData?.payments ?? [];
+  const tickets = ticketsData?.data ?? [];
+  const rawStats = statsData?.data as any;
+  const stats = rawStats?.stats ?? rawStats ?? {};
+  const payments = (rawStats?.payments ?? []) as any[];
 
-  const interestPaid = payments.find((p) => p.payment_for === "interest")?.total_paid ?? "0";
-  const principalPaid = payments.find((p) => p.payment_for === "principal")?.total_paid ?? "0";
+  const activeTicketsList = tickets.filter(
+    (t) => (t.status || "").toLowerCase() === "active"
+  );
+
+  const computedActiveLoanSum = activeTicketsList.reduce(
+    (acc, t) => acc + Number(t.loan_amount || 0),
+    0
+  );
+
+  const computedTotalLoanSum = tickets.reduce(
+    (acc, t) => acc + Number(t.loan_amount || 0),
+    0
+  );
+
+  const totalActiveLoan =
+    stats?.total_active_loan ??
+    stats?.totalActiveLoan ??
+    (computedActiveLoanSum > 0 ? computedActiveLoanSum : 0);
+
+  const totalLoanValue =
+    stats?.total_loan_value ??
+    stats?.totalLoanValue ??
+    (computedTotalLoanSum > 0 ? computedTotalLoanSum : 0);
+
+  const totalTickets =
+    stats?.total_tickets ??
+    stats?.totalTickets ??
+    tickets.length;
+
+  const activeTickets =
+    stats?.active_tickets ??
+    stats?.activeTickets ??
+    activeTicketsList.length;
+
+  const interestPaid =
+    stats?.total_interest_paid ??
+    stats?.totalInterestPaid ??
+    payments.find((p) => p.payment_for === "interest")?.total_paid ??
+    "0";
+
+  const principalPaid =
+    stats?.total_principal_paid ??
+    stats?.totalPrincipalPaid ??
+    payments.find((p) => p.payment_for === "principal")?.total_paid ??
+    "0";
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-5xl space-y-6">
-        {/* Back navigation */}
         <div className="flex items-center justify-between">
           <Link
             href="/customers"
@@ -98,15 +140,13 @@ export default function CustomerDetailPage() {
           </Link>
         </div>
 
-        {/* Profile Card & Key Details */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {/* Card 1: Avatar and KYC */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col items-center text-center">
+          <div className="flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm">
             {customer.customer_photo_url ? (
               <img
                 src={customer.customer_photo_url}
                 alt={customer.full_name}
-                className="h-24 w-24 rounded-full object-cover border-2 border-slate-100 shadow-sm"
+                className="h-24 w-24 rounded-full border-2 border-slate-100 object-cover shadow-sm"
               />
             ) : (
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-3xl font-semibold text-slate-600">
@@ -116,13 +156,13 @@ export default function CustomerDetailPage() {
             <h2 className="mt-4 text-lg font-bold text-slate-900">{customer.full_name}</h2>
             <p className="text-sm text-slate-500">{customer.gender ?? "Gender unspecified"}</p>
 
-            <div className="mt-6 w-full space-y-3 text-left border-t border-slate-100 pt-6">
+            <div className="mt-6 w-full space-y-3 border-t border-slate-100 pt-6 text-left">
               <div className="flex items-center gap-2.5 text-sm text-slate-600">
-                <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                <Phone className="h-4 w-4 shrink-0 text-slate-400" />
                 <span>{customer.phone_number}</span>
               </div>
               <div className="flex items-start gap-2.5 text-sm text-slate-600">
-                <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <span>
                   {customer.address
                     ? [customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")
@@ -131,8 +171,8 @@ export default function CustomerDetailPage() {
               </div>
             </div>
 
-            <div className="mt-6 w-full space-y-2 text-left bg-slate-50 rounded-xl p-4 border border-slate-100">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">KYC Verification</p>
+            <div className="mt-6 w-full space-y-2 rounded-xl border border-slate-100 bg-slate-50 p-4 text-left">
+              <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">KYC Verification</p>
               <div className="text-sm">
                 <span className="text-slate-500">Aadhaar: </span>
                 <span className="font-semibold text-slate-800">
@@ -148,35 +188,34 @@ export default function CustomerDetailPage() {
             </div>
           </div>
 
-          {/* Card 2: Financial Stats Ledger */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm md:col-span-2 space-y-6">
-            <h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Financial Ledger Balance</h3>
+          <div className="space-y-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm md:col-span-2">
+            <h3 className="border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">Financial Ledger Balance</h3>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
                 <div className="flex items-center gap-2 text-slate-500">
                   <DollarSign className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Total Active Loan Balance</span>
+                  <span className="text-xs font-medium tracking-wider uppercase">Total Active Loan Balance</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(stats?.total_active_loan)}
+                  {formatCurrency(totalActiveLoan)}
                 </p>
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
                 <div className="flex items-center gap-2 text-slate-500">
                   <Layers className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Historical Total Valuation</span>
+                  <span className="text-xs font-medium tracking-wider uppercase">Historical Total Valuation</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(stats?.total_loan_value)}
+                  {formatCurrency(totalLoanValue)}
                 </p>
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
                 <div className="flex items-center gap-2 text-slate-500">
                   <DollarSign className="h-4 w-4 text-emerald-500" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Total Interest Paid</span>
+                  <span className="text-xs font-medium tracking-wider uppercase">Total Interest Paid</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
                   {formatCurrency(interestPaid)}
@@ -186,7 +225,7 @@ export default function CustomerDetailPage() {
               <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
                 <div className="flex items-center gap-2 text-slate-500">
                   <DollarSign className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Total Principal Paid</span>
+                  <span className="text-xs font-medium tracking-wider uppercase">Total Principal Paid</span>
                 </div>
                 <p className="mt-2 text-2xl font-bold text-slate-900">
                   {formatCurrency(principalPaid)}
@@ -197,20 +236,19 @@ export default function CustomerDetailPage() {
             <div className="flex items-center justify-between border-t border-slate-100 pt-6">
               <div className="flex items-center gap-4">
                 <div>
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Pledged Tickets</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">{stats?.total_tickets ?? 0}</p>
+                  <p className="text-xs font-medium tracking-wider text-slate-400 uppercase">Total Pledged Tickets</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">{totalTickets}</p>
                 </div>
                 <div className="h-8 w-px bg-slate-200" />
                 <div>
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Active Tickets</p>
-                  <p className="mt-1 text-lg font-bold text-[#1E3A66]">{stats?.active_tickets ?? 0}</p>
+                  <p className="text-xs font-medium tracking-wider text-slate-400 uppercase">Active Tickets</p>
+                  <p className="mt-1 text-lg font-bold text-[#1E3A66]">{activeTickets}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Pledged Pawn Tickets */}
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Ticket className="h-5 w-5 text-slate-400" />
@@ -225,7 +263,7 @@ export default function CustomerDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <tr className="border-b border-slate-100 text-xs font-medium tracking-wide text-slate-400 uppercase">
                     <th className="py-3 pr-4 font-medium">Ticket ID</th>
                     <th className="py-3 px-4 font-medium">Items Pledged</th>
                     <th className="py-3 px-4 font-medium">Loan Value</th>
@@ -237,9 +275,9 @@ export default function CustomerDetailPage() {
                 <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
                   {tickets.map((ticket) => {
                     const statusClass =
-                      ticket.status === "active"
+                      (ticket.status || "").toLowerCase() === "active"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                        : ticket.status === "settled"
+                        : (ticket.status || "").toLowerCase() === "settled"
                         ? "bg-blue-50 text-blue-700 border-blue-100"
                         : "bg-amber-50 text-amber-700 border-amber-100";
 
@@ -250,7 +288,7 @@ export default function CustomerDetailPage() {
                             {ticket.ticket_number}
                           </Link>
                         </td>
-                        <td className="py-4 px-4 font-medium max-w-xs truncate">
+                        <td className="max-w-xs truncate py-4 px-4 font-medium">
                           {ticket.items.map((i) => `${i.name} (${i.weight_grams}g)`).join(", ")}
                         </td>
                         <td className="py-4 px-4 font-medium text-slate-900">

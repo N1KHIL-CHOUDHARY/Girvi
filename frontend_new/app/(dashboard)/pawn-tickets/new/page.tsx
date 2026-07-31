@@ -17,7 +17,9 @@ import {
   uploadFile,
   getApiErrorMessage,
 } from "@/services/api";
-import type { CustomerListResponse, CustomerListItem } from "@/types/customer";
+import { useDebounce } from "@/hooks/useDebounce";
+import { pawnTicketKeys, customerKeys } from "@/lib/queryKeys";
+import type { CustomerListItem } from "@/types/customer";
 
 const selectClass =
   "h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66]";
@@ -47,10 +49,10 @@ export default function NewPawnTicket() {
 
   // Search customer state
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerListItem | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Form states
   const [formData, setFormData] = useState<PawnFormState>({
     customerId: "",
     ticketNumber: `TICKET-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -66,14 +68,13 @@ export default function NewPawnTicket() {
     itemPhotoUrl: "",
   });
 
-  // Query customers matching search query
-  const { data: customerData, isLoading: isSearching } = useQuery<CustomerListResponse, Error>({
-    queryKey: ["customers-search", searchQuery],
+  const { data: customerData, isLoading: isSearching } = useQuery({
+    queryKey: customerKeys.list(1, debouncedSearchQuery),
     queryFn: async () => {
-      const res = await getAccounts<CustomerListResponse>(1, searchQuery);
-      return res.data;
+      const res = await getAccounts<CustomerListItem[]>(1, debouncedSearchQuery);
+      return res;
     },
-    enabled: searchQuery.trim().length > 0,
+    enabled: debouncedSearchQuery.trim().length > 0,
   });
 
   const handleSelectCustomer = (customer: CustomerListItem) => {
@@ -93,10 +94,18 @@ export default function NewPawnTicket() {
     mutationFn: (payload: any) => createPawnTicket(payload),
     onSuccess: () => {
       toast.success("Pawn ticket created successfully");
-      queryClient.invalidateQueries({ queryKey: ["pawnTickets"] });
+      queryClient.invalidateQueries({ queryKey: pawnTicketKeys.all });
       router.push("/pawn-tickets");
     },
     onError: (err: any) => {
+      const payload = err?.response?.data;
+      if (payload?.error && typeof payload.error === "object") {
+        const details = payload.error.details;
+        if (details && typeof details === "object") {
+          toast.error("Validation error: " + Object.values(details).flat().join(", "));
+          return;
+        }
+      }
       toast.error(getApiErrorMessage(err, "Failed to create pawn ticket"));
     },
   });
@@ -219,8 +228,8 @@ export default function NewPawnTicket() {
             {/* Dropdown list */}
             {showDropdown && searchQuery.trim().length > 0 && (
               <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-100 bg-white py-1 shadow-lg ring-1 ring-black/5">
-                {customerData?.items && customerData.items.length > 0 ? (
-                  customerData.items.map((cust) => (
+                {customerData?.data && customerData.data.length > 0 ? (
+                  customerData.data.map((cust) => (
                     <button
                       key={cust.id}
                       type="button"

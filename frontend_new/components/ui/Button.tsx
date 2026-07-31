@@ -1,10 +1,34 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
+export const buttonVariants = cva(
+  "inline-flex items-center justify-center font-semibold transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        primary: "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
+        secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
+        ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
+        danger: "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2",
+      },
+      size: {
+        sm: "h-8 rounded-md px-3 text-xs gap-1.5",
+        md: "h-10 rounded-md px-4 text-sm gap-2",
+        lg: "h-12 rounded-lg px-6 text-sm gap-2.5",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  }
+);
+
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -14,8 +38,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
-      variant = "primary",
-      size = "md",
+      variant,
+      size,
       isLoading = false,
       leftIcon,
       rightIcon,
@@ -31,31 +55,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type={type}
         disabled={disabled || isLoading}
-        className={cn(
-          "inline-flex items-center justify-center font-semibold transition-all duration-[var(--transition-fast)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-          // Variants
-          variant === "primary" && [
-            "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]",
-            "focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2",
-          ],
-          variant === "secondary" && [
-            "border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]",
-            "focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2",
-          ],
-          variant === "ghost" && [
-            "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]",
-            "focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2",
-          ],
-          variant === "danger" && [
-            "bg-[var(--color-danger)] text-white hover:bg-red-700",
-            "focus-visible:ring-2 focus-visible:ring-[var(--color-danger)] focus-visible:ring-offset-2",
-          ],
-          // Sizes
-          size === "sm" && "h-8 rounded-[var(--radius-sm)] px-3 text-xs gap-1.5",
-          size === "md" && "h-10 rounded-[var(--radius-md)] px-4 text-sm gap-2",
-          size === "lg" && "h-12 rounded-[var(--radius-lg)] px-6 text-sm gap-2.5",
-          className
-        )}
+        className={cn(buttonVariants({ variant, size, className }))}
         {...props}
       >
         {isLoading && <Loader2 className="h-4 w-4 animate-spin shrink-0" />}

@@ -1,158 +1,144 @@
-import { Request, Response, NextFunction } from 'express';
-import { authService } from './auth.service';
-import { sendResponse } from '../../common/utils/apiResponse';
-import { getTenantUserId } from '../../common/context/tenant.context';
+import { Request, Response } from "express";
+import { authService } from "./auth.service";
+import { sendSuccess } from "../../common/utils/apiResponse";
+import { getTenantUserId } from "../../common/context/tenant.context";
+import { asyncHandler } from "../../common/utils/asyncHandler";
 
 export class AuthController {
-  async signup(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { full_name, shop_name, email, password } = req.body;
-      const { user, token } = await authService.signup({
-        full_name,
-        shop_name,
-        email,
-        password
-      });
+  signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { full_name, shop_name, email, password } = req.body;
+    const { user, token, refreshToken } = await authService.signup({
+      full_name,
+      shop_name,
+      email,
+      password,
+    });
 
-      sendResponse(res, {
-        statusCode: 201,
-        message: 'Registration successful',
-        data: {
-          token,
-          user: {
-            id: user.id,
-            shopId: user.shopId,
-            role: 'owner',
-            full_name: `${user.firstName} ${user.lastName}`.trim(),
-            email: user.email,
-            language: user.language,
-            permissions: { '*': true } // Owner gets universal permissions shortcut
-          }
-        }
-      });
-    } catch (error) {
-      next(error);
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    sendSuccess(
+      res,
+      {
+        token,
+        refreshToken,
+        user: {
+          id: user.id,
+          shopId: user.shopId,
+          role: "owner",
+          full_name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email,
+          language: user.language,
+          permissions: { "*": true },
+        },
+      },
+      "Registration successful",
+      201
+    );
+  });
+
+  login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { email, password } = req.body;
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers["user-agent"];
+
+    const { user, token, refreshToken } = await authService.login(
+      { email, password },
+      ipAddress,
+      userAgent
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    sendSuccess(
+      res,
+      {
+        token,
+        refreshToken,
+        user: {
+          id: user.id,
+          shopId: user.shopId,
+          role: user.role?.name || "worker",
+          full_name: `${user.firstName} ${user.lastName}`.trim(),
+          email: user.email,
+          language: user.language,
+          permissions: user.role?.name === "owner" ? { "*": true } : {},
+        },
+      },
+      "Login successful"
+    );
+  });
+
+  logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (refreshToken) {
+      await authService.logout(refreshToken);
     }
-  }
+    res.clearCookie("refreshToken");
 
-  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { email, password } = req.body;
-      const ipAddress = req.ip || req.socket.remoteAddress;
-      const userAgent = req.headers['user-agent'];
+    sendSuccess(res, undefined, "Logout successful");
+  });
 
-      const { user, token, refreshToken } = await authService.login(
-        { email, password },
-        ipAddress,
-        userAgent
-      );
+  refreshToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers["user-agent"];
 
-      sendResponse(res, {
-        message: 'Login successful',
-        data: {
-          token,
-          refreshToken,
-          user: {
-            id: user.id,
-            shopId: user.shopId,
-            role: user.role?.name || 'worker',
-            full_name: `${user.firstName} ${user.lastName}`.trim(),
-            email: user.email,
-            language: user.language,
-            permissions: user.role?.name === 'owner' ? { '*': true } : {} // To be extended
-          }
-        }
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    const tokens = await authService.rotateTokens(refreshToken, ipAddress, userAgent);
 
-  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { refreshToken } = req.body;
-      if (refreshToken) {
-        await authService.logout(refreshToken);
-      }
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-      sendResponse(res, {
-        message: 'Logout successful'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    sendSuccess(res, tokens, "Tokens rotated successfully");
+  });
 
-  async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { refreshToken } = req.body;
-      const ipAddress = req.ip || req.socket.remoteAddress;
-      const userAgent = req.headers['user-agent'];
+  forgotPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { email } = req.body;
+    await authService.requestPasswordReset(email);
 
-      const tokens = await authService.rotateTokens(refreshToken, ipAddress, userAgent);
+    sendSuccess(
+      res,
+      undefined,
+      "If the email matches an active account, a password reset link has been dispatched."
+    );
+  });
 
-      sendResponse(res, {
-        message: 'Tokens rotated successfully',
-        data: tokens
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  resetPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { token, newPassword } = req.body;
+    await authService.resetPassword(token, newPassword);
 
-  async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { email } = req.body;
-      await authService.requestPasswordReset(email);
+    sendSuccess(res, undefined, "Password has been reset successfully.");
+  });
 
-      sendResponse(res, {
-        message: 'If the email matches an active account, a password reset link has been dispatched.'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  verifyEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { token } = req.body;
+    await authService.verifyEmail(token);
 
-  async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { token, newPassword } = req.body;
-      await authService.resetPassword(token, newPassword);
+    sendSuccess(res, undefined, "Email verified successfully.");
+  });
 
-      sendResponse(res, {
-        message: 'Password has been reset successfully.'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = getTenantUserId() || "";
 
-  async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { token } = req.body;
-      await authService.verifyEmail(token);
+    await authService.changePassword(userId, currentPassword, newPassword);
 
-      sendResponse(res, {
-        message: 'Email verified successfully.'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { currentPassword, newPassword } = req.body;
-      const userId = getTenantUserId() || '';
-      
-      await authService.changePassword(userId, currentPassword, newPassword);
-
-      sendResponse(res, {
-        message: 'Password changed successfully. Please log in again.'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    sendSuccess(res, undefined, "Password changed successfully. Please log in again.");
+  });
 }
 
 export const authController = new AuthController();
+export default authController;

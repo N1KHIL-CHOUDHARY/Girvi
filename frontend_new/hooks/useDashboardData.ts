@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { fetchDashboardStats, getApiErrorMessage } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { fetchDashboardStats } from "@/services/api";
+import { getApiErrorMessage } from "@/lib/api";
 import type { DashboardStatsResponse } from "@/types/dashboard";
+import type { ApiResponse } from "@/types/api";
 
 export interface UseDashboardDataResult {
   data: DashboardStatsResponse | null;
@@ -12,30 +14,26 @@ export interface UseDashboardDataResult {
 }
 
 export function useDashboardData(): UseDashboardDataResult {
-  const [data, setData] = useState<DashboardStatsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery<ApiResponse<DashboardStatsResponse>, Error>({
+    queryKey: ["dashboardData"],
+    queryFn: async () => {
+      try {
+        const response = await fetchDashboardStats<DashboardStatsResponse>();
+        return response;
+      } catch (err) {
+        throw new Error(
+          getApiErrorMessage(err, "Failed to load dashboard data. Please try again.")
+        );
+      }
+    },
+  });
 
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const dashboardData = await fetchDashboardStats();
-      setData(dashboardData);
-    } catch (err) {
-      setData(null);
-      setError(
-        getApiErrorMessage(err, "Failed to load dashboard data. Please try again.")
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch]);
-
-  return { data, isLoading, error, refetch };
+  return {
+    data: query.data?.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error ? query.error.message : null,
+    refetch: async () => {
+      await query.refetch();
+    },
+  };
 }

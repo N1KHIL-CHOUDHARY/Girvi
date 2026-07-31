@@ -43,7 +43,7 @@ export const updateCustomerSchema = z.object({
 });
 
 export const queryCustomerSchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().optional()
+  page: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.coerce.number().int().min(1).optional()).default(1),
+  limit: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.coerce.number().int().min(1).max(100).optional()).default(10),
+  search: z.preprocess((val) => (val === '' || val === 'undefined' ? undefined : val), z.string().optional())
 });

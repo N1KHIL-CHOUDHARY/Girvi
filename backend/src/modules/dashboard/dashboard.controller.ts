@@ -1,19 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { dashboardService } from './dashboard.service';
-import { sendResponse } from '../../common/utils/apiResponse';
+import { sendSuccess } from '../../common/utils/apiResponse';
+import { asyncHandler } from '../../common/utils/asyncHandler';
 
 export class DashboardController {
-  async getDashboardStats(_req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const stats = await dashboardService.getDashboardStatistics();
-      sendResponse(res, {
-        message: 'Dashboard analytics retrieved successfully',
-        data: stats
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  getDashboardStats = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const stats = await dashboardService.getDashboardStatistics();
+    sendSuccess(res, stats, 'Dashboard analytics retrieved successfully');
+  });
 }
 
 export const dashboardController = new DashboardController();

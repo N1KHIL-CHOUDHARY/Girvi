@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
 import { logger } from '../logger';
 import { env } from '../../config/env';
+import { sendError } from '../utils/apiResponse';
 
 export const errorMiddleware = (
   err: Error,
@@ -11,14 +12,13 @@ export const errorMiddleware = (
 ): void => {
   let statusCode = 500;
   let message = 'Internal Server Error';
-  let errors: any[] = [];
+  let errors: any = undefined;
 
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
     errors = err.errors;
   } else {
-    // Sanitize body to hide passwords before logging
     const loggedBody = req.body ? { ...req.body } : {};
     for (const key in loggedBody) {
       if (key.toLowerCase().includes('password')) {
@@ -26,7 +26,6 @@ export const errorMiddleware = (
       }
     }
 
-    // Log unexpected errors
     logger.error(
       {
         err: {
@@ -45,7 +44,6 @@ export const errorMiddleware = (
       'Unhandled Server Exception'
     );
 
-    // Check for Prisma Database Errors
     if (err.name?.startsWith('PrismaClient') || err.message?.includes('prisma')) {
       statusCode = 400;
       message = 'Database operations constraint violation';
@@ -56,12 +54,8 @@ export const errorMiddleware = (
     }
   }
 
-  res.status(statusCode).json({
-    success: false,
-    message,
-    errors,
-    statusCode
-  });
+  const errorCode = err instanceof AppError ? (err.constructor.name || 'APP_ERROR') : 'INTERNAL_SERVER_ERROR';
+  sendError(res, message, statusCode, errorCode, errors);
 };
 
 export default errorMiddleware;

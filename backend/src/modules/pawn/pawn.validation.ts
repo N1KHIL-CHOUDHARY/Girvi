@@ -40,8 +40,9 @@ export const settlePawnTicketSchema = z.object({
 });
 
 export const queryPawnTicketSchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().optional(),
-  status: z.enum(['active', 'settled', 'defaulted']).optional()
+  page: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.coerce.number().int().min(1).optional()).default(1),
+  limit: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.coerce.number().int().min(1).max(100).optional()).default(10),
+  search: z.preprocess((val) => (val === '' || val === 'undefined' ? undefined : val), z.string().optional()),
+  status: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.enum(['active', 'settled', 'defaulted']).optional()),
+  customerId: z.preprocess((val) => (val === '' || val === 'all' || val === 'undefined' ? undefined : val), z.string().uuid().optional())
 });

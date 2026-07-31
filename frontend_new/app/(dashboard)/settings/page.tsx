@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
-import { Settings, Globe, Shield, RefreshCw } from "lucide-react";
+import { Globe, Shield } from "lucide-react";
 import { getProfile, updateUserPreferences } from "@/services/api";
 import { getStoredLanguage, setStoredLanguage } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -16,37 +16,26 @@ interface UserProfile {
   language: string;
 }
 
-
 export default function SettingsPage() {
   const queryClient = useQueryClient();
-  const [lang, setLang] = useState("en");
+  const [selectedLang, setSelectedLang] = useState<string | undefined>(undefined);
 
-  // Query User Profile Preferences
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
       const res = await getProfile<UserProfile>();
-      return res.data;
+      return res;
     },
   });
 
-  useEffect(() => {
-    if (profileData?.language) {
-      setLang(profileData.language);
-      setStoredLanguage(profileData.language);
-    } else {
-      setLang(getStoredLanguage());
-    }
-  }, [profileData]);
+  const lang = selectedLang ?? profileData?.data?.language ?? getStoredLanguage();
 
-  // Mutation to update preferences
   const updateMutation = useMutation({
     mutationFn: (payload: { language: string }) => updateUserPreferences(payload),
     onSuccess: (_, variables) => {
       toast.success("Preferences updated successfully");
       setStoredLanguage(variables.language);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      // Reload page to apply changes
       window.location.reload();
     },
     onError: (err: any) => {
@@ -59,7 +48,7 @@ export default function SettingsPage() {
   });
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLang(e.target.value);
+    setSelectedLang(e.target.value);
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -82,7 +71,6 @@ export default function SettingsPage() {
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6">
-            {/* General Preferences */}
             <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <Globe className="h-4.5 w-4.5 text-slate-400" />
@@ -109,7 +97,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Profile Info Summary */}
             <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <Shield className="h-4.5 w-4.5 text-slate-400" />
@@ -119,20 +106,19 @@ export default function SettingsPage() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-slate-500">Authorized User: </span>
-                  <span className="font-semibold text-slate-800">{profileData?.full_name}</span>
+                  <span className="font-semibold text-slate-800">{profileData?.data?.full_name}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">Role level: </span>
-                  <span className="font-semibold text-slate-800 capitalize">{profileData?.role}</span>
+                  <span className="font-semibold text-slate-800 capitalize">{profileData?.data?.role}</span>
                 </div>
                 <div>
                   <span className="text-slate-500">Email Reference: </span>
-                  <span className="font-semibold text-[#1E3A66]">{profileData?.email}</span>
+                  <span className="font-semibold text-[#1E3A66]">{profileData?.data?.email}</span>
                 </div>
               </div>
             </div>
 
-            {/* Form actions */}
             <div className="flex justify-end gap-3 pt-4">
               <button
                 type="submit"

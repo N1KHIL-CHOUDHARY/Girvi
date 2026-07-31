@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { getPawnTicketById, getPaymentsForTicket, updatePawnTicketStatus } from "@/services/api";
+import { pawnTicketKeys, paymentKeys } from "@/lib/queryKeys";
 import { formatCurrency } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/Badge";
 import type { PawnTicketRecord } from "@/types/pawn";
@@ -28,32 +29,29 @@ export default function PawnTicketDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Query Pawn Ticket
-  const { data: ticket, isLoading: isLoadingTicket, error: ticketError } = useQuery({
-    queryKey: ["pawnTicket", id],
+  const { data: ticketData, isLoading: isLoadingTicket, error: ticketError } = useQuery({
+    queryKey: pawnTicketKeys.detail(id),
     queryFn: async () => {
       const res = await getPawnTicketById<PawnTicketRecord>(id);
-      return res.data;
+      return res;
     },
   });
 
-  // Query Payments for this Ticket
-  const { data: payments, isLoading: isLoadingPayments } = useQuery({
-    queryKey: ["ticketPayments", id],
+  const { data: paymentsData, isLoading: isLoadingPayments } = useQuery({
+    queryKey: paymentKeys.byTicket(id),
     queryFn: async () => {
       const res = await getPaymentsForTicket<PaymentRecord[]>(id);
-      return res.data;
+      return res;
     },
-    enabled: !!ticket,
+    enabled: !!ticketData?.data,
   });
 
-  // Settle Ticket Mutation
   const settleMutation = useMutation({
     mutationFn: () => updatePawnTicketStatus(id, "settled"),
     onSuccess: () => {
       toast.success("Ticket marked as settled");
-      queryClient.invalidateQueries({ queryKey: ["pawnTicket", id] });
-      queryClient.invalidateQueries({ queryKey: ["ticketPayments", id] });
+      queryClient.invalidateQueries({ queryKey: pawnTicketKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: paymentKeys.byTicket(id) });
     },
     onError: (err: any) => {
       toast.error("Failed to settle ticket.");
@@ -61,6 +59,8 @@ export default function PawnTicketDetailPage() {
   });
 
   const isLoading = isLoadingTicket || isLoadingPayments;
+
+  const ticket = ticketData?.data;
 
   if (isLoading) {
     return (
@@ -80,7 +80,7 @@ export default function PawnTicketDetailPage() {
     notFound();
   }
 
-  const paymentList = payments ?? [];
+  const paymentList = paymentsData?.data ?? [];
 
   return (
     <AppShell>

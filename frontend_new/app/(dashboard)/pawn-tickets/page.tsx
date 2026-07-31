@@ -20,6 +20,8 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { StatusBadge } from "@/components/ui/Badge";
 import { usePawnTickets } from "@/hooks/usePawnTickets";
+import { useDebounce } from "@/hooks/useDebounce";
+import { pawnTicketKeys } from "@/lib/queryKeys";
 import { deletePawnTicket, getApiErrorMessage } from "@/services/api";
 import { formatCurrency } from "@/lib/format";
 import type { PawnTicketRecord } from "@/types/pawn";
@@ -60,15 +62,16 @@ export default function PawnTickets() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "settled" | "defaulted">("all");
 
-  const { data, isLoading, error, refetch } = usePawnTickets(page, search, statusFilter);
+  const { data, isLoading, error, refetch } = usePawnTickets(page, debouncedSearch, statusFilter);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deletePawnTicket(id),
     onSuccess: () => {
       toast.success("Pawn ticket deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["pawnTickets"] });
+      queryClient.invalidateQueries({ queryKey: pawnTicketKeys.all });
     },
     onError: (err: any) => {
       toast.error(getApiErrorMessage(err, "Failed to delete pawn ticket."));
@@ -91,8 +94,8 @@ export default function PawnTickets() {
     setPage(1);
   };
 
-  const tickets = data?.items ?? [];
-  const totalPages = data?.totalPages ?? 1;
+  const tickets = data?.data ?? [];
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   return (
     <AppShell>

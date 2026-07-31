@@ -22,8 +22,8 @@ export default function Reports() {
   // Query payments ledger report
   const { data, isLoading, error, refetch, isRefetching } = usePaymentsLedger(page, debouncedSearch);
 
-  const records = data?.items ?? [];
-  const totalPages = data?.totalPages ?? 1;
+  const records = data?.data ?? [];
+  const totalPages = data?.meta?.totalPages ?? 1;
 
   // Simple aggregation totals based on loaded list
   const totalPrincipalLent = records.reduce((sum: number, r: FinancialReportRow) => sum + Number(r.original_loan_amount || 0), 0);

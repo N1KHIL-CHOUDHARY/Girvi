@@ -7,14 +7,19 @@ export class PawnRepository {
     limit: number;
     status?: string;
     search?: string;
+    customerId?: string;
   }): Promise<{ tickets: (PawnTicket & { customer: Customer; items: PawnItem[] })[]; totalCount: number }> {
-    const { page, limit, status, search } = params;
+    const { page, limit, status, search, customerId } = params;
     const skip = (page - 1) * limit;
 
     const whereClause: Prisma.PawnTicketWhereInput = {};
 
     if (status) {
       whereClause.status = status;
+    }
+
+    if (customerId) {
+      whereClause.customerId = customerId;
     }
 
     if (search) {
@@ -86,7 +91,6 @@ export class PawnRepository {
     }[];
   }): Promise<PawnTicket> {
     return prisma.$transaction(async (tx) => {
-      // 1. Create the Pawn Ticket
       const ticket = await tx.pawnTicket.create({
         data: {
           shopId: data.shopId,
@@ -107,7 +111,6 @@ export class PawnRepository {
         }
       });
 
-      // 2. Create the associated items
       if (data.items.length > 0) {
         await tx.pawnItem.createMany({
           data: data.items.map((item) => ({
@@ -122,12 +125,11 @@ export class PawnRepository {
         });
       }
 
-      // 3. Post a Ledger entry for the disbursed cash loan
       await tx.ledgerEntry.create({
         data: {
           shopId: data.shopId,
           ticketId: ticket.id,
-          type: 'debit', // Money going out as a loan asset
+          type: 'debit',
           category: 'principal_disbursed',
           amount: data.original_loan_amount,
           entryDate: data.pawned_date,
@@ -158,7 +160,6 @@ export class PawnRepository {
       });
 
       if (itemsData) {
-        // Delete all old items and re-add updated ones
         await tx.pawnItem.deleteMany({
           where: { ticketId: id }
         });

@@ -1,57 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { roleService } from './role.service';
-import { sendResponse } from '../../common/utils/apiResponse';
+import { sendSuccess } from '../../common/utils/apiResponse';
+import { asyncHandler } from '../../common/utils/asyncHandler';
 
 export class RoleController {
-  async getRoles(_req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const list = await roleService.getAllRoles();
-      sendResponse(res, {
-        message: 'Roles retrieved successfully',
-        data: list
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  getRoles = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
+    const list = await roleService.getAllRoles();
+    sendSuccess(res, list, 'Roles retrieved successfully');
+  });
 
-  async createRole(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const role = await roleService.createRole(req.body);
-      sendResponse(res, {
-        statusCode: 201,
-        message: 'Role created successfully',
-        data: role
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  createRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const role = await roleService.createRole(req.body);
+    sendSuccess(res, role, 'Role created successfully', 201);
+  });
 
-  async updateRole(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params;
-      const role = await roleService.updateRole(id, req.body);
-      sendResponse(res, {
-        message: 'Role updated successfully',
-        data: role
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  updateRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const role = await roleService.updateRole(id, req.body);
+    sendSuccess(res, role, 'Role updated successfully');
+  });
 
-  async deleteRole(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { id } = req.params;
-      await roleService.deleteRole(id);
-      sendResponse(res, {
-        message: 'Role deleted successfully'
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  deleteRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    await roleService.deleteRole(id);
+    sendSuccess(res, undefined, 'Role deleted successfully');
+  });
 }
 
 export const roleController = new RoleController();

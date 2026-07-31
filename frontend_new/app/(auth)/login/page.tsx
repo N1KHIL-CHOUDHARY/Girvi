@@ -36,10 +36,11 @@ export default function Login() {
         password,
       });
 
-      const payload = response.data as { data?: AuthResponse };
-      const token = payload?.data?.token;
+      const payload = response.data;
+      const token = payload.token;
+      
       if (token) {
-        setStoredToken(token);
+        setStoredToken(token); 
       }
 
       router.push("/dashboard");

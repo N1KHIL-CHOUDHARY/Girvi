@@ -29,14 +29,10 @@ export class AuthService {
     shop_name: string;
     email: string;
     password: string;
-  }): Promise<{ user: User; token: string }> {
-    
-    
-    // 2. Hash password
+  }): Promise<{ user: User; token: string; refreshToken: string }> {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(data.password, salt);
 
-    // 3. Save to DB
     const { user, shop } = await authRepository.registerShopAndOwner({
       fullName: data.full_name,
       shopName: data.shop_name,
@@ -44,20 +40,17 @@ export class AuthService {
       passwordHash
     });
 
-    // 4. Generate token
     const token = this.generateAccessToken({
       userId: user.id,
       shopId: shop.id,
       role: 'owner'
     });
 
-    // 5. Generate and store refresh token in Redis
-    await this.createRefreshToken(user.id, shop.id);
+    const refreshToken = await this.createRefreshToken(user.id, shop.id);
 
-    // 6. Queue welcoming/verification email
     const verificationToken = uuidv4();
     if (redisClient.isOpen) {
-      await redisClient.setEx(`email_verification:${verificationToken}`, 86400, user.id); // 24 hours
+      await redisClient.setEx(`email_verification:${verificationToken}`, 86400, user.id);
     }
     
     await queueEmail({
@@ -67,7 +60,7 @@ export class AuthService {
             `${env.FRONTEND_URL}/verify-email?token=${verificationToken}\n\nThank you!`
     });
 
-    return { user, token };
+    return { user, token, refreshToken };
   }
 
   /**

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ticket } from "lucide-react";
+import { Ticket, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, notFound } from "next/navigation";
 import toast from "react-hot-toast";
@@ -17,6 +17,7 @@ import {
   updatePawnTicket,
   uploadFile,
 } from "@/services/api";
+import { pawnTicketKeys } from "@/lib/queryKeys";
 
 type CustomerReference =
   | string
@@ -81,20 +82,8 @@ interface PawnUpdatePayload {
   }>;
 }
 
-const initialFormState: PawnFormState = {
-  customerId: "",
-  ticketNumber: "",
-  loanAmount: "",
-  interestRate: "",
-  advanceAmount: "",
-  pawnedDate: "",
-  itemName: "",
-  itemType: "gold",
-  itemWeight: "",
-  itemPurity: "",
-  itemDescription: "",
-  itemPhotoUrl: "",
-};
+const selectClass =
+  "h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66]";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -107,11 +96,9 @@ const toStringValue = (value: unknown): string => {
 
 const toDateInputValue = (value: unknown): string => {
   const date = new Date(value as string | number | Date);
-
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-
   return date.toISOString().slice(0, 10);
 };
 
@@ -119,7 +106,6 @@ const getCustomerDisplayName = (customer: CustomerReference): string => {
   if (!isRecord(customer)) {
     return toStringValue(customer);
   }
-
   const fullName =
     toStringValue(customer.full_name) ||
     toStringValue(customer.fullName) ||
@@ -127,7 +113,6 @@ const getCustomerDisplayName = (customer: CustomerReference): string => {
       .filter(Boolean)
       .join(" ")
       .trim();
-
   return fullName || toStringValue(customer._id) || toStringValue(customer.id);
 };
 
@@ -135,17 +120,14 @@ const getCustomerId = (customer: CustomerReference): string => {
   if (!isRecord(customer)) {
     return toStringValue(customer);
   }
-
   return toStringValue(customer._id) || toStringValue(customer.id);
 };
 
 const parseRequiredNumber = (value: string, label: string): number => {
   const parsedValue = Number.parseFloat(value);
-
   if (!Number.isFinite(parsedValue)) {
     throw new Error(`${label} must be a valid number.`);
   }
-
   return parsedValue;
 };
 
@@ -153,13 +135,10 @@ const parseOptionalNumber = (value: string): number | undefined => {
   if (!value.trim()) {
     return undefined;
   }
-
   const parsedValue = Number.parseFloat(value);
-
   if (!Number.isFinite(parsedValue)) {
     throw new Error("Purity must be a valid number.");
   }
-
   return parsedValue;
 };
 
@@ -206,51 +185,35 @@ const buildPawnUpdatePayload = (formData: PawnFormState): PawnUpdatePayload => (
   ],
 });
 
-export default function UpdatePawn() {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+function PawnTicketEditForm({ id, initialTicket }: { id: string; initialTicket: PawnTicketDto }) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState<PawnFormState>(initialFormState);
-  const [customerLabel, setCustomerLabel] = useState("");
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  const {
-    data: pawnTicket,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["pawnTicket", id],
-    queryFn: async () => {
-      const response = await getPawnTicketById<PawnTicketDto>(id);
-      return response.data;
-    },
-  });
-
-  if (isError) {
-    notFound();
-  }
-
-  useEffect(() => {
-    if (pawnTicket) {
-      const mappedTicket = mapPawnTicketToForm(pawnTicket);
-
-      setCustomerLabel(mappedTicket.customerLabel || "N/A");
-      setFormData(mappedTicket.formData);
-      setIsHydrated(true);
-    }
-  }, [pawnTicket]);
+  const [{ customerLabel, formData }, setFormState] = useState(() => mapPawnTicketToForm(initialTicket));
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateMutation = useMutation({
     mutationFn: (payload: PawnUpdatePayload) => updatePawnTicket(id, payload),
     onSuccess: () => {
       toast.success("Pawn ticket updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["pawnTickets"] });
-      queryClient.invalidateQueries({ queryKey: ["pawnTicket", id] });
+      queryClient.invalidateQueries({ queryKey: pawnTicketKeys.all });
+      queryClient.invalidateQueries({ queryKey: pawnTicketKeys.detail(id) });
       router.push("/pawn-tickets");
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
+      const payload = error?.response?.data;
+      if (payload?.error && typeof payload.error === "object") {
+        const details = payload.error.details;
+        if (details && typeof details === "object") {
+          const fieldErrors: Record<string, string> = {};
+          Object.entries(details).forEach(([key, val]) => {
+            fieldErrors[key] = Array.isArray(val) ? val.join(", ") : String(val);
+          });
+          setErrors(fieldErrors);
+          toast.error("Please resolve validation errors.");
+          return;
+        }
+      }
       toast.error(getApiErrorMessage(error, "Failed to update pawn ticket"));
     },
   });
@@ -259,16 +222,24 @@ export default function UpdatePawn() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
+    setFormState((prev) => ({
       ...prev,
-      [name]: value,
+      formData: {
+        ...prev.formData,
+        [name]: value,
+      },
     }));
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       updateMutation.mutate(buildPawnUpdatePayload(formData));
     } catch (error) {
@@ -278,32 +249,18 @@ export default function UpdatePawn() {
     }
   };
 
-  if (isLoading || !isHydrated) {
-    return (
-      <AppShell>
-        <div className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
-          <div className="animate-pulse">
-            <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
-            <div className="h-4 w-1/4 rounded bg-slate-100" />
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
-
   return (
     <AppShell>
-      <div className="mb-6 flex items-center gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-100 bg-slate-50">
-          <Ticket className="h-5 w-5 text-slate-400" />
-        </div>
+      <div className="mb-6 flex items-center gap-3">
+        <Link
+          href="/pawn-tickets"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+        >
+          <ArrowLeft className="h-4.5 w-4.5" />
+        </Link>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Update Pawn Ticket
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Editing {formData.ticketNumber} for {customerLabel}
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Update Pawn Ticket</h1>
+          <p className="mt-1 text-sm text-slate-500">Editing {formData.ticketNumber} for {customerLabel}</p>
         </div>
       </div>
 
@@ -441,9 +398,12 @@ export default function UpdatePawn() {
                   return res.data.url;
                 }}
                 onChange={(url) =>
-                  setFormData((prev) => ({
+                  setFormState((prev) => ({
                     ...prev,
-                    itemPhotoUrl: url,
+                    formData: {
+                      ...prev.formData,
+                      itemPhotoUrl: url,
+                    },
                   }))
                 }
                 label="Item photo"
@@ -481,4 +441,40 @@ export default function UpdatePawn() {
       </form>
     </AppShell>
   );
+}
+
+export default function UpdatePawn() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+
+  const {
+    data: pawnTicket,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: pawnTicketKeys.detail(id),
+    queryFn: async () => {
+      const response = await getPawnTicketById<PawnTicketDto>(id);
+      return response;
+    },
+  });
+
+  if (isError) {
+    notFound();
+  }
+
+  if (isLoading || !pawnTicket?.data) {
+    return (
+      <AppShell>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
+          <div className="animate-pulse">
+            <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
+            <div className="h-4 w-1/4 rounded bg-slate-100" />
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  return <PawnTicketEditForm id={id} initialTicket={pawnTicket.data} />;
 }
