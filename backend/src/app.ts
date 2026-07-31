@@ -76,7 +76,7 @@ const apiPrefix = '/api/v1';
 app.use(`${apiPrefix}/auth`, authRouter);
 
 app.use(`${apiPrefix}/app`, apiRateLimiter);
-app.use(`${apiPrefix}/app/profile`, profileRouter);
+app.use('/api/v1/app/profile', profileRouter);
 app.use(`${apiPrefix}/app/customers`, customerRouter);
 app.use(`${apiPrefix}/app/pawns`, pawnRouter);
 app.use(`${apiPrefix}/app/payments`, paymentRouter);
@@ -84,7 +84,7 @@ app.use(`${apiPrefix}/app/employees`, employeeRouter);
 app.use(`${apiPrefix}/app/roles`, roleRouter);
 app.use(`${apiPrefix}/app/stat`, dashboardRouter);
 app.use(`${apiPrefix}/app/stat`, reportsRouter);
-app.use(`${apiPrefix}/app/reports`, reportsRouter);
+app.use('/api/v1/app/reports', reportsRouter);
 app.use(`${apiPrefix}/app/upload`, uploadRouter);
 app.use(`${apiPrefix}/app/search`, searchRouter);
 

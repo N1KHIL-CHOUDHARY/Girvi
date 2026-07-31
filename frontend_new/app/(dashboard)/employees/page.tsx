@@ -244,7 +244,7 @@ export default function Employees() {
               required
             >
               <option value="">Select role</option>
-              {roles.map((r) => (
+              {Array.isArray(roles) && roles.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
                 </option>
@@ -289,10 +289,10 @@ export default function Employees() {
                       <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" />
                     </td>
                   </tr>
-                ) : employeesData.length === 0 ? (
+                ) : !Array.isArray(employeesData) || employeesData.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-sm text-slate-500">
-                      No employees registered.
+                    <td colSpan={6} className="py-8 text-center text-slate-400">
+                      No employees registered yet.
                     </td>
                   </tr>
                 ) : (

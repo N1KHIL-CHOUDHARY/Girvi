@@ -228,7 +228,7 @@ export default function NewPawnTicket() {
             {/* Dropdown list */}
             {showDropdown && searchQuery.trim().length > 0 && (
               <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-100 bg-white py-1 shadow-lg ring-1 ring-black/5">
-                {customerData?.data && customerData.data.length > 0 ? (
+                {Array.isArray(customerData?.data) && customerData.data.length > 0 ? (
                   customerData.data.map((cust) => (
                     <button
                       key={cust.id}

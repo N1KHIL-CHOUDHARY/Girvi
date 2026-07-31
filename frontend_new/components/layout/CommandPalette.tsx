@@ -69,7 +69,7 @@ export function CommandPalette({
     }
 
     // Wrap global results
-    return globalResults.map((res) => ({
+    return (Array.isArray(globalResults) ? globalResults : []).map((res) => ({
       id: res.id,
       label: res.title,
       sublabel: res.subtitle,
