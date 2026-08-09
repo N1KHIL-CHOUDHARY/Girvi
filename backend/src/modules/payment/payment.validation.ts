@@ -14,5 +14,7 @@ export const createPaymentSchema = z.object({
     'waiver',
     'discount'
   ]),
-  payment_date: z.string().datetime().optional().or(z.string().date()).optional()
+  payment_date: z.string().datetime().optional().or(z.string().date()).optional(),
+  idempotencyKey: z.string().max(128).optional(),
+  idempotency_key: z.string().max(128).optional()
 });

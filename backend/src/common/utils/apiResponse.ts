@@ -5,9 +5,10 @@ export interface MetaData {
   limit?: number;
   total?: number;
   totalPages?: number;
+  [key: string]: unknown;
 }
 
-export interface ApiResponseOptions<T = any> {
+export interface ApiResponseOptions<T = unknown> {
   statusCode?: number;
   success?: boolean;
   message?: string;
@@ -15,11 +16,11 @@ export interface ApiResponseOptions<T = any> {
   meta?: MetaData;
   error?: {
     code: string;
-    details?: any;
+    details?: unknown;
   };
 }
 
-export const sendSuccess = <T = any>(
+export const sendSuccess = <T = unknown>(
   res: Response,
   data?: T,
   message: string = '',
@@ -39,7 +40,7 @@ export const sendError = (
   message: string = '',
   statusCode: number = 500,
   errorCode: string = 'APP_ERROR',
-  details?: any
+  details?: unknown
 ): Response => {
   return res.status(statusCode).json({
     success: false,
@@ -51,7 +52,7 @@ export const sendError = (
   });
 };
 
-export const sendResponse = <T = any>(
+export const sendResponse = <T = unknown>(
   res: Response,
   options: ApiResponseOptions<T>
 ): Response => {
