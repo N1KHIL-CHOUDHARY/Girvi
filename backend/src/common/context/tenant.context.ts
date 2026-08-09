@@ -21,3 +21,7 @@ export const getTenantUserId = (): string | undefined => {
 export const getTenantStore = (): TenantStore | undefined => {
   return tenantContext.getStore();
 };
+
+export const runWithTenantContext = <T>(store: TenantStore, callback: () => T): T => {
+  return tenantContext.run(store, callback);
+};

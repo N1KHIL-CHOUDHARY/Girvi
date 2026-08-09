@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { User, Role } from "@prisma/client";
+import { User, Role, Prisma } from "@prisma/client";
 import { employeeRepository } from './employee.repository';
 import { getTenantUserId, getTenantShopId } from '../../common/context/tenant.context';
 import { prisma } from '../../config/database';
@@ -15,19 +15,24 @@ export class EmployeeService {
     return employeeRepository.findAll();
   }
 
-  async createEmployee(data: any): Promise<User> {
+  async createEmployee(data: Record<string, unknown>): Promise<User> {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
+    const email = String(data.email || '');
+    const username = String(data.username || '');
+    const roleId = String(data.roleId || '');
+    const password = String(data.password || '');
+
     // 1. Check duplicate username or email within this shop
-    const duplicate = await employeeRepository.checkDuplicate(data.email, data.username);
+    const duplicate = await employeeRepository.checkDuplicate(email, username);
     if (duplicate) {
       throw new ConflictError('An employee with this email or username already exists');
     }
 
     // 2. Verify role exists in the shop
     const role = await prisma.role.findFirst({
-      where: { id: data.roleId, shopId }
+      where: { id: roleId }
     });
     if (!role) {
       throw new NotFoundError('Selected role does not exist in your shop');
@@ -35,37 +40,35 @@ export class EmployeeService {
 
     // 3. Hash password
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(data.password, salt);
+    const passwordHash = await bcrypt.hash(password, salt);
 
     // 4. Create record
     const employee = await employeeRepository.create({
-      shopId,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      username: data.username,
+      firstName: String(data.firstName || ''),
+      lastName: String(data.lastName || ''),
+      email,
+      username,
       password: passwordHash,
-      phone: data.phone,
-      roleId: data.roleId,
+      phone: typeof data.phone === 'string' ? data.phone : null,
+      roleId,
       isActive: true
     });
 
     // 5. Create audit log
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: getTenantUserId() ?? null,
         entityName: 'Employee',
         entityId: employee.id,
         action: 'create',
         newValue: { email: employee.email, username: employee.username, role: role.name }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return employee;
   }
 
-  async updateEmployee(id: string, data: any): Promise<User> {
+  async updateEmployee(id: string, data: Record<string, unknown>): Promise<User> {
     const shopId = getTenantShopId();
     const actorId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
@@ -81,14 +84,14 @@ export class EmployeeService {
       throw new ValidationError('You cannot deactivate your own account');
     }
 
-    const updatePayload: any = {};
-    const oldValues: any = {};
-    const newValues: any = {};
+    const updatePayload: Prisma.UserUpdateInput = {};
+    const oldValues: Record<string, unknown> = {};
+    const newValues: Record<string, unknown> = {};
 
     // 3. Handle duplicates if email/username changed
     if (data.email || data.username) {
-      const emailToCheck = data.email || employee.email;
-      const userToCheck = data.username || employee.username;
+      const emailToCheck = typeof data.email === 'string' ? data.email : employee.email;
+      const userToCheck = typeof data.username === 'string' ? data.username : employee.username;
       
       const duplicate = await employeeRepository.checkDuplicate(emailToCheck, userToCheck, id);
       if (duplicate) {
@@ -97,32 +100,32 @@ export class EmployeeService {
     }
 
     if (data.firstName !== undefined) {
-      updatePayload.firstName = data.firstName;
+      updatePayload.firstName = String(data.firstName);
       oldValues.firstName = employee.firstName;
       newValues.firstName = data.firstName;
     }
     if (data.lastName !== undefined) {
-      updatePayload.lastName = data.lastName;
+      updatePayload.lastName = String(data.lastName);
       oldValues.lastName = employee.lastName;
       newValues.lastName = data.lastName;
     }
     if (data.email !== undefined) {
-      updatePayload.email = data.email;
+      updatePayload.email = String(data.email);
       oldValues.email = employee.email;
       newValues.email = data.email;
     }
     if (data.username !== undefined) {
-      updatePayload.username = data.username;
+      updatePayload.username = String(data.username);
       oldValues.username = employee.username;
       newValues.username = data.username;
     }
     if (data.phone !== undefined) {
-      updatePayload.phone = data.phone;
+      updatePayload.phone = typeof data.phone === 'string' ? data.phone : null;
       oldValues.phone = employee.phone;
       newValues.phone = data.phone;
     }
     if (data.isActive !== undefined) {
-      updatePayload.isActive = data.isActive;
+      updatePayload.isActive = Boolean(data.isActive);
       oldValues.isActive = employee.isActive;
       newValues.isActive = data.isActive;
     }
@@ -135,18 +138,18 @@ export class EmployeeService {
       }
 
       const role = await prisma.role.findFirst({
-        where: { id: data.roleId, shopId }
+        where: { id: String(data.roleId) }
       });
       if (!role) {
         throw new NotFoundError('Selected role does not exist');
       }
-      updatePayload.roleId = data.roleId;
+      updatePayload.role = { connect: { id: String(data.roleId) } };
       oldValues.roleId = employee.roleId;
       newValues.roleId = data.roleId;
     }
 
     // 5. Handle password update
-    if (data.password) {
+    if (data.password && typeof data.password === 'string') {
       const salt = await bcrypt.genSalt(10);
       updatePayload.password = await bcrypt.hash(data.password, salt);
     }
@@ -157,14 +160,13 @@ export class EmployeeService {
     // 7. Write audit log
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: actorId,
         entityName: 'Employee',
         entityId: id,
         action: 'update',
         oldValue: oldValues,
         newValue: newValues
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return updated;
@@ -196,13 +198,12 @@ export class EmployeeService {
     // 4. Audit
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: actorId,
         entityName: 'Employee',
         entityId: id,
         action: 'delete',
         oldValue: { email: employee.email, username: employee.username }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
   }
 

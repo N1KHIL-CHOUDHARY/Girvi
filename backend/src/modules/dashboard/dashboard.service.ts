@@ -30,30 +30,27 @@ export class DashboardService {
     const [activeTickets, monthlyTickets, genderDataRaw, areaDataRaw, activityLogs] = await Promise.all([
       // Active tickets
       prisma.pawnTicket.findMany({
-        where: { status: 'active', shopId }
+        where: { status: 'active' }
       }),
       // Monthly issued tickets
       prisma.pawnTicket.findMany({
         where: {
-          pawned_date: { gte: startOfMonth },
-          shopId
+          pawned_date: { gte: startOfMonth }
         }
       }),
       // Customers gender grouping
       prisma.customer.groupBy({
         by: ['gender'],
-        _count: { gender: true },
-        where: { shopId }
+        _count: { gender: true }
       }),
       // Customers pincode grouping
       prisma.customer.groupBy({
         by: ['address_pincode'],
         _count: { address_pincode: true },
-        where: { shopId, address_pincode: { not: null } }
+        where: { address_pincode: { not: null } }
       }),
       // Recent activities
       prisma.activityLog.findMany({
-        where: { shopId },
         include: {
           user: true
         },
@@ -93,7 +90,6 @@ export class DashboardService {
     // Calculate top customers by aggregate loan amount using database-level aggregation
     const topCustomersGrouped = await prisma.pawnTicket.groupBy({
       by: ['customerId'],
-      where: { shopId },
       _sum: {
         original_loan_amount: true
       },

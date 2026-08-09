@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role, Prisma } from '@prisma/client';
 import { roleRepository } from './role.repository';
 import { prisma } from '../../config/database';
 import { redisClient } from '../../config/redis';
@@ -52,10 +52,9 @@ export class RoleService {
     const role = await prisma.$transaction(async (tx) => {
       const createdRole = await tx.role.create({
         data: {
-          shopId,
           name: data.name.toLowerCase().trim(),
           description: data.description
-        }
+        } as unknown as Prisma.RoleCreateInput
       });
 
       await tx.rolePermission.createMany({
@@ -71,13 +70,12 @@ export class RoleService {
     // 4. Audit
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: getTenantUserId() ?? null,
         entityName: 'Role',
         entityId: role.id,
         action: 'create',
         newValue: { name: role.name, permissions: data.permissions }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return role;
@@ -154,13 +152,12 @@ export class RoleService {
     // 5. Audit
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: actorId,
         entityName: 'Role',
         entityId: id,
         action: 'update',
         newValue: data
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return updatedRole;
@@ -195,13 +192,12 @@ export class RoleService {
     // 4. Audit
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId: actorId,
         entityName: 'Role',
         entityId: id,
         action: 'delete',
         oldValue: { name: role.name }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
   }
 }

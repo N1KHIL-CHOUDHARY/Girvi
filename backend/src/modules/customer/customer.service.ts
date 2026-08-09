@@ -1,4 +1,4 @@
-import { Customer } from '@prisma/client';
+import { Customer, Prisma } from '@prisma/client';
 import { customerRepository } from './customer.repository';
 import { encrypt, decrypt, getLast4Digits } from '../../common/utils/encryption';
 import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
@@ -81,67 +81,65 @@ export class CustomerService {
     };
   }
 
-  async createCustomer(data: any): Promise<Customer> {
+  async createCustomer(data: Record<string, unknown>): Promise<Customer> {
     const shopId = getTenantShopId();
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // Prepare encrypted values and plain search tags
-    const aadhaar_number_encrypted = data.aadhaar_number ? encrypt(data.aadhaar_number) : null;
-    const aadhaar_number_last4 = data.aadhaar_number ? getLast4Digits(data.aadhaar_number) : null;
+    const aadhaar_number_encrypted = typeof data.aadhaar_number === 'string' ? encrypt(data.aadhaar_number) : null;
+    const aadhaar_number_last4 = typeof data.aadhaar_number === 'string' ? getLast4Digits(data.aadhaar_number) : null;
     
-    const pan_number_encrypted = data.pan_number ? encrypt(data.pan_number) : null;
-    const pan_number_last4 = data.pan_number ? getLast4Digits(data.pan_number) : null;
+    const pan_number_encrypted = typeof data.pan_number === 'string' ? encrypt(data.pan_number) : null;
+    const pan_number_last4 = typeof data.pan_number === 'string' ? getLast4Digits(data.pan_number) : null;
 
-    const address = data.address || {};
+    const address = (data.address || {}) as Record<string, unknown>;
     
     // Auto-generate customerCode if missing
-    let customerCode = data.customerCode;
+    let customerCode = typeof data.customerCode === 'string' ? data.customerCode : undefined;
     if (!customerCode) {
-      const count = await prisma.customer.count({ where: { shopId } });
+      const count = await prisma.customer.count();
       customerCode = `CUST-${(count + 1).toString().padStart(5, '0')}`;
     }
 
     const customer = await customerRepository.create({
-      shopId,
       createdByUserId: userId,
-      full_name: data.full_name,
-      phone_number: data.phone_number,
-      gender: data.gender || null,
-      customer_photo_url: data.customer_photo_url || null,
+      full_name: String(data.full_name || ''),
+      phone_number: String(data.phone_number || ''),
+      gender: typeof data.gender === 'string' ? data.gender : null,
+      customer_photo_url: typeof data.customer_photo_url === 'string' ? data.customer_photo_url : null,
       aadhaar_number_encrypted,
       aadhaar_number_last4,
       pan_number_encrypted,
       pan_number_last4,
-      address_line1: address.line1 || null,
-      address_city: address.city || null,
-      address_pincode: address.pincode || null,
-      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-      occupation: data.occupation || null,
-      nominee_name: data.nominee_name || null,
-      nominee_phone: data.nominee_phone || null,
-      nominee_relation: data.nominee_relation || null,
-      notes: data.notes || null,
+      address_line1: typeof address.line1 === 'string' ? address.line1 : null,
+      address_city: typeof address.city === 'string' ? address.city : null,
+      address_pincode: typeof address.pincode === 'string' ? address.pincode : null,
+      dateOfBirth: data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null,
+      occupation: typeof data.occupation === 'string' ? data.occupation : null,
+      nominee_name: typeof data.nominee_name === 'string' ? data.nominee_name : null,
+      nominee_phone: typeof data.nominee_phone === 'string' ? data.nominee_phone : null,
+      nominee_relation: typeof data.nominee_relation === 'string' ? data.nominee_relation : null,
+      notes: typeof data.notes === 'string' ? data.notes : null,
       customerCode,
-      kycStatus: data.kycStatus || 'pending',
+      kycStatus: typeof data.kycStatus === 'string' ? data.kycStatus : 'pending',
       kycVerifiedAt: data.kycStatus === 'verified' ? new Date() : null
     });
 
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId,
         entityName: 'Customer',
         entityId: customer.id,
         action: 'create',
         newValue: { full_name: customer.full_name, code: customer.customerCode }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return customer;
   }
 
-  async updateCustomer(id: string, data: any): Promise<Customer> {
+  async updateCustomer(id: string, data: Record<string, unknown>): Promise<Customer> {
     const shopId = getTenantShopId();
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
@@ -151,69 +149,64 @@ export class CustomerService {
       throw new NotFoundError('Customer not found');
     }
 
-    const updatePayload: any = {};
-    const oldValues: any = {};
-    const newValues: any = {};
+    const updatePayload: Prisma.CustomerUpdateInput = {};
+    const oldValues: Record<string, unknown> = {};
+    const newValues: Record<string, unknown> = {};
 
     if (data.full_name !== undefined) {
-      updatePayload.full_name = data.full_name;
+      updatePayload.full_name = String(data.full_name);
       oldValues.full_name = customer.full_name;
       newValues.full_name = data.full_name;
     }
     if (data.phone_number !== undefined) {
-      updatePayload.phone_number = data.phone_number;
+      updatePayload.phone_number = String(data.phone_number);
       oldValues.phone_number = customer.phone_number;
       newValues.phone_number = data.phone_number;
     }
     if (data.gender !== undefined) {
-      updatePayload.gender = data.gender;
+      updatePayload.gender = typeof data.gender === 'string' ? data.gender : null;
     }
     if (data.customer_photo_url !== undefined) {
-      updatePayload.customer_photo_url = data.customer_photo_url;
+      updatePayload.customer_photo_url = typeof data.customer_photo_url === 'string' ? data.customer_photo_url : null;
     }
-    if (data.occupation !== undefined) {
-      updatePayload.occupation = data.occupation;
+    if (data.aadhaar_number !== undefined) {
+      updatePayload.aadhaar_number_encrypted = typeof data.aadhaar_number === 'string' ? encrypt(data.aadhaar_number) : null;
+      updatePayload.aadhaar_number_last4 = typeof data.aadhaar_number === 'string' ? getLast4Digits(data.aadhaar_number) : null;
+      oldValues.aadhaar_number_last4 = customer.aadhaar_number_last4;
+      newValues.aadhaar_number_last4 = updatePayload.aadhaar_number_last4;
     }
-    if (data.nominee_name !== undefined) {
-      updatePayload.nominee_name = data.nominee_name;
+    if (data.pan_number !== undefined) {
+      updatePayload.pan_number_encrypted = typeof data.pan_number === 'string' ? encrypt(data.pan_number) : null;
+      updatePayload.pan_number_last4 = typeof data.pan_number === 'string' ? getLast4Digits(data.pan_number) : null;
+      oldValues.pan_number_last4 = customer.pan_number_last4;
+      newValues.pan_number_last4 = updatePayload.pan_number_last4;
     }
-    if (data.nominee_phone !== undefined) {
-      updatePayload.nominee_phone = data.nominee_phone;
-    }
-    if (data.nominee_relation !== undefined) {
-      updatePayload.nominee_relation = data.nominee_relation;
-    }
-    if (data.notes !== undefined) {
-      updatePayload.notes = data.notes;
-    }
-    if (data.customerCode !== undefined) {
-      updatePayload.customerCode = data.customerCode;
+    if (data.address !== undefined) {
+      const addr = (data.address || {}) as Record<string, unknown>;
+      if (addr.line1 !== undefined) updatePayload.address_line1 = typeof addr.line1 === 'string' ? addr.line1 : null;
+      if (addr.city !== undefined) updatePayload.address_city = typeof addr.city === 'string' ? addr.city : null;
+      if (addr.pincode !== undefined) updatePayload.address_pincode = typeof addr.pincode === 'string' ? addr.pincode : null;
     }
     if (data.dateOfBirth !== undefined) {
-      updatePayload.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+      updatePayload.dateOfBirth = data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null;
     }
-
-    // Encrypt Aadhaar if updated
-    if (data.aadhaar_number !== undefined) {
-      updatePayload.aadhaar_number_encrypted = data.aadhaar_number ? encrypt(data.aadhaar_number) : null;
-      updatePayload.aadhaar_number_last4 = data.aadhaar_number ? getLast4Digits(data.aadhaar_number) : null;
+    if (data.occupation !== undefined) {
+      updatePayload.occupation = typeof data.occupation === 'string' ? data.occupation : null;
     }
-
-    // Encrypt PAN if updated
-    if (data.pan_number !== undefined) {
-      updatePayload.pan_number_encrypted = data.pan_number ? encrypt(data.pan_number) : null;
-      updatePayload.pan_number_last4 = data.pan_number ? getLast4Digits(data.pan_number) : null;
+    if (data.nominee_name !== undefined) {
+      updatePayload.nominee_name = typeof data.nominee_name === 'string' ? data.nominee_name : null;
     }
-
-    // Handle nested address updates
-    if (data.address) {
-      if (data.address.line1 !== undefined) updatePayload.address_line1 = data.address.line1;
-      if (data.address.city !== undefined) updatePayload.address_city = data.address.city;
-      if (data.address.pincode !== undefined) updatePayload.address_pincode = data.address.pincode;
+    if (data.nominee_phone !== undefined) {
+      updatePayload.nominee_phone = typeof data.nominee_phone === 'string' ? data.nominee_phone : null;
     }
-
+    if (data.nominee_relation !== undefined) {
+      updatePayload.nominee_relation = typeof data.nominee_relation === 'string' ? data.nominee_relation : null;
+    }
+    if (data.notes !== undefined) {
+      updatePayload.notes = typeof data.notes === 'string' ? data.notes : null;
+    }
     if (data.kycStatus !== undefined) {
-      updatePayload.kycStatus = data.kycStatus;
+      updatePayload.kycStatus = String(data.kycStatus);
       updatePayload.kycVerifiedAt = data.kycStatus === 'verified' ? new Date() : null;
       oldValues.kycStatus = customer.kycStatus;
       newValues.kycStatus = data.kycStatus;
@@ -223,14 +216,13 @@ export class CustomerService {
 
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId,
         entityName: 'Customer',
         entityId: id,
         action: 'update',
         oldValue: oldValues,
         newValue: newValues
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
 
     return updated;
@@ -250,13 +242,12 @@ export class CustomerService {
 
     await prisma.auditLog.create({
       data: {
-        shopId,
         userId,
         entityName: 'Customer',
         entityId: id,
         action: 'delete',
         oldValue: { full_name: customer.full_name }
-      }
+      } as unknown as Prisma.AuditLogCreateInput
     });
   }
 

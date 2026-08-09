@@ -2,6 +2,7 @@ import { Queue, Worker, Job } from 'bullmq';
 import { env } from '../config/env';
 import { logger } from '../common/logger';
 import { sendEmail } from '../emails/mailer';
+import { runWithTenantContext } from '../common/context/tenant.context';
 
 // Parse Redis connection details
 let redisUrl: URL;
@@ -56,9 +57,11 @@ export const initializeQueues = (): void => {
       'report-queue',
       async (job: Job) => {
         logger.info({ jobId: job.id, jobName: job.name }, 'Processing background report compilation job');
-        const { reportType, shopId, userId } = job.data;
-        // Logic for compiler is implemented under reports module
-        logger.info({ reportType, shopId, userId }, 'Completed compiling background report');
+        const { reportType, shopId, userId, filters } = job.data;
+        await runWithTenantContext({ shopId, userId }, async () => {
+          // Logic for compiler is implemented under reports module
+          logger.info({ reportType, shopId, userId, filters }, 'Completed compiling background report');
+        });
       },
       { connection: redisConnection }
     );

@@ -31,7 +31,7 @@ export class PaymentService {
     if (!shopId) throw new AppError("Tenant context required", 400);
 
     const ticket = await prisma.pawnTicket.findFirst({
-      where: { id: data.ticket_id, shopId },
+      where: { id: data.ticket_id },
     });
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
@@ -88,7 +88,6 @@ export class PaymentService {
 
       await tx.auditLog.create({
         data: {
-          shopId,
           userId,
           entityName: "Payment",
           entityId: payment.id,
@@ -98,7 +97,7 @@ export class PaymentService {
             amount_paid: payment.amount_paid.toString(),
             payment_for: payment.payment_for,
           },
-        },
+        } as unknown as Prisma.AuditLogCreateInput,
       });
 
       return {

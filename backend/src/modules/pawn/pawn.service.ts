@@ -134,7 +134,7 @@ export class PawnService {
     if (!shopId) throw new AppError("Tenant context required", 400);
 
     const customer = await prisma.customer.findFirst({
-      where: { id: data.customer_id, shopId },
+      where: { id: data.customer_id },
     });
     if (!customer) {
       throw new NotFoundError("Customer not found");
@@ -170,7 +170,6 @@ export class PawnService {
     return prisma.$transaction(async (tx) => {
       const ticket = await tx.pawnTicket.create({
         data: {
-          shopId,
           customerId: data.customer_id,
           ticket_number: data.ticket_number,
           loan_amount,
@@ -188,18 +187,17 @@ export class PawnService {
           items: {
             create: items,
           },
-        },
+        } as unknown as Prisma.PawnTicketCreateInput,
       });
 
       await tx.auditLog.create({
         data: {
-          shopId,
           userId,
           entityName: "PawnTicket",
           entityId: ticket.id,
           action: "create",
           newValue: { ticket_number: ticket.ticket_number, loan_amount: ticket.original_loan_amount.toString() },
-        },
+        } as unknown as Prisma.AuditLogCreateInput,
       });
 
       return ticket;
@@ -266,14 +264,13 @@ export class PawnService {
 
       await tx.auditLog.create({
         data: {
-          shopId,
           userId,
           entityName: "PawnTicket",
           entityId: id,
           action: "update",
           oldValue: oldValues,
           newValue: newValues,
-        },
+        } as unknown as Prisma.AuditLogCreateInput,
       });
 
       return updated;
@@ -290,22 +287,16 @@ export class PawnService {
       throw new NotFoundError("Pawn ticket not found");
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.pawnTicket.update({
-        where: { id },
-        data: { deletedAt: new Date() },
-      });
+    await pawnRepository.delete(id);
 
-      await tx.auditLog.create({
-        data: {
-          shopId,
-          userId,
-          entityName: "PawnTicket",
-          entityId: id,
-          action: "delete",
-          oldValue: { ticket_number: ticket.ticket_number },
-        },
-      });
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        entityName: "PawnTicket",
+        entityId: id,
+        action: "delete",
+        oldValue: { ticket_number: ticket.ticket_number },
+      } as unknown as Prisma.AuditLogCreateInput,
     });
   }
 
@@ -332,13 +323,12 @@ export class PawnService {
 
       await tx.auditLog.create({
         data: {
-          shopId,
           userId,
           entityName: "PawnTicket",
           entityId: id,
           action: "update",
           newValue: { status, settled_date: settled_date?.toISOString() },
-        },
+        } as unknown as Prisma.AuditLogCreateInput,
       });
 
       return updated;

@@ -12,7 +12,7 @@ export class ReportsService {
     const { page, limit, search } = params;
     const skip = (page - 1) * limit;
 
-    const whereClause: Prisma.PawnTicketWhereInput = { shopId };
+    const whereClause: Prisma.PawnTicketWhereInput = {};
 
     if (search) {
       whereClause.OR = [
@@ -73,7 +73,7 @@ export class ReportsService {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const whereClause: Prisma.PawnTicketWhereInput = { shopId };
+    const whereClause: Prisma.PawnTicketWhereInput = {};
 
     if (search) {
       whereClause.OR = [
@@ -116,7 +116,7 @@ export class ReportsService {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const whereClause: Prisma.PawnTicketWhereInput = { shopId };
+    const whereClause: Prisma.PawnTicketWhereInput = {};
 
     if (search) {
       whereClause.OR = [
