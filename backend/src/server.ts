@@ -1,7 +1,7 @@
 import app from './app';
 import { env } from './config/env';
 import { connectRedis, disconnectRedis } from './config/redis';
-import { initializeQueues } from './jobs';
+import { initializeQueues, startDailyDatabaseReader, stopDailyDatabaseReader } from './jobs';
 import { prisma } from './config/database';
 import { logger } from './common/logger';
 
@@ -21,7 +21,10 @@ async function bootstrap() {
     await prisma.$queryRaw`SELECT 1`;
     logger.info('✓ Connected to PostgreSQL Database successfully');
 
-    // 4. Start HTTP Server
+    // 4. Start Daily Database Reader & Keep-Alive Scheduler
+    await startDailyDatabaseReader();
+
+    // 5. Start HTTP Server
     const server = app.listen(PORT, () => {
       logger.info(`✓ Server running in '${env.NODE_ENV}' mode on port ${PORT}`);
       logger.info(`📊 API Documentation sandbox ready at http://localhost:${PORT}/docs`);
@@ -31,6 +34,8 @@ async function bootstrap() {
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}. Starting graceful shutdown procedure...`);
       
+      stopDailyDatabaseReader();
+
       server.close(() => {
         logger.info('HTTP server closed.');
       });
