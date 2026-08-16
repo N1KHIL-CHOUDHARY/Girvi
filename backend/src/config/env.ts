@@ -26,6 +26,9 @@ const envSchema = z.object({
   SMTP_FROM: z.string().default("Pawn Manager <no-reply@pawnmanager.com>"),
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
   ENCRYPTION_KEY: z.string().length(64, "ENCRYPTION_KEY must be a 64-character hex string"),
+  DB_DAILY_PING_ENABLED: z.coerce.boolean().default(true),
+  DB_DAILY_PING_INTERVAL_HOURS: z.coerce.number().default(24),
+  DB_DAILY_PING_CRON: z.string().default("0 0 * * *"),
 });
 
 const parsed = envSchema.safeParse(process.env);
