@@ -125,6 +125,8 @@ export const queueReportCompilation = async (data: {
   // Sync fallback or warning
   logger.info({ reportType: data.reportType }, 'Redis offline: processing report job synchronously');
 };
+export * from './daily-db-reader.job';
+
 export default {
   initializeQueues,
   queueEmail,
