@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../../config/database';
 import { redisClient } from '../../config/redis';
+import { getDailyDatabaseReadStatus, performDailyDatabaseRead } from '../../jobs/daily-db-reader.job';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.get('/health', async (_req: Request, res: Response): Promise<void> => {
 
   const isHealthy = dbStatus === 'UP' && redisStatus === 'UP';
   const isOperational = dbStatus === 'UP';
+  const dailyDbReader = getDailyDatabaseReadStatus();
 
   res.status(isOperational ? 200 : 503).json({
     success: isOperational,
@@ -36,8 +38,25 @@ router.get('/health', async (_req: Request, res: Response): Promise<void> => {
     version: '1.0.0',
     services: {
       database: dbStatus,
-      redis: redisStatus
+      redis: redisStatus,
+      dailyDbReader
     }
+  });
+});
+
+router.get('/health/daily-ping', (_req: Request, res: Response): void => {
+  const status = getDailyDatabaseReadStatus();
+  res.status(200).json({
+    success: true,
+    data: status
+  });
+});
+
+router.post('/health/daily-ping', async (_req: Request, res: Response): Promise<void> => {
+  const result = await performDailyDatabaseRead();
+  res.status(result.success ? 200 : 500).json({
+    success: result.success,
+    data: result
   });
 });
 
