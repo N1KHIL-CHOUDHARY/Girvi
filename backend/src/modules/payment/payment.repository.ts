@@ -1,5 +1,5 @@
 import { Payment, PawnTicket, LedgerEntry, Prisma } from '@prisma/client';
-import { prisma } from '../../config/database';
+import { prisma, executeTenantRawQuery } from '../../config/database';
 
 export type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -7,25 +7,21 @@ export class PaymentRepository {
   async findByTicketId(ticketId: string): Promise<Payment[]> {
     return prisma.payment.findMany({
       where: { ticketId },
-      orderBy: { payment_date: 'desc' }
+      orderBy: { paymentDate: 'desc' }
     });
   }
 
   async findById(id: string): Promise<Payment | null> {
-    return prisma.payment.findFirst({
+    return prisma.payment.findUnique({
       where: { id }
     });
   }
 
   async findByIdempotencyKey(
-    idempotencyKey: string,
-    shopId?: string
+    idempotencyKey: string
   ): Promise<(Payment & { ticket?: PawnTicket | null }) | null> {
-    return prisma.payment.findFirst({
-      where: {
-        idempotencyKey,
-        ...(shopId ? { shopId } : {})
-      },
+    return prisma.payment.findUnique({
+      where: { idempotencyKey },
       include: {
         ticket: true
       }
@@ -34,23 +30,24 @@ export class PaymentRepository {
 
   async lockTicket(
     tx: TransactionClient,
-    ticketId: string,
-    shopId?: string
+    ticketId: string
   ): Promise<PawnTicket | null> {
-    const rows: PawnTicket[] = shopId
-      ? await tx.$queryRaw<PawnTicket[]>(
-          Prisma.sql`SELECT * FROM "PawnTicket" WHERE id = ${ticketId}::uuid AND "shopId" = ${shopId}::uuid AND "deletedAt" IS NULL FOR UPDATE`
-        )
-      : await tx.$queryRaw<PawnTicket[]>(
-          Prisma.sql`SELECT * FROM "PawnTicket" WHERE id = ${ticketId}::uuid AND "deletedAt" IS NULL FOR UPDATE`
-        );
-    return rows[0] || null;
+    return executeTenantRawQuery(async (shopId) => {
+      const rows = await tx.$queryRaw<PawnTicket[]>`
+        SELECT * FROM "PawnTicket"
+        WHERE "id" = ${ticketId}::uuid
+          AND "shopId" = ${shopId}::uuid
+          AND "deletedAt" IS NULL
+        FOR UPDATE
+      `;
+      return rows[0] || null;
+    });
   }
 
   async updateTicket(
     tx: TransactionClient,
     id: string,
-    data: Prisma.PawnTicketUncheckedUpdateInput
+    data: Prisma.PawnTicketUpdateInput
   ): Promise<PawnTicket> {
     return tx.pawnTicket.update({
       where: { id },
@@ -60,7 +57,7 @@ export class PaymentRepository {
 
   async createPayment(
     tx: TransactionClient,
-    data: Prisma.PaymentUncheckedCreateInput
+    data: Prisma.PaymentCreateInput
   ): Promise<Payment> {
     return tx.payment.create({
       data
@@ -69,7 +66,7 @@ export class PaymentRepository {
 
   async createLedgerEntry(
     tx: TransactionClient,
-    data: Prisma.LedgerEntryUncheckedCreateInput
+    data: Prisma.LedgerEntryCreateInput
   ): Promise<LedgerEntry> {
     return tx.ledgerEntry.create({
       data

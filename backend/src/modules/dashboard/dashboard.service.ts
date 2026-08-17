@@ -5,8 +5,36 @@ import { AppError } from '../../common/errors/AppError';
 import { Prisma } from '@prisma/client';
 import dayjs from 'dayjs';
 
+export interface DashboardStatsResponse {
+  stats: {
+    total_loan_active: string;
+    monthly_loan_given: string;
+    total_active_tickets: number;
+  };
+  gender_data: {
+    gender: string;
+    count: number;
+  }[];
+  area_data: {
+    pincode: string;
+    count: number;
+  }[];
+  top_customers: {
+    id: string;
+    full_name: string;
+    total_loan: string;
+  }[];
+  recent_activity: {
+    id: string;
+    type: string;
+    message: string;
+    createdAt: string;
+    user: { full_name: string } | null;
+  }[];
+}
+
 export class DashboardService {
-  async getDashboardStatistics(): Promise<any> {
+  async getDashboardStatistics(): Promise<DashboardStatsResponse> {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
@@ -17,9 +45,9 @@ export class DashboardService {
       try {
         const cachedData = await redisClient.get(cacheKey);
         if (cachedData) {
-          return JSON.parse(cachedData);
+          return JSON.parse(cachedData) as DashboardStatsResponse;
         }
-      } catch (err) {
+      } catch (_err) {
         // Continue to query db if Redis fails
       }
     }
@@ -35,7 +63,7 @@ export class DashboardService {
       // Monthly issued tickets
       prisma.pawnTicket.findMany({
         where: {
-          pawned_date: { gte: startOfMonth }
+          pawnedDate: { gte: startOfMonth }
         }
       }),
       // Customers gender grouping
@@ -45,9 +73,9 @@ export class DashboardService {
       }),
       // Customers pincode grouping
       prisma.customer.groupBy({
-        by: ['address_pincode'],
-        _count: { address_pincode: true },
-        where: { address_pincode: { not: null } }
+        by: ['addressPincode'],
+        _count: { addressPincode: true },
+        where: { addressPincode: { not: null } }
       }),
       // Recent activities
       prisma.activityLog.findMany({
@@ -61,11 +89,11 @@ export class DashboardService {
 
     // Aggregate stats
     const totalLoanActive = activeTickets.reduce(
-      (acc, t) => acc.plus(t.loan_amount),
+      (acc, t) => acc.plus(t.loanAmount),
       new Prisma.Decimal(0)
     );
     const monthlyLoanGiven = monthlyTickets.reduce(
-      (acc, t) => acc.plus(t.original_loan_amount),
+      (acc, t) => acc.plus(t.originalLoanAmount),
       new Prisma.Decimal(0)
     );
 
@@ -83,19 +111,19 @@ export class DashboardService {
 
     // Format area (pincode) distribution
     const area_data = areaDataRaw.map((a) => ({
-      pincode: a.address_pincode || 'Unknown',
-      count: a._count.address_pincode
+      pincode: a.addressPincode || 'Unknown',
+      count: a._count.addressPincode
     }));
 
     // Calculate top customers by aggregate loan amount using database-level aggregation
     const topCustomersGrouped = await prisma.pawnTicket.groupBy({
       by: ['customerId'],
       _sum: {
-        original_loan_amount: true
+        originalLoanAmount: true
       },
       orderBy: {
         _sum: {
-          original_loan_amount: 'desc'
+          originalLoanAmount: 'desc'
         }
       },
       take: 5
@@ -106,11 +134,11 @@ export class DashboardService {
       where: { id: { in: topCustomerIds } }
     });
 
-    const infoMap = new Map(customersInfo.map((c) => [c.id, c.full_name]));
+    const infoMap = new Map(customersInfo.map((c) => [c.id, c.fullName]));
 
     const top_customers = topCustomersGrouped.map((cg) => {
       const fullName = infoMap.get(cg.customerId) || 'Walk-in Customer';
-      const totalSum = cg._sum.original_loan_amount || new Prisma.Decimal(0);
+      const totalSum = cg._sum.originalLoanAmount || new Prisma.Decimal(0);
       return {
         id: cg.customerId,
         full_name: fullName,
@@ -119,15 +147,24 @@ export class DashboardService {
     });
 
     // Format activities
-    const recent_activity = activityLogs.map((log) => ({
-      id: log.id,
-      type: log.action,
-      message: (log.details as any)?.message || `${log.action} action performed`,
-      createdAt: log.createdAt.toISOString(),
-      user: log.user ? { full_name: `${log.user.firstName} ${log.user.lastName}`.trim() } : null
-    }));
+    const recent_activity = activityLogs.map((log) => {
+      const details = typeof log.details === 'object' && log.details !== null
+        ? (log.details as Record<string, unknown>)
+        : {};
+      const message = typeof details.message === 'string'
+        ? details.message
+        : `${log.action} action performed`;
 
-    const responseData = {
+      return {
+        id: log.id,
+        type: log.action,
+        message,
+        createdAt: log.createdAt.toISOString(),
+        user: log.user ? { full_name: `${log.user.firstName} ${log.user.lastName}`.trim() } : null
+      };
+    });
+
+    const responseData: DashboardStatsResponse = {
       stats,
       gender_data,
       area_data,
@@ -139,7 +176,7 @@ export class DashboardService {
     if (redisClient.isOpen) {
       try {
         await redisClient.setEx(cacheKey, 300, JSON.stringify(responseData));
-      } catch (err) {
+      } catch (_err) {
         // Gracefully ignore cache writing errors
       }
     }

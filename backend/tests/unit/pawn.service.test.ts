@@ -23,9 +23,15 @@ describe("PawnService Unit Tests", () => {
 
   it("should throw AppError if tenant context is missing on createTicket", async () => {
     vi.spyOn(tenantContext, "getStore").mockReturnValue({});
-    await expect(pawnService.createTicket({ customer_id: "c-1" })).rejects.toThrow(
-      new AppError("Tenant context required", 400)
-    );
+    await expect(
+      pawnService.createTicket({
+        customer_id: "c-1",
+        ticket_number: "T-1",
+        loan_amount: 1000,
+        interest_rate: 2,
+        items: [],
+      })
+    ).rejects.toThrow(new AppError("Tenant context required", 400));
   });
 
   it("should throw NotFoundError if ticket by ID is not found", async () => {

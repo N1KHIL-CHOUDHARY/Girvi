@@ -16,8 +16,8 @@ export class ReportsService {
 
     if (search) {
       whereClause.OR = [
-        { ticket_number: { contains: search, mode: 'insensitive' } },
-        { customer: { full_name: { contains: search, mode: 'insensitive' } } }
+        { ticketNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
       ];
     }
 
@@ -28,7 +28,7 @@ export class ReportsService {
           customer: true,
           payments: true
         },
-        orderBy: { pawned_date: 'desc' },
+        orderBy: { pawnedDate: 'desc' },
         skip,
         take: limit
       }),
@@ -39,22 +39,22 @@ export class ReportsService {
 
     const report = tickets.map((t) => {
       const interestPaid = t.payments
-        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.payment_for))
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.paymentFor))
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       const principalPaid = t.payments
-        .filter((p) => p.payment_for === 'principal')
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => p.paymentFor === 'principal')
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       return {
         id: t.id,
-        ticket_number: t.ticket_number,
+        ticket_number: t.ticketNumber,
         status: t.status as 'active' | 'settled' | 'defaulted',
-        original_loan_amount: t.original_loan_amount.toString(),
-        loan_amount: t.loan_amount.toString(),
+        original_loan_amount: t.originalLoanAmount.toString(),
+        loan_amount: t.loanAmount.toString(),
         total_interest_paid: interestPaid.toString(),
         total_principal_paid: principalPaid.toString(),
-        customer_name: t.customer?.full_name || 'Walk-in Customer'
+        customer_name: t.customer?.fullName || 'Walk-in Customer'
       };
     });
 
@@ -77,8 +77,8 @@ export class ReportsService {
 
     if (search) {
       whereClause.OR = [
-        { ticket_number: { contains: search, mode: 'insensitive' } },
-        { customer: { full_name: { contains: search, mode: 'insensitive' } } }
+        { ticketNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
       ];
     }
 
@@ -88,7 +88,7 @@ export class ReportsService {
         customer: true,
         payments: true
       },
-      orderBy: { pawned_date: 'desc' }
+      orderBy: { pawnedDate: 'desc' }
     });
 
     // Write CSV header
@@ -96,17 +96,17 @@ export class ReportsService {
 
     for (const t of tickets) {
       const interestPaid = t.payments
-        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.payment_for))
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.paymentFor))
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       const principalPaid = t.payments
-        .filter((p) => p.payment_for === 'principal')
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => p.paymentFor === 'principal')
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       // Clean commas from names
-      const name = (t.customer?.full_name || 'Walk-in').replace(/,/g, ' ');
+      const name = (t.customer?.fullName || 'Walk-in').replace(/,/g, ' ');
 
-      csv += `${t.ticket_number},${name},${t.status},${t.original_loan_amount},${t.loan_amount},${interestPaid},${principalPaid}\n`;
+      csv += `${t.ticketNumber},${name},${t.status},${t.originalLoanAmount},${t.loanAmount},${interestPaid},${principalPaid}\n`;
     }
 
     return csv;
@@ -120,8 +120,8 @@ export class ReportsService {
 
     if (search) {
       whereClause.OR = [
-        { ticket_number: { contains: search, mode: 'insensitive' } },
-        { customer: { full_name: { contains: search, mode: 'insensitive' } } }
+        { ticketNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
       ];
     }
 
@@ -131,25 +131,25 @@ export class ReportsService {
         customer: true,
         payments: true
       },
-      orderBy: { pawned_date: 'desc' }
+      orderBy: { pawnedDate: 'desc' }
     });
 
     // Format data rows
     const data = tickets.map((t) => {
       const interestPaid = t.payments
-        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.payment_for))
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => ['interest', 'penalty', 'fine', 'processing_fee', 'service_fee'].includes(p.paymentFor))
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       const principalPaid = t.payments
-        .filter((p) => p.payment_for === 'principal')
-        .reduce((sum, p) => sum.plus(p.amount_paid), new Prisma.Decimal(0));
+        .filter((p) => p.paymentFor === 'principal')
+        .reduce((sum, p) => sum.plus(p.amountPaid), new Prisma.Decimal(0));
 
       return {
-        'Ticket Number': t.ticket_number,
-        'Customer Name': t.customer?.full_name || 'Walk-in Customer',
+        'Ticket Number': t.ticketNumber,
+        'Customer Name': t.customer?.fullName || 'Walk-in Customer',
         'Status': t.status,
-        'Original Loan (INR)': parseFloat(t.original_loan_amount.toString()),
-        'Remaining Principal (INR)': parseFloat(t.loan_amount.toString()),
+        'Original Loan (INR)': parseFloat(t.originalLoanAmount.toString()),
+        'Remaining Principal (INR)': parseFloat(t.loanAmount.toString()),
         'Total Interest Paid (INR)': parseFloat(interestPaid.toString()),
         'Total Principal Repaid (INR)': parseFloat(principalPaid.toString())
       };
@@ -162,7 +162,7 @@ export class ReportsService {
     
     // Output file buffer
     const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-    return buffer;
+    return buffer as Buffer;
   }
 }
 

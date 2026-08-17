@@ -1,31 +1,46 @@
+import crypto from 'crypto';
 import { Customer, Prisma } from '@prisma/client';
 import { customerRepository } from './customer.repository';
 import { encrypt, decrypt, getLast4Digits } from '../../common/utils/encryption';
 import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
 import { prisma } from '../../config/database';
 import { NotFoundError, AppError } from '../../common/errors/AppError';
+import {
+  CreateCustomerInput,
+  UpdateCustomerInput,
+  CustomerFilterParams,
+  CustomerStatsResult,
+  CustomerStatsSummary,
+  CustomerListItem,
+  CustomerDetailsResponse,
+} from './customer.types';
 
 export class CustomerService {
-  async listCustomers(params: { page: number; limit: number; search?: string }) {
+  async listCustomers(params: CustomerFilterParams): Promise<{
+    customers: CustomerListItem[];
+    totalCustomers: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
     const { customers, totalCount } = await customerRepository.findAndCount(params);
     const totalPages = Math.ceil(totalCount / params.limit);
 
     // Map records to hide full encrypted PAN/Aadhaar and structure address object
-    const mapped = customers.map((c) => ({
+    const mapped: CustomerListItem[] = customers.map((c) => ({
       id: c.id,
-      full_name: c.full_name,
-      phone_number: c.phone_number,
+      full_name: c.fullName,
+      phone_number: c.phoneNumber,
       gender: c.gender,
-      customer_photo_url: c.customer_photo_url,
+      customer_photo_url: c.customerPhotoUrl,
       customerCode: c.customerCode,
       kycStatus: c.kycStatus,
       address: {
-        line1: c.address_line1 || '',
-        city: c.address_city || '',
-        pincode: c.address_pincode || ''
+        line1: c.addressLine1 || '',
+        city: c.addressCity || '',
+        pincode: c.addressPincode || ''
       },
-      aadhaar_last4: c.aadhaar_number_last4,
-      pan_last4: c.pan_number_last4,
+      aadhaar_last4: c.aadhaarNumberLast4,
+      pan_last4: c.panNumberLast4,
       createdAt: c.createdAt.toISOString(),
       updatedAt: c.updatedAt.toISOString()
     }));
@@ -38,38 +53,38 @@ export class CustomerService {
     };
   }
 
-  async getCustomerById(id: string) {
+  async getCustomerById(id: string): Promise<CustomerDetailsResponse> {
     const customer = await customerRepository.findById(id);
     if (!customer) {
       throw new NotFoundError('Customer not found');
     }
 
     // Decrypt sensitive information for details view
-    const aadhaar_number = customer.aadhaar_number_encrypted
-      ? decrypt(customer.aadhaar_number_encrypted)
+    const aadhaar_number = customer.aadhaarNumberEncrypted
+      ? decrypt(customer.aadhaarNumberEncrypted)
       : null;
-    const pan_number = customer.pan_number_encrypted
-      ? decrypt(customer.pan_number_encrypted)
+    const pan_number = customer.panNumberEncrypted
+      ? decrypt(customer.panNumberEncrypted)
       : null;
 
     return {
       id: customer.id,
-      full_name: customer.full_name,
-      phone_number: customer.phone_number,
+      full_name: customer.fullName,
+      phone_number: customer.phoneNumber,
       gender: customer.gender,
-      customer_photo_url: customer.customer_photo_url,
+      customer_photo_url: customer.customerPhotoUrl,
       aadhaar_number,
       pan_number,
       address: {
-        line1: customer.address_line1 || '',
-        city: customer.address_city || '',
-        pincode: customer.address_pincode || ''
+        line1: customer.addressLine1 || '',
+        city: customer.addressCity || '',
+        pincode: customer.addressPincode || ''
       },
       dateOfBirth: customer.dateOfBirth ? customer.dateOfBirth.toISOString() : null,
       occupation: customer.occupation,
-      nominee_name: customer.nominee_name,
-      nominee_phone: customer.nominee_phone,
-      nominee_relation: customer.nominee_relation,
+      nominee_name: customer.nomineeName,
+      nominee_phone: customer.nomineePhone,
+      nominee_relation: customer.nomineeRelation,
       notes: customer.notes,
       customerCode: customer.customerCode,
       kycStatus: customer.kycStatus,
@@ -81,65 +96,127 @@ export class CustomerService {
     };
   }
 
-  async createCustomer(data: Record<string, unknown>): Promise<Customer> {
+  /**
+   * Atomically generate a collision-free customer code per shop.
+   */
+  private async generateUniqueCustomerCode(shopId: string, customCode?: string | null): Promise<string> {
+    if (customCode && customCode.trim()) {
+      return customCode.trim();
+    }
+
+    const MAX_RETRIES = 5;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      const latestCustomer = await prisma.customer.findFirst({
+        where: { shopId },
+        orderBy: { createdAt: 'desc' },
+        select: { customerCode: true }
+      });
+
+      let nextSeq = 1;
+      if (latestCustomer?.customerCode) {
+        const match = latestCustomer.customerCode.match(/(\d+)$/);
+        if (match) {
+          nextSeq = parseInt(match[1], 10) + 1 + attempt;
+        } else {
+          const count = await prisma.customer.count({ where: { shopId } });
+          nextSeq = count + 1 + attempt;
+        }
+      } else {
+        const count = await prisma.customer.count({ where: { shopId } });
+        nextSeq = count + 1 + attempt;
+      }
+
+      const candidate = `CUST-${nextSeq.toString().padStart(5, '0')}`;
+      const existing = await prisma.customer.findFirst({
+        where: { shopId, customerCode: candidate }
+      });
+
+      if (!existing) {
+        return candidate;
+      }
+    }
+
+    // High-entropy fallback if dense collisions occur
+    return `CUST-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+  }
+
+  async createCustomer(data: CreateCustomerInput): Promise<Customer> {
     const shopId = getTenantShopId();
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // Prepare encrypted values and plain search tags
-    const aadhaar_number_encrypted = typeof data.aadhaar_number === 'string' ? encrypt(data.aadhaar_number) : null;
-    const aadhaar_number_last4 = typeof data.aadhaar_number === 'string' ? getLast4Digits(data.aadhaar_number) : null;
+    const aadhaarNumberEncrypted = data.aadhaar_number ? encrypt(data.aadhaar_number) : null;
+    const aadhaarNumberLast4 = data.aadhaar_number ? getLast4Digits(data.aadhaar_number) : null;
     
-    const pan_number_encrypted = typeof data.pan_number === 'string' ? encrypt(data.pan_number) : null;
-    const pan_number_last4 = typeof data.pan_number === 'string' ? getLast4Digits(data.pan_number) : null;
+    const panNumberEncrypted = data.pan_number ? encrypt(data.pan_number) : null;
+    const panNumberLast4 = data.pan_number ? getLast4Digits(data.pan_number) : null;
 
-    const address = (data.address || {}) as Record<string, unknown>;
+    const address = data.address || {};
     
-    // Auto-generate customerCode if missing
-    let customerCode = typeof data.customerCode === 'string' ? data.customerCode : undefined;
-    if (!customerCode) {
-      const count = await prisma.customer.count();
-      customerCode = `CUST-${(count + 1).toString().padStart(5, '0')}`;
-    }
+    // Auto-generate customerCode atomically if missing
+    const customerCode = await this.generateUniqueCustomerCode(shopId, data.customerCode);
 
-    const customer = await customerRepository.create({
-      createdByUserId: userId,
-      full_name: String(data.full_name || ''),
-      phone_number: String(data.phone_number || ''),
-      gender: typeof data.gender === 'string' ? data.gender : null,
-      customer_photo_url: typeof data.customer_photo_url === 'string' ? data.customer_photo_url : null,
-      aadhaar_number_encrypted,
-      aadhaar_number_last4,
-      pan_number_encrypted,
-      pan_number_last4,
-      address_line1: typeof address.line1 === 'string' ? address.line1 : null,
-      address_city: typeof address.city === 'string' ? address.city : null,
-      address_pincode: typeof address.pincode === 'string' ? address.pincode : null,
-      dateOfBirth: data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null,
-      occupation: typeof data.occupation === 'string' ? data.occupation : null,
-      nominee_name: typeof data.nominee_name === 'string' ? data.nominee_name : null,
-      nominee_phone: typeof data.nominee_phone === 'string' ? data.nominee_phone : null,
-      nominee_relation: typeof data.nominee_relation === 'string' ? data.nominee_relation : null,
-      notes: typeof data.notes === 'string' ? data.notes : null,
+    const customerData: Prisma.CustomerCreateInput = {
+      fullName: data.full_name,
+      phoneNumber: data.phone_number,
+      gender: data.gender ?? null,
+      customerPhotoUrl: data.customer_photo_url ?? null,
+      aadhaarNumberEncrypted,
+      aadhaarNumberLast4,
+      panNumberEncrypted,
+      panNumberLast4,
+      addressLine1: address.line1 ?? null,
+      addressCity: address.city ?? null,
+      addressPincode: address.pincode ?? null,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+      occupation: data.occupation ?? null,
+      nomineeName: data.nominee_name ?? null,
+      nomineePhone: data.nominee_phone ?? null,
+      nomineeRelation: data.nominee_relation ?? null,
+      notes: data.notes ?? null,
       customerCode,
-      kycStatus: typeof data.kycStatus === 'string' ? data.kycStatus : 'pending',
-      kycVerifiedAt: data.kycStatus === 'verified' ? new Date() : null
-    });
+      kycStatus: data.kycStatus ?? 'pending',
+      kycVerifiedAt: data.kycStatus === 'verified' ? new Date() : null,
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(userId
+        ? {
+            createdBy: {
+              connect: { id: userId }
+            }
+          }
+        : {})
+    };
+
+    const customer = await customerRepository.create(customerData);
+
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Customer',
+      entityId: customer.id,
+      action: 'create',
+      newValue: { full_name: customer.fullName, code: customer.customerCode },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(userId
+        ? {
+            user: {
+              connect: { id: userId }
+            }
+          }
+        : {})
+    };
 
     await prisma.auditLog.create({
-      data: {
-        userId,
-        entityName: 'Customer',
-        entityId: customer.id,
-        action: 'create',
-        newValue: { full_name: customer.full_name, code: customer.customerCode }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
 
     return customer;
   }
 
-  async updateCustomer(id: string, data: Record<string, unknown>): Promise<Customer> {
+  async updateCustomer(id: string, data: UpdateCustomerInput): Promise<Customer> {
     const shopId = getTenantShopId();
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError('Tenant context required', 400);
@@ -154,59 +231,59 @@ export class CustomerService {
     const newValues: Record<string, unknown> = {};
 
     if (data.full_name !== undefined) {
-      updatePayload.full_name = String(data.full_name);
-      oldValues.full_name = customer.full_name;
+      updatePayload.fullName = data.full_name;
+      oldValues.full_name = customer.fullName;
       newValues.full_name = data.full_name;
     }
     if (data.phone_number !== undefined) {
-      updatePayload.phone_number = String(data.phone_number);
-      oldValues.phone_number = customer.phone_number;
+      updatePayload.phoneNumber = data.phone_number;
+      oldValues.phone_number = customer.phoneNumber;
       newValues.phone_number = data.phone_number;
     }
     if (data.gender !== undefined) {
-      updatePayload.gender = typeof data.gender === 'string' ? data.gender : null;
+      updatePayload.gender = data.gender;
     }
     if (data.customer_photo_url !== undefined) {
-      updatePayload.customer_photo_url = typeof data.customer_photo_url === 'string' ? data.customer_photo_url : null;
+      updatePayload.customerPhotoUrl = data.customer_photo_url;
     }
     if (data.aadhaar_number !== undefined) {
-      updatePayload.aadhaar_number_encrypted = typeof data.aadhaar_number === 'string' ? encrypt(data.aadhaar_number) : null;
-      updatePayload.aadhaar_number_last4 = typeof data.aadhaar_number === 'string' ? getLast4Digits(data.aadhaar_number) : null;
-      oldValues.aadhaar_number_last4 = customer.aadhaar_number_last4;
-      newValues.aadhaar_number_last4 = updatePayload.aadhaar_number_last4;
+      updatePayload.aadhaarNumberEncrypted = data.aadhaar_number ? encrypt(data.aadhaar_number) : null;
+      updatePayload.aadhaarNumberLast4 = data.aadhaar_number ? getLast4Digits(data.aadhaar_number) : null;
+      oldValues.aadhaar_number_last4 = customer.aadhaarNumberLast4;
+      newValues.aadhaar_number_last4 = updatePayload.aadhaarNumberLast4;
     }
     if (data.pan_number !== undefined) {
-      updatePayload.pan_number_encrypted = typeof data.pan_number === 'string' ? encrypt(data.pan_number) : null;
-      updatePayload.pan_number_last4 = typeof data.pan_number === 'string' ? getLast4Digits(data.pan_number) : null;
-      oldValues.pan_number_last4 = customer.pan_number_last4;
-      newValues.pan_number_last4 = updatePayload.pan_number_last4;
+      updatePayload.panNumberEncrypted = data.pan_number ? encrypt(data.pan_number) : null;
+      updatePayload.panNumberLast4 = data.pan_number ? getLast4Digits(data.pan_number) : null;
+      oldValues.pan_number_last4 = customer.panNumberLast4;
+      newValues.pan_number_last4 = updatePayload.panNumberLast4;
     }
     if (data.address !== undefined) {
-      const addr = (data.address || {}) as Record<string, unknown>;
-      if (addr.line1 !== undefined) updatePayload.address_line1 = typeof addr.line1 === 'string' ? addr.line1 : null;
-      if (addr.city !== undefined) updatePayload.address_city = typeof addr.city === 'string' ? addr.city : null;
-      if (addr.pincode !== undefined) updatePayload.address_pincode = typeof addr.pincode === 'string' ? addr.pincode : null;
+      const addr = data.address || {};
+      if (addr.line1 !== undefined) updatePayload.addressLine1 = addr.line1;
+      if (addr.city !== undefined) updatePayload.addressCity = addr.city;
+      if (addr.pincode !== undefined) updatePayload.addressPincode = addr.pincode;
     }
     if (data.dateOfBirth !== undefined) {
-      updatePayload.dateOfBirth = data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null;
+      updatePayload.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
     }
     if (data.occupation !== undefined) {
-      updatePayload.occupation = typeof data.occupation === 'string' ? data.occupation : null;
+      updatePayload.occupation = data.occupation;
     }
     if (data.nominee_name !== undefined) {
-      updatePayload.nominee_name = typeof data.nominee_name === 'string' ? data.nominee_name : null;
+      updatePayload.nomineeName = data.nominee_name;
     }
     if (data.nominee_phone !== undefined) {
-      updatePayload.nominee_phone = typeof data.nominee_phone === 'string' ? data.nominee_phone : null;
+      updatePayload.nomineePhone = data.nominee_phone;
     }
     if (data.nominee_relation !== undefined) {
-      updatePayload.nominee_relation = typeof data.nominee_relation === 'string' ? data.nominee_relation : null;
+      updatePayload.nomineeRelation = data.nominee_relation;
     }
     if (data.notes !== undefined) {
-      updatePayload.notes = typeof data.notes === 'string' ? data.notes : null;
+      updatePayload.notes = data.notes;
     }
-    if (data.kycStatus !== undefined) {
-      updatePayload.kycStatus = String(data.kycStatus);
+    if (data.kycStatus !== undefined && data.kycStatus !== null) {
+      updatePayload.kycStatus = data.kycStatus;
       updatePayload.kycVerifiedAt = data.kycStatus === 'verified' ? new Date() : null;
       oldValues.kycStatus = customer.kycStatus;
       newValues.kycStatus = data.kycStatus;
@@ -214,15 +291,26 @@ export class CustomerService {
 
     const updated = await customerRepository.update(id, updatePayload);
 
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Customer',
+      entityId: id,
+      action: 'update',
+      oldValue: oldValues as Prisma.InputJsonValue,
+      newValue: newValues as Prisma.InputJsonValue,
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(userId
+        ? {
+            user: {
+              connect: { id: userId }
+            }
+          }
+        : {})
+    };
+
     await prisma.auditLog.create({
-      data: {
-        userId,
-        entityName: 'Customer',
-        entityId: id,
-        action: 'update',
-        oldValue: oldValues,
-        newValue: newValues
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
 
     return updated;
@@ -240,56 +328,84 @@ export class CustomerService {
 
     await customerRepository.delete(id);
 
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Customer',
+      entityId: id,
+      action: 'delete',
+      oldValue: { full_name: customer.fullName },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(userId
+        ? {
+            user: {
+              connect: { id: userId }
+            }
+          }
+        : {})
+    };
+
     await prisma.auditLog.create({
-      data: {
-        userId,
-        entityName: 'Customer',
-        entityId: id,
-        action: 'delete',
-        oldValue: { full_name: customer.full_name }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
   }
 
-  async getCustomerStats(id: string) {
+  async getCustomerStats(id: string): Promise<CustomerStatsResult> {
     const customer = await customerRepository.findById(id);
     if (!customer) {
       throw new NotFoundError('Customer not found');
     }
 
-    const tickets = await prisma.pawnTicket.findMany({
-      where: { customerId: id }
-    });
-
-    const payments = await prisma.payment.findMany({
-      where: { customerId: id }
-    });
-
-    const activeTickets = tickets.filter((t) => (t.status || "").toLowerCase() === "active");
-
-    const totalLoanValue = tickets.reduce((acc, t) => acc + Number(t.original_loan_amount || 0), 0);
-    const totalActiveLoan = activeTickets.reduce((acc, t) => acc + Number(t.loan_amount || 0), 0);
-
-    const totalInterestPaid = payments
-      .filter((p) => {
-        const pf = (p.payment_for || "").toLowerCase();
-        return pf === 'interest' || pf === 'penalty' || pf === 'fine';
+    const [ticketAgg, activeTicketAgg, paymentGroups] = await Promise.all([
+      prisma.pawnTicket.aggregate({
+        where: { customerId: id },
+        _sum: { originalLoanAmount: true },
+        _count: { id: true }
+      }),
+      prisma.pawnTicket.aggregate({
+        where: { customerId: id, status: 'active' },
+        _sum: { loanAmount: true },
+        _count: { id: true }
+      }),
+      prisma.payment.groupBy({
+        by: ['paymentFor'],
+        where: { customerId: id },
+        _sum: { amountPaid: true }
       })
-      .reduce((acc, p) => acc + Number(p.amount_paid || 0), 0);
+    ]);
 
-    const totalPrincipalPaid = payments
-      .filter((p) => (p.payment_for || "").toLowerCase() === 'principal')
-      .reduce((acc, p) => acc + Number(p.amount_paid || 0), 0);
+    const totalLoanValueDecimal = ticketAgg._sum.originalLoanAmount ?? new Prisma.Decimal(0);
+    const totalActiveLoanDecimal = activeTicketAgg._sum.loanAmount ?? new Prisma.Decimal(0);
+    const totalTickets = ticketAgg._count.id ?? 0;
+    const activeTickets = activeTicketAgg._count.id ?? 0;
 
-    const statsDataObj = {
+    let totalInterestPaidDecimal = new Prisma.Decimal(0);
+    let totalPrincipalPaidDecimal = new Prisma.Decimal(0);
+
+    for (const group of paymentGroups) {
+      const pf = (group.paymentFor || '').toLowerCase();
+      const sum = group._sum.amountPaid ?? new Prisma.Decimal(0);
+      if (pf === 'interest' || pf === 'penalty' || pf === 'fine') {
+        totalInterestPaidDecimal = totalInterestPaidDecimal.plus(sum);
+      } else if (pf === 'principal') {
+        totalPrincipalPaidDecimal = totalPrincipalPaidDecimal.plus(sum);
+      }
+    }
+
+    const totalLoanValue = totalLoanValueDecimal.toNumber();
+    const totalActiveLoan = totalActiveLoanDecimal.toNumber();
+    const totalInterestPaid = totalInterestPaidDecimal.toNumber();
+    const totalPrincipalPaid = totalPrincipalPaidDecimal.toNumber();
+
+    const statsDataObj: CustomerStatsSummary = {
       total_loan_value: totalLoanValue,
       totalActiveLoan: totalActiveLoan,
       total_active_loan: totalActiveLoan,
       totalLoanValue: totalLoanValue,
-      total_tickets: tickets.length,
-      totalTickets: tickets.length,
-      active_tickets: activeTickets.length,
-      activeTickets: activeTickets.length,
+      total_tickets: totalTickets,
+      totalTickets: totalTickets,
+      active_tickets: activeTickets,
+      activeTickets: activeTickets,
       total_interest_paid: totalInterestPaid,
       totalInterestPaid: totalInterestPaid,
       total_principal_paid: totalPrincipalPaid,

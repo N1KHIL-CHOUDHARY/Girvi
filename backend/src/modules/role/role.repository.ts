@@ -1,4 +1,4 @@
-import { Role, Permission } from '@prisma/client';
+import { Role, Permission, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
 
 export class RoleRepository {
@@ -16,7 +16,7 @@ export class RoleRepository {
   }
 
   async findById(id: string): Promise<(Role & { permissions: { permission: Permission }[] }) | null> {
-    return prisma.role.findFirst({
+    return prisma.role.findUnique({
       where: { id },
       include: {
         permissions: {
@@ -34,7 +34,7 @@ export class RoleRepository {
     });
   }
 
-  async create(data: { shopId: string; name: string; description: string }): Promise<Role> {
+  async create(data: Prisma.RoleCreateInput): Promise<Role> {
     return prisma.role.create({
       data
     });

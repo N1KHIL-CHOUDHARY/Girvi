@@ -12,7 +12,7 @@ export const errorMiddleware = (
 ): void => {
   let statusCode = 500;
   let message = 'Internal Server Error';
-  let errors: any = undefined;
+  let errors: unknown = undefined;
 
   if (err instanceof AppError) {
     statusCode = err.statusCode;

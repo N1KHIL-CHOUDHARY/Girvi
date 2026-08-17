@@ -37,9 +37,9 @@ export class PaymentService {
       shop_id: p.shopId,
       customer_id: p.customerId,
       ticket_id: p.ticketId,
-      amount_paid: p.amount_paid.toString(),
-      payment_for: p.payment_for,
-      payment_date: p.payment_date.toISOString(),
+      amount_paid: p.amountPaid.toString(),
+      payment_for: p.paymentFor,
+      payment_date: p.paymentDate.toISOString(),
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
     }));
@@ -54,7 +54,7 @@ export class PaymentService {
 
     // 1. Upfront Idempotency Check
     if (idempotencyKey) {
-      const existingPayment = await paymentRepository.findByIdempotencyKey(idempotencyKey, shopId);
+      const existingPayment = await paymentRepository.findByIdempotencyKey(idempotencyKey);
       if (existingPayment) {
         return {
           payment: {
@@ -62,12 +62,12 @@ export class PaymentService {
             shop_id: existingPayment.shopId,
             customer_id: existingPayment.customerId,
             ticket_id: existingPayment.ticketId,
-            amount_paid: existingPayment.amount_paid.toString(),
-            payment_for: existingPayment.payment_for,
-            payment_date: existingPayment.payment_date.toISOString(),
+            amount_paid: existingPayment.amountPaid.toString(),
+            payment_for: existingPayment.paymentFor,
+            payment_date: existingPayment.paymentDate.toISOString(),
             createdAt: existingPayment.createdAt.toISOString(),
           },
-          remaining_balance: existingPayment.ticket ? existingPayment.ticket.loan_amount.toString() : "0.00",
+          remaining_balance: existingPayment.ticket ? existingPayment.ticket.loanAmount.toString() : "0.00",
           ticket_status: existingPayment.ticket ? existingPayment.ticket.status : "settled",
           isDuplicate: true,
         };
@@ -105,15 +105,15 @@ export class PaymentService {
     // 2. Atomic Transaction with Pessimistic Row Locking
     return prisma.$transaction(async (tx) => {
       // Row-level lock on PawnTicket
-      const ticket = await paymentRepository.lockTicket(tx, data.ticket_id, shopId);
+      const ticket = await paymentRepository.lockTicket(tx, data.ticket_id);
       if (!ticket) {
         throw new NotFoundError("Pawn ticket not found");
       }
 
       // Check idempotency in case of concurrent requests waiting on the row lock
       if (idempotencyKey) {
-        const concurrentPayment = await tx.payment.findFirst({
-          where: { idempotencyKey, shopId },
+        const concurrentPayment = await tx.payment.findUnique({
+          where: { idempotencyKey },
           include: { ticket: true },
         });
         if (concurrentPayment) {
@@ -123,12 +123,12 @@ export class PaymentService {
               shop_id: concurrentPayment.shopId,
               customer_id: concurrentPayment.customerId,
               ticket_id: concurrentPayment.ticketId,
-              amount_paid: concurrentPayment.amount_paid.toString(),
-              payment_for: concurrentPayment.payment_for,
-              payment_date: concurrentPayment.payment_date.toISOString(),
+              amount_paid: concurrentPayment.amountPaid.toString(),
+              payment_for: concurrentPayment.paymentFor,
+              payment_date: concurrentPayment.paymentDate.toISOString(),
               createdAt: concurrentPayment.createdAt.toISOString(),
             },
-            remaining_balance: concurrentPayment.ticket ? concurrentPayment.ticket.loan_amount.toString() : "0.00",
+            remaining_balance: concurrentPayment.ticket ? concurrentPayment.ticket.loanAmount.toString() : "0.00",
             ticket_status: concurrentPayment.ticket ? concurrentPayment.ticket.status : "settled",
             isDuplicate: true,
           };
@@ -140,7 +140,7 @@ export class PaymentService {
         throw new ValidationError(`Cannot post payment: Ticket is already '${ticket.status}'`);
       }
 
-      const currentLoanAmount = new Prisma.Decimal(ticket.loan_amount);
+      const currentLoanAmount = new Prisma.Decimal(ticket.loanAmount);
       if (data.payment_for === "principal" && amountDecimal.greaterThan(currentLoanAmount)) {
         throw new ValidationError(
           `Payment amount of ${data.amount_paid} exceeds the remaining loan balance of ${currentLoanAmount}`
@@ -150,7 +150,7 @@ export class PaymentService {
       // Atomic Balance & Status Update
       let remainingLoan = currentLoanAmount;
       let newStatus = ticket.status;
-      let settledDate = ticket.settled_date;
+      let settledDate = ticket.settledDate;
 
       const reducesPrincipal = ["principal", "waiver", "discount"].includes(data.payment_for);
       if (reducesPrincipal) {
@@ -163,49 +163,71 @@ export class PaymentService {
       }
 
       const updatedTicket = await paymentRepository.updateTicket(tx, ticket.id, {
-        loan_amount: remainingLoan,
+        loanAmount: remainingLoan,
         status: newStatus,
-        settled_date: settledDate,
+        settledDate: settledDate,
       });
 
-      // Record Payment
+      // Record Payment using native Prisma.PaymentCreateInput with relation connects
       const payment = await paymentRepository.createPayment(tx, {
-        shopId,
-        customerId: ticket.customerId,
-        ticketId: ticket.id,
-        amount_paid: amountDecimal,
-        payment_for: data.payment_for,
-        payment_date: paymentDate,
+        amountPaid: amountDecimal,
+        paymentFor: data.payment_for,
+        paymentDate: paymentDate,
         idempotencyKey: idempotencyKey || null,
+        shop: {
+          connect: { id: shopId }
+        },
+        customer: {
+          connect: { id: ticket.customerId }
+        },
+        ticket: {
+          connect: { id: ticket.id }
+        }
       });
 
-      // Bookkeeping Double-Entry Ledger
+      // Bookkeeping Double-Entry Ledger using native Prisma.LedgerEntryCreateInput with relation connects
       await paymentRepository.createLedgerEntry(tx, {
-        shopId,
-        ticketId: ticket.id,
-        paymentId: payment.id,
         type: "credit",
         category: ledgerCategory,
         amount: amountDecimal,
         entryDate: paymentDate,
-        description: `Received payment for ${data.payment_for} on ticket ${ticket.ticket_number}`,
+        description: `Received payment for ${data.payment_for} on ticket ${ticket.ticketNumber}`,
+        shop: {
+          connect: { id: shopId }
+        },
+        ticket: {
+          connect: { id: ticket.id }
+        },
+        payment: {
+          connect: { id: payment.id }
+        }
       });
 
       // Write Audit Log
+      const auditData: Prisma.AuditLogCreateInput = {
+        entityName: "Payment",
+        entityId: payment.id,
+        action: "create",
+        newValue: {
+          ticketNumber: ticket.ticketNumber,
+          amountPaid: payment.amountPaid.toString(),
+          paymentFor: payment.paymentFor,
+          idempotencyKey: payment.idempotencyKey,
+        },
+        shop: {
+          connect: { id: shopId }
+        },
+        ...(userId
+          ? {
+              user: {
+                connect: { id: userId }
+              }
+            }
+          : {})
+      };
+
       await tx.auditLog.create({
-        data: {
-          shopId,
-          userId,
-          entityName: "Payment",
-          entityId: payment.id,
-          action: "create",
-          newValue: {
-            ticket_number: ticket.ticket_number,
-            amount_paid: payment.amount_paid.toString(),
-            payment_for: payment.payment_for,
-            idempotencyKey: payment.idempotencyKey,
-          },
-        } as unknown as Prisma.AuditLogCreateInput,
+        data: auditData,
       });
 
       return {
@@ -214,12 +236,12 @@ export class PaymentService {
           shop_id: payment.shopId,
           customer_id: payment.customerId,
           ticket_id: payment.ticketId,
-          amount_paid: payment.amount_paid.toString(),
-          payment_for: payment.payment_for,
-          payment_date: payment.payment_date.toISOString(),
+          amount_paid: payment.amountPaid.toString(),
+          payment_for: payment.paymentFor,
+          payment_date: payment.paymentDate.toISOString(),
           createdAt: payment.createdAt.toISOString(),
         },
-        remaining_balance: updatedTicket.loan_amount.toString(),
+        remaining_balance: updatedTicket.loanAmount.toString(),
         ticket_status: updatedTicket.status,
         isDuplicate: false,
       };

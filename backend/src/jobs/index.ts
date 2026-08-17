@@ -12,7 +12,15 @@ try {
   redisUrl = new URL('redis://127.0.0.1:6379');
 }
 
-const redisConnection: any = {
+interface RedisConnectionOptions {
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  tls?: Record<string, unknown>;
+}
+
+const redisConnection: RedisConnectionOptions = {
   host: redisUrl.hostname || '127.0.0.1',
   port: parseInt(redisUrl.port || '6379', 10)
 };
@@ -103,7 +111,7 @@ export const queueReportCompilation = async (data: {
   reportType: string;
   shopId: string;
   userId: string;
-  filters: any;
+  filters?: Record<string, unknown>;
 }): Promise<void> => {
   if (reportQueue) {
     try {

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { authMiddleware } from '../../common/middleware/auth.middleware';
 import { prisma } from '../../config/database';
 import { sendSuccess } from '../../common/utils/apiResponse';
@@ -18,7 +19,7 @@ router.get('/me', asyncHandler(async (_req: Request, res: Response): Promise<voi
     throw new AppError('Unauthenticated context', 401);
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
       role: {
@@ -72,7 +73,7 @@ router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<vo
 
   const { firstName, lastName, email, phone, shopName, shopPhone, shopAddress } = req.body;
 
-  const userUpdateData: any = {};
+  const userUpdateData: Prisma.UserUpdateInput = {};
   if (firstName !== undefined) userUpdateData.firstName = firstName;
   if (lastName !== undefined) userUpdateData.lastName = lastName;
   if (email !== undefined) userUpdateData.email = email;
@@ -85,7 +86,7 @@ router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<vo
     });
   }
 
-  const shopUpdateData: any = {};
+  const shopUpdateData: Prisma.ShopUpdateInput = {};
   if (shopName !== undefined) shopUpdateData.name = shopName;
   if (shopPhone !== undefined) shopUpdateData.phone = shopPhone;
   if (shopAddress !== undefined) shopUpdateData.address = shopAddress;
@@ -97,7 +98,7 @@ router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<vo
     });
   }
 
-  const freshUser = await prisma.user.findFirst({
+  const freshUser = await prisma.user.findUnique({
     where: { id: userId },
     include: {
       role: true,

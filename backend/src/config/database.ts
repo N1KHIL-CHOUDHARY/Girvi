@@ -302,6 +302,12 @@ export const tenantExtensionConfig = {
 
 export const prisma = globalPrisma.$extends(tenantExtensionConfig);
 
-
-
-
+export async function executeTenantRawQuery<T>(
+  queryFn: (shopId: string) => Promise<T>
+): Promise<T> {
+  const shopId = tenantContext.getStore()?.shopId;
+  if (!shopId) {
+    throw new Error("Tenant context missing: shopId is required for raw query execution.");
+  }
+  return queryFn(shopId);
+}

@@ -24,9 +24,9 @@ export class PawnRepository {
 
     if (search) {
       whereClause.OR = [
-        { ticket_number: { contains: search, mode: 'insensitive' } },
-        { customer: { full_name: { contains: search, mode: 'insensitive' } } },
-        { customer: { phone_number: { contains: search } } }
+        { ticketNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } },
+        { customer: { phoneNumber: { contains: search } } }
       ];
     }
 
@@ -37,7 +37,7 @@ export class PawnRepository {
           customer: true,
           items: true
         },
-        orderBy: { pawned_date: 'desc' },
+        orderBy: { pawnedDate: 'desc' },
         skip,
         take: limit
       }),
@@ -46,37 +46,37 @@ export class PawnRepository {
       })
     ]);
 
-    return { tickets: tickets as any, totalCount };
+    return { tickets, totalCount };
   }
 
   async findById(id: string): Promise<(PawnTicket & { customer: Customer; items: PawnItem[] }) | null> {
-    return prisma.pawnTicket.findFirst({
+    return prisma.pawnTicket.findUnique({
       where: { id },
       include: {
         customer: true,
         items: true
       }
-    }) as any;
+    });
   }
 
   async findByTicketNumber(ticketNumber: string): Promise<PawnTicket | null> {
     return prisma.pawnTicket.findFirst({
-      where: { ticket_number: ticketNumber }
+      where: { ticketNumber }
     });
   }
 
   async create(data: {
     shopId: string;
     customerId: string;
-    ticket_number: string;
-    loan_amount: Prisma.Decimal;
-    original_loan_amount: Prisma.Decimal;
-    interest_rate: Prisma.Decimal;
-    adv_amount: Prisma.Decimal;
+    ticketNumber: string;
+    loanAmount: Prisma.Decimal;
+    originalLoanAmount: Prisma.Decimal;
+    interestRate: Prisma.Decimal;
+    advAmount: Prisma.Decimal;
     interestType: string;
     graceDays: number;
     loanDuration: number;
-    pawned_date: Date;
+    pawnedDate: Date;
     maturityDate: Date;
     renewalDate: Date;
     auctionDate: Date;
@@ -84,26 +84,26 @@ export class PawnRepository {
     items: {
       name: string;
       type?: string;
-      weight_grams: Prisma.Decimal;
+      weightGrams: Prisma.Decimal;
       purity?: string;
       description?: string;
-      item_photo_url?: string;
+      itemPhotoUrl?: string;
     }[];
   }): Promise<PawnTicket> {
     return prisma.$transaction(async (tx) => {
       const ticket = await tx.pawnTicket.create({
         data: {
-          shopId: data.shopId,
-          customerId: data.customerId,
-          ticket_number: data.ticket_number,
-          loan_amount: data.loan_amount,
-          original_loan_amount: data.original_loan_amount,
-          interest_rate: data.interest_rate,
-          adv_amount: data.adv_amount,
+          shop: { connect: { id: data.shopId } },
+          customer: { connect: { id: data.customerId } },
+          ticketNumber: data.ticketNumber,
+          loanAmount: data.loanAmount,
+          originalLoanAmount: data.originalLoanAmount,
+          interestRate: data.interestRate,
+          advAmount: data.advAmount,
           interestType: data.interestType,
           graceDays: data.graceDays,
           loanDuration: data.loanDuration,
-          pawned_date: data.pawned_date,
+          pawnedDate: data.pawnedDate,
           maturityDate: data.maturityDate,
           renewalDate: data.renewalDate,
           auctionDate: data.auctionDate,
@@ -117,23 +117,23 @@ export class PawnRepository {
             ticketId: ticket.id,
             name: item.name,
             type: item.type || null,
-            weight_grams: item.weight_grams,
+            weightGrams: item.weightGrams,
             purity: item.purity || null,
             description: item.description || null,
-            item_photo_url: item.item_photo_url || null
+            itemPhotoUrl: item.itemPhotoUrl || null
           }))
         });
       }
 
       await tx.ledgerEntry.create({
         data: {
-          shopId: data.shopId,
-          ticketId: ticket.id,
+          shop: { connect: { id: data.shopId } },
+          ticket: { connect: { id: ticket.id } },
           type: 'debit',
           category: 'principal_disbursed',
-          amount: data.original_loan_amount,
-          entryDate: data.pawned_date,
-          description: `Disbursed pawn loan for ticket ${data.ticket_number}`
+          amount: data.originalLoanAmount,
+          entryDate: data.pawnedDate,
+          description: `Disbursed pawn loan for ticket ${data.ticketNumber}`
         }
       });
 
@@ -143,14 +143,14 @@ export class PawnRepository {
 
   async update(
     id: string,
-    ticketData: Partial<PawnTicket>,
+    ticketData: Prisma.PawnTicketUpdateInput,
     itemsData?: {
       name: string;
       type?: string;
-      weight_grams: Prisma.Decimal;
+      weightGrams: Prisma.Decimal;
       purity?: string;
       description?: string;
-      item_photo_url?: string;
+      itemPhotoUrl?: string;
     }[]
   ): Promise<PawnTicket> {
     return prisma.$transaction(async (tx) => {
@@ -169,10 +169,10 @@ export class PawnRepository {
             ticketId: id,
             name: item.name,
             type: item.type || null,
-            weight_grams: item.weight_grams,
+            weightGrams: item.weightGrams,
             purity: item.purity || null,
             description: item.description || null,
-            item_photo_url: item.item_photo_url || null
+            itemPhotoUrl: item.itemPhotoUrl || null
           }))
         });
       }

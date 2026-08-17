@@ -1,9 +1,14 @@
+export type StructuredErrorPayload =
+  | { field: string; message: string }
+  | Record<string, unknown>
+  | string;
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly success: boolean;
-  public readonly errors: any[];
+  public readonly errors: StructuredErrorPayload[];
 
-  constructor(message: string, statusCode = 500, errors: any[] = []) {
+  constructor(message: string, statusCode = 500, errors: StructuredErrorPayload[] = []) {
     super(message);
     this.statusCode = statusCode;
     this.success = false;
@@ -43,7 +48,16 @@ export class ConflictError extends AppError {
 }
 
 export class DatabaseError extends AppError {
-  constructor(message = 'Database Query Failure', rawError?: any) {
-    super(message, 500, rawError ? [rawError] : []);
+  constructor(message = 'Database Query Failure', rawError?: unknown) {
+    let errorPayload: StructuredErrorPayload[] = [];
+    if (rawError instanceof Error) {
+      errorPayload = [{ field: 'database', message: rawError.message }];
+    } else if (typeof rawError === 'object' && rawError !== null) {
+      errorPayload = [rawError as Record<string, unknown>];
+    } else if (rawError) {
+      errorPayload = [String(rawError)];
+    }
+    super(message, 500, errorPayload);
   }
 }
+

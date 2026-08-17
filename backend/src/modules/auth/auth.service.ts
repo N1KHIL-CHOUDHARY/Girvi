@@ -81,41 +81,40 @@ export class AuthService {
 
     let authenticatedUser: typeof users[0] | null = null;
 
-    // 2. Iterate and check passwords
+    // 2. Iterate and check passwords safely per tenant account
     for (const u of users) {
-      // Check lockout
-      if (u.lockedUntil && u.lockedUntil > new Date()) {
-        throw new AuthenticationError(`Account locked due to consecutive failures. Try again after ${u.lockedUntil.toLocaleTimeString()}`);
-      }
-
       const match = await bcrypt.compare(data.password, u.password);
       if (match) {
+        // If password matches, check if this specific tenant account is locked
+        if (u.lockedUntil && u.lockedUntil > new Date()) {
+          throw new AuthenticationError(`Account locked due to consecutive failures. Try again after ${u.lockedUntil.toLocaleTimeString()}`);
+        }
         authenticatedUser = u;
         break;
       }
     }
 
-    // 3. Handle login failure
+    // 3. Handle login failure: increment attempts for all candidate accounts under this email
     if (!authenticatedUser) {
-      // Increment login attempts for the first matching email user
-      const targetUser = users[0];
-      const attempts = targetUser.loginAttempts + 1;
-      let lockedUntil: Date | null = null;
-      
-      if (attempts >= 5) {
-        lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lockout
-        logger.warn({ userId: targetUser.id, ipAddress }, 'User account locked out due to password failure');
-      }
+      for (const targetUser of users) {
+        const attempts = targetUser.loginAttempts + 1;
+        let lockedUntil: Date | null = null;
+        
+        if (attempts >= 5) {
+          lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lockout
+          logger.warn({ userId: targetUser.id, shopId: targetUser.shopId, ipAddress }, 'User account locked out due to password failure');
+        }
 
-      await authRepository.updateUser(targetUser.id, {
-        loginAttempts: attempts,
-        lockedUntil
-      });
+        await authRepository.updateUser(targetUser.id, {
+          loginAttempts: attempts,
+          lockedUntil
+        });
+      }
 
       throw new AuthenticationError('Invalid email or password');
     }
 
-    // 4. Successful Login: reset attempts
+    // 4. Successful Login: reset attempts for the authenticated user
     if (authenticatedUser.loginAttempts > 0 || authenticatedUser.lockedUntil) {
       await authRepository.updateUser(authenticatedUser.id, {
         loginAttempts: 0,
@@ -224,28 +223,28 @@ export class AuthService {
       return;
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetPasswordToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
-    const resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000);
-
     for (const user of users) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+      const resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000);
+
       await authRepository.updateUser(user.id, {
         resetPasswordToken,
         resetPasswordExpires,
       });
-    }
 
-    const primaryUser = users[0];
-    await queueEmail({
-      to: primaryUser.email,
-      subject: 'Pawn Manager - Password Reset Request',
-      text: `Hello,\n\nYou requested a password reset. Please click on the link below to set a new password:\n` +
-            `${env.FRONTEND_URL}/reset-password?token=${resetToken}\n\n` +
-            `This link will expire in 30 minutes. If you did not request this, please ignore this email.`
-    });
+      const shopLabel = user.shop?.name ? ` (${user.shop.name})` : '';
+      await queueEmail({
+        to: user.email,
+        subject: `Pawn Manager - Password Reset Request${shopLabel}`,
+        text: `Hello ${user.firstName},\n\nYou requested a password reset${shopLabel}. Please click on the link below to set a new password:\n` +
+              `${env.FRONTEND_URL}/reset-password?token=${resetToken}\n\n` +
+              `This link will expire in 30 minutes. If you did not request this, please ignore this email.`
+      });
+    }
   }
 
   async resetPassword(token: string, newPass: string): Promise<void> {
@@ -254,7 +253,7 @@ export class AuthService {
       .update(token)
       .digest("hex");
 
-    const users = await prisma.user.findMany({
+    const user = await prisma.user.findFirst({
       where: {
         resetPasswordToken,
         resetPasswordExpires: {
@@ -263,23 +262,22 @@ export class AuthService {
       },
     });
 
-    if (users.length === 0) {
+    if (!user) {
       throw new ValidationError("Invalid or expired password reset token");
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(newPass, salt);
 
-    for (const user of users) {
-      await authRepository.updateUser(user.id, {
-        password: passwordHash,
-        resetPasswordToken: null,
-        resetPasswordExpires: null,
-        loginAttempts: 0,
-        lockedUntil: null,
-      });
-      await this.revokeAllUserSessions(user.id);
-    }
+    await authRepository.updateUser(user.id, {
+      password: passwordHash,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+      loginAttempts: 0,
+      lockedUntil: null,
+    });
+
+    await this.revokeAllUserSessions(user.id);
   }
 
   /**

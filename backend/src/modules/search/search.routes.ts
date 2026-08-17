@@ -24,8 +24,8 @@ router.get('/', authMiddleware, asyncHandler(async (req: Request, res: Response)
     where: {
       shopId,
       OR: [
-        { full_name: { contains: query, mode: 'insensitive' } },
-        { phone_number: { contains: query, mode: 'insensitive' } },
+        { fullName: { contains: query, mode: 'insensitive' } },
+        { phoneNumber: { contains: query, mode: 'insensitive' } },
         { customerCode: { contains: query, mode: 'insensitive' } }
       ]
     },
@@ -35,7 +35,7 @@ router.get('/', authMiddleware, asyncHandler(async (req: Request, res: Response)
   const tickets = await prisma.pawnTicket.findMany({
     where: {
       shopId,
-      ticket_number: { contains: query, mode: 'insensitive' }
+      ticketNumber: { contains: query, mode: 'insensitive' }
     },
     take: 5
   });

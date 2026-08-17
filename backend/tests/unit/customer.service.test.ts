@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Customer } from "@prisma/client";
 import { customerService } from "../../src/modules/customer/customer.service";
 import { customerRepository } from "../../src/modules/customer/customer.repository";
 import { tenantContext } from "../../src/common/context/tenant.context";
@@ -23,30 +24,48 @@ describe("CustomerService Unit Tests", () => {
 
   it("should throw AppError if tenant context is missing on createCustomer", async () => {
     vi.spyOn(tenantContext, "getStore").mockReturnValue({});
-    await expect(customerService.createCustomer({ full_name: "John Doe" })).rejects.toThrow(
-      new AppError("Tenant context required", 400)
-    );
+    await expect(
+      customerService.createCustomer({
+        full_name: "John Doe",
+        phone_number: "9876543210",
+      })
+    ).rejects.toThrow(new AppError("Tenant context required", 400));
   });
 
   it("should list customers correctly", async () => {
-    const mockCustomers = [
+    const mockCustomers: Customer[] = [
       {
         id: "c-1",
-        full_name: "John Doe",
-        phone_number: "9876543210",
+        shopId: "shop-1",
+        fullName: "John Doe",
+        phoneNumber: "9876543210",
         gender: "Male",
-        customer_photo_url: null,
+        customerPhotoUrl: null,
+        aadhaarNumberEncrypted: null,
+        aadhaarNumberLast4: "1234",
+        panNumberEncrypted: null,
+        panNumberLast4: "5678",
+        addressLine1: "123 Main St",
+        addressCity: "City",
+        addressPincode: "123456",
+        dateOfBirth: null,
+        occupation: null,
+        nomineeName: null,
+        nomineePhone: null,
+        nomineeRelation: null,
+        notes: null,
         customerCode: "C001",
         kycStatus: "pending",
-        aadhaar_number_last4: "1234",
-        pan_number_last4: "5678",
+        kycVerifiedAt: null,
+        createdByUserId: null,
         createdAt: new Date("2026-01-01T00:00:00Z"),
         updatedAt: new Date("2026-01-01T00:00:00Z"),
+        deletedAt: null,
       },
     ];
 
     vi.mocked(customerRepository.findAndCount).mockResolvedValue({
-      customers: mockCustomers as any,
+      customers: mockCustomers,
       totalCount: 1,
     });
 

@@ -6,6 +6,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 model Shop {
@@ -96,75 +97,75 @@ model User {
 }
 
 model Customer {
-  id                        String       @id @default(uuid()) @db.Uuid
-  shopId                    String       @db.Uuid
-  createdByUserId           String?      @db.Uuid
-  full_name                 String
-  phone_number              String
-  gender                    String?      // "Male" | "Female" | "Other"
-  customer_photo_url        String?
-  aadhaar_number_encrypted  String?
-  aadhaar_number_last4      String?
-  pan_number_encrypted      String?
-  pan_number_last4          String?
-  address_line1             String?
-  address_city              String?
-  address_pincode           String?
-  dateOfBirth               DateTime?
-  occupation                String?
-  nominee_name              String?
-  nominee_phone             String?
-  nominee_relation          String?
-  notes                     String?
-  customerCode              String?
-  photo                     String?
-  kycStatus                 String       @default("pending") // "pending" | "verified" | "rejected"
-  kycVerifiedAt             DateTime?
-  createdAt                 DateTime     @default(now())
-  updatedAt                 DateTime     @updatedAt
-  deletedAt                 DateTime?
+  id                     String       @id @default(uuid()) @db.Uuid
+  shopId                 String       @db.Uuid
+  createdByUserId        String?      @db.Uuid
+  fullName               String       @map("full_name")
+  phoneNumber            String       @map("phone_number")
+  gender                 String? // "Male" | "Female" | "Other"
+  customerPhotoUrl       String?      @map("customer_photo_url")
+  aadhaarNumberEncrypted String?      @map("aadhaar_number_encrypted")
+  aadhaarNumberLast4     String?      @map("aadhaar_number_last4")
+  panNumberEncrypted     String?      @map("pan_number_encrypted")
+  panNumberLast4         String?      @map("pan_number_last4")
+  addressLine1           String?      @map("address_line1")
+  addressCity            String?      @map("address_city")
+  addressPincode         String?      @map("address_pincode")
+  dateOfBirth            DateTime?
+  occupation             String?
+  nomineeName            String?      @map("nominee_name")
+  nomineePhone           String?      @map("nominee_phone")
+  nomineeRelation        String?      @map("nominee_relation")
+  notes                  String?
+  customerCode           String?
+  photo                  String?
+  kycStatus              String       @default("pending") // "pending" | "verified" | "rejected"
+  kycVerifiedAt          DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  deletedAt              DateTime?
 
-  shop                      Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  createdBy                 User?        @relation("UserCreatedCustomers", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  pawnTickets               PawnTicket[]
-  payments                  Payment[]
+  shop             Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdBy        User?        @relation("UserCreatedCustomers", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  pawnTickets      PawnTicket[]
+  payments         Payment[]
 
   @@index([shopId])
-  @@index([phone_number])
+  @@index([phoneNumber])
   @@index([createdAt])
   @@index([deletedAt])
   @@index([shopId, createdAt])
 }
 
 model PawnTicket {
-  id                   String         @id @default(uuid()) @db.Uuid
-  shopId               String         @db.Uuid
-  customerId           String         @db.Uuid
-  ticket_number        String
-  loan_amount          Decimal        @db.Decimal(12, 2)
-  original_loan_amount Decimal        @db.Decimal(12, 2)
-  interest_rate        Decimal        @db.Decimal(5, 2)
-  adv_amount           Decimal        @db.Decimal(12, 2)
-  interestType         String         @default("monthly")
-  graceDays            Int            @default(0)
-  loanDuration         Int            @default(12)
-  pawned_date          DateTime       @default(now())
-  renewalDate          DateTime?
-  maturityDate         DateTime?
-  auctionDate          DateTime?
-  status               String         @default("active")
-  settled_date         DateTime?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  deletedAt            DateTime?
+  id                 String    @id @default(uuid()) @db.Uuid
+  shopId             String    @db.Uuid
+  customerId         String    @db.Uuid
+  ticketNumber       String    @map("ticket_number")
+  loanAmount         Decimal   @map("loan_amount") @db.Decimal(12, 2)
+  originalLoanAmount Decimal   @map("original_loan_amount") @db.Decimal(12, 2)
+  interestRate       Decimal   @map("interest_rate") @db.Decimal(5, 2)
+  advAmount          Decimal   @map("adv_amount") @db.Decimal(12, 2)
+  interestType       String    @default("monthly")
+  graceDays          Int       @default(0)
+  loanDuration       Int       @default(12)
+  pawnedDate         DateTime  @default(now()) @map("pawned_date")
+  renewalDate        DateTime?
+  maturityDate       DateTime?
+  auctionDate        DateTime?
+  status             String    @default("active")
+  settledDate        DateTime? @map("settled_date")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
 
-  shop                 Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  customer             Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items                PawnItem[]
-  payments             Payment[]
-  ledgerEntries        LedgerEntry[]
+  shop          Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items         PawnItem[]
+  payments      Payment[]
+  ledgerEntries LedgerEntry[]
 
-  @@unique([shopId, ticket_number])
+  @@unique([shopId, ticketNumber])
   @@index([shopId])
   @@index([customerId])
   @@index([status])
@@ -176,32 +177,32 @@ model PawnTicket {
 }
 
 model PawnItem {
-  id             String     @id @default(uuid()) @db.Uuid
-  ticketId       String     @db.Uuid
-  name           String
-  type           String?
-  weight_grams   Decimal    @db.Decimal(10, 3)
-  purity         String?
-  description    String?
-  item_photo_url String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  deletedAt      DateTime?
+  id           String    @id @default(uuid()) @db.Uuid
+  ticketId     String    @db.Uuid
+  name         String
+  type         String?
+  weightGrams  Decimal   @map("weight_grams") @db.Decimal(10, 3)
+  purity       String?
+  description  String?
+  itemPhotoUrl String?   @map("item_photo_url")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
-  ticket         PawnTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket PawnTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
-  id             String        @id @default(uuid()) @db.Uuid
-  shopId         String        @db.Uuid
-  customerId     String        @db.Uuid
-  ticketId       String        @db.Uuid
-  amount_paid    Decimal       @db.Decimal(12, 2)
-  payment_for    String
-  payment_date   DateTime      @default(now())
-  idempotencyKey String?       @unique @db.VarChar(128)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id             String    @id @default(uuid()) @db.Uuid
+  shopId         String    @db.Uuid
+  customerId     String    @db.Uuid
+  ticketId       String    @db.Uuid
+  amountPaid     Decimal   @map("amount_paid") @db.Decimal(12, 2)
+  paymentFor     String    @map("payment_for")
+  paymentDate    DateTime  @default(now()) @map("payment_date")
+  idempotencyKey String?   @unique @db.VarChar(128)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
 
   shop          Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)

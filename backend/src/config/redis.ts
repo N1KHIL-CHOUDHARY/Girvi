@@ -1,9 +1,11 @@
 import { createClient } from 'redis';
 import { Redis as UpstashRedis } from '@upstash/redis';
+import type { RedisReply } from 'rate-limit-redis';
 import { env } from './env';
 import { logger } from '../common/logger';
 
-let standardClient: any = null;
+type RedisClientInstance = ReturnType<typeof createClient>;
+let standardClient: RedisClientInstance | null = null;
 let upstashClient: UpstashRedis | null = null;
 let useUpstash = false;
 
@@ -20,7 +22,7 @@ if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
       url: env.REDIS_URL
     });
     
-    standardClient.on('error', (err: any) => {
+    standardClient.on('error', (err: Error) => {
       logger.error({ err }, 'Redis connection error');
     });
 
@@ -70,7 +72,7 @@ export const redisClient = {
       if (val === null || val === undefined) return null;
       return typeof val === 'object' ? JSON.stringify(val) : String(val);
     }
-    return standardClient.get(key);
+    return standardClient ? standardClient.get(key) : null;
   },
 
   async setEx(key: string, ttlSeconds: number, value: string): Promise<string | null> {
@@ -78,7 +80,7 @@ export const redisClient = {
       const result = await upstashClient.set(key, value, { ex: ttlSeconds });
       return result === 'OK' ? 'OK' : String(result);
     }
-    return standardClient.setEx(key, ttlSeconds, value);
+    return standardClient ? standardClient.setEx(key, ttlSeconds, value) : null;
   },
 
   async del(key: string | string[]): Promise<number> {
@@ -88,57 +90,57 @@ export const redisClient = {
       }
       return upstashClient.del(key);
     }
-    return standardClient.del(key);
+    return standardClient ? standardClient.del(key) : 0;
   },
 
   async sAdd(key: string, value: string): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.sadd(key, value);
     }
-    return standardClient.sAdd(key, value);
+    return standardClient ? standardClient.sAdd(key, value) : 0;
   },
 
   async sMembers(key: string): Promise<string[]> {
     if (useUpstash && upstashClient) {
       const list = await upstashClient.smembers(key);
-      return list.map((item: any) => typeof item === 'object' ? JSON.stringify(item) : String(item));
+      return list.map((item: unknown) => typeof item === 'object' && item !== null ? JSON.stringify(item) : String(item));
     }
-    return standardClient.sMembers(key);
+    return standardClient ? standardClient.sMembers(key) : [];
   },
 
   async sRem(key: string, value: string): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.srem(key, value);
     }
-    return standardClient.sRem(key, value);
+    return standardClient ? standardClient.sRem(key, value) : 0;
   },
 
   async incr(key: string): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.incr(key);
     }
-    return standardClient.incr(key);
+    return standardClient ? standardClient.incr(key) : 0;
   },
 
   async decr(key: string): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.decr(key);
     }
-    return standardClient.decr(key);
+    return standardClient ? standardClient.decr(key) : 0;
   },
 
   async expire(key: string, seconds: number): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.expire(key, seconds);
     }
-    return standardClient.expire(key, seconds);
+    return standardClient ? standardClient.expire(key, seconds) : 0;
   },
 
   async ttl(key: string): Promise<number> {
     if (useUpstash && upstashClient) {
       return upstashClient.ttl(key);
     }
-    return standardClient.ttl(key);
+    return standardClient ? standardClient.ttl(key) : -1;
   },
 
   async ping(): Promise<string> {
@@ -146,16 +148,16 @@ export const redisClient = {
       try {
         await upstashClient.get('health-ping');
         return 'PONG';
-      } catch (err) {
+      } catch (_err) {
         return 'DOWN';
       }
     }
-    return standardClient.ping();
+    return standardClient ? standardClient.ping() : 'DOWN';
   },
 
-  async sendCommand(args: string[]): Promise<any> {
-    if (useUpstash) return null;
-    return standardClient.sendCommand(args);
+  async sendCommand(args: string[]): Promise<RedisReply> {
+    if (useUpstash || !standardClient) return 0;
+    return standardClient.sendCommand(args) as unknown as RedisReply;
   }
 };
 

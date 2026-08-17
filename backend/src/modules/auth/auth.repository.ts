@@ -1,4 +1,4 @@
-import { Shop, User, Role } from '@prisma/client';
+import { Shop, User, Role,Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
 
 export class AuthRepository {
@@ -13,11 +13,11 @@ export class AuthRepository {
         shop: true,
         role: true
       }
-    }) as any; 
+    });
   }
 
   async findUserById(id: string): Promise<(User & { shop: Shop; role: Role | null }) | null> {
-    return prisma.user.findFirst({
+    return prisma.user.findUnique({
       where: { id },
       include: {
         shop: true,
@@ -108,13 +108,13 @@ export class AuthRepository {
     });
   }
 
-  async logActivity(data: { shopId: string; userId: string; action: string; details: any }): Promise<void> {
+  async logActivity(data: { shopId: string; userId: string; action: string; details: Record<string, unknown> }): Promise<void> {
     await prisma.activityLog.create({
       data: {
         shopId: data.shopId,
         userId: data.userId,
         action: data.action,
-        details: data.details
+        details: data.details as Prisma.InputJsonValue
       }
     });
   }

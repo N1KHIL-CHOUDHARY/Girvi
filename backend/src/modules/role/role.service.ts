@@ -50,11 +50,16 @@ export class RoleService {
 
     // 3. Atomically create role and role-permissions
     const role = await prisma.$transaction(async (tx) => {
+      const roleData: Prisma.RoleCreateInput = {
+        name: data.name.toLowerCase().trim(),
+        description: data.description,
+        shop: {
+          connect: { id: shopId }
+        }
+      };
+
       const createdRole = await tx.role.create({
-        data: {
-          name: data.name.toLowerCase().trim(),
-          description: data.description
-        } as unknown as Prisma.RoleCreateInput
+        data: roleData
       });
 
       await tx.rolePermission.createMany({
@@ -68,14 +73,25 @@ export class RoleService {
     });
 
     // 4. Audit
+    const actorId = getTenantUserId();
+    const createAuditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Role',
+      entityId: role.id,
+      action: 'create',
+      newValue: { name: role.name, permissions: data.permissions },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
     await prisma.auditLog.create({
-      data: {
-        userId: getTenantUserId() ?? null,
-        entityName: 'Role',
-        entityId: role.id,
-        action: 'create',
-        newValue: { name: role.name, permissions: data.permissions }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: createAuditData
     });
 
     return role;
@@ -83,7 +99,7 @@ export class RoleService {
 
   async updateRole(id: string, data: { name?: string; description?: string; permissions?: string[] }): Promise<Role> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId() ?? null;
+    const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const role = await roleRepository.findById(id);
@@ -150,14 +166,24 @@ export class RoleService {
     }
 
     // 5. Audit
+    const updateAuditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Role',
+      entityId: id,
+      action: 'update',
+      newValue: data,
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
     await prisma.auditLog.create({
-      data: {
-        userId: actorId,
-        entityName: 'Role',
-        entityId: id,
-        action: 'update',
-        newValue: data
-      } as unknown as Prisma.AuditLogCreateInput
+      data: updateAuditData
     });
 
     return updatedRole;
@@ -165,7 +191,7 @@ export class RoleService {
 
   async deleteRole(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId() ?? null;
+    const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const role = await roleRepository.findById(id);
@@ -190,14 +216,24 @@ export class RoleService {
     await roleRepository.delete(id);
 
     // 4. Audit
+    const deleteAuditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Role',
+      entityId: id,
+      action: 'delete',
+      oldValue: { name: role.name },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
     await prisma.auditLog.create({
-      data: {
-        userId: actorId,
-        entityName: 'Role',
-        entityId: id,
-        action: 'delete',
-        oldValue: { name: role.name }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: deleteAuditData
     });
   }
 }

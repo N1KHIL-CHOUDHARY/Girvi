@@ -1,5 +1,5 @@
 
-import { User, Role } from '@prisma/client';
+import { User, Role, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
 
 export class EmployeeRepository {
@@ -11,21 +11,19 @@ export class EmployeeRepository {
   }
 
   async findById(id: string): Promise<(User & { role: Role | null }) | null> {
-    return prisma.user.findFirst({
+    return prisma.user.findUnique({
       where: { id },
       include: { role: true }
     });
   }
 
-  async create(data: any): Promise<User> {
-    // Note: shopId is automatically injected by the Prisma Tenant Extension
-    // during write operations if it's available in AsyncLocalStorage
+  async create(data: Prisma.UserCreateInput): Promise<User> {
     return prisma.user.create({
       data
     });
   }
 
-  async update(id: string, data: any): Promise<User> {
+  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
     return prisma.user.update({
       where: { id },
       data

@@ -27,7 +27,7 @@ export const requirePermission = (permissionCode: string) => {
 
       // Query database if cache miss
       if (permissions.length === 0) {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: { id: userId },
           include: {
             role: {

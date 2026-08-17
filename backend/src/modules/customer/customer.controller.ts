@@ -51,7 +51,7 @@ export class CustomerController {
   getCustomerStats = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await customerService.getCustomerStats(id);
-    sendSuccess(res, result.stats, 'Customer financial metrics generated successfully', 200, { payments: result.payments } as any);
+    sendSuccess(res, result.stats, 'Customer financial metrics generated successfully', 200, { payments: result.payments });
   });
 
   getCustomerTickets = asyncHandler(async (req: Request, res: Response): Promise<void> => {

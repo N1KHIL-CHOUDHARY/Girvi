@@ -17,6 +17,7 @@ export class EmployeeService {
 
   async createEmployee(data: Record<string, unknown>): Promise<User> {
     const shopId = getTenantShopId();
+    const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const email = String(data.email || '');
@@ -31,7 +32,7 @@ export class EmployeeService {
     }
 
     // 2. Verify role exists in the shop
-    const role = await prisma.role.findFirst({
+    const role = await prisma.role.findUnique({
       where: { id: roleId }
     });
     if (!role) {
@@ -43,26 +44,44 @@ export class EmployeeService {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // 4. Create record
-    const employee = await employeeRepository.create({
+    const userCreateInput: Prisma.UserCreateInput = {
       firstName: String(data.firstName || ''),
       lastName: String(data.lastName || ''),
       email,
       username,
       password: passwordHash,
       phone: typeof data.phone === 'string' ? data.phone : null,
-      roleId,
-      isActive: true
-    });
+      isActive: true,
+      shop: {
+        connect: { id: shopId }
+      },
+      role: {
+        connect: { id: roleId }
+      }
+    };
+
+    const employee = await employeeRepository.create(userCreateInput);
 
     // 5. Create audit log
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Employee',
+      entityId: employee.id,
+      action: 'create',
+      newValue: { email: employee.email, username: employee.username, role: role.name },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
+
     await prisma.auditLog.create({
-      data: {
-        userId: getTenantUserId() ?? null,
-        entityName: 'Employee',
-        entityId: employee.id,
-        action: 'create',
-        newValue: { email: employee.email, username: employee.username, role: role.name }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
 
     return employee;
@@ -70,7 +89,7 @@ export class EmployeeService {
 
   async updateEmployee(id: string, data: Record<string, unknown>): Promise<User> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId() ?? null;
+    const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // 1. Check if employee exists
@@ -137,7 +156,7 @@ export class EmployeeService {
         throw new ValidationError('Owners cannot modify their own role');
       }
 
-      const role = await prisma.role.findFirst({
+      const role = await prisma.role.findUnique({
         where: { id: String(data.roleId) }
       });
       if (!role) {
@@ -158,15 +177,26 @@ export class EmployeeService {
     const updated = await employeeRepository.update(id, updatePayload);
 
     // 7. Write audit log
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Employee',
+      entityId: id,
+      action: 'update',
+      oldValue: oldValues as Prisma.InputJsonValue,
+      newValue: newValues as Prisma.InputJsonValue,
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
+
     await prisma.auditLog.create({
-      data: {
-        userId: actorId,
-        entityName: 'Employee',
-        entityId: id,
-        action: 'update',
-        oldValue: oldValues,
-        newValue: newValues
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
 
     return updated;
@@ -174,7 +204,7 @@ export class EmployeeService {
 
   async deleteEmployee(id: string): Promise<void> {
     const shopId = getTenantShopId();
-    const actorId = getTenantUserId() ?? null;
+    const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     const employee = await employeeRepository.findById(id);
@@ -196,14 +226,25 @@ export class EmployeeService {
     await employeeRepository.delete(id);
 
     // 4. Audit
+    const auditData: Prisma.AuditLogCreateInput = {
+      entityName: 'Employee',
+      entityId: id,
+      action: 'delete',
+      oldValue: { email: employee.email, username: employee.username },
+      shop: {
+        connect: { id: shopId }
+      },
+      ...(actorId
+        ? {
+            user: {
+              connect: { id: actorId }
+            }
+          }
+        : {})
+    };
+
     await prisma.auditLog.create({
-      data: {
-        userId: actorId,
-        entityName: 'Employee',
-        entityId: id,
-        action: 'delete',
-        oldValue: { email: employee.email, username: employee.username }
-      } as unknown as Prisma.AuditLogCreateInput
+      data: auditData
     });
   }
 
