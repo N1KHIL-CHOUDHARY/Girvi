@@ -14,8 +14,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/employees") ||
     pathname.startsWith("/reports") ||
     pathname.startsWith("/settings") ||
-    pathname.startsWith("/profile") ||
-    pathname === "/";
+    pathname.startsWith("/profile");
 
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));

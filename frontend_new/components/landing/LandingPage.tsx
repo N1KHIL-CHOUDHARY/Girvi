@@ -14,8 +14,6 @@ import {
   Search,
   FileSpreadsheet,
   Check,
-  HelpCircle,
-  Lock,
   ChevronDown,
   ArrowRight,
   Printer,
@@ -23,16 +21,8 @@ import {
   Calculator,
   LockKeyhole,
   FileText,
-  UserCheck,
-  Building,
-  ArrowRightLeft,
-  X,
   Sparkles,
   RefreshCw,
-  Phone,
-  MapPin,
-  Calendar,
-  Wallet
 } from "lucide-react";
 
 export function LandingPage() {
@@ -41,7 +31,6 @@ export function LandingPage() {
     "dashboard" | "customers" | "tickets" | "payments" | "reports" | "settings"
   >("dashboard");
   const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [calculatorLoanAmount, setCalculatorLoanAmount] = useState(1000);
   const [calculatorRate, setCalculatorRate] = useState(3); // 3% per month
   const [calculatorMonths, setCalculatorMonths] = useState(3);
