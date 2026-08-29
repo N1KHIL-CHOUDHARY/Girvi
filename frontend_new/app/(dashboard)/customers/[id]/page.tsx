@@ -1,30 +1,27 @@
 "use client";
 
-import { useParams, useRouter, notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
-  User,
   Phone,
   MapPin,
-  FileText,
-  DollarSign,
   Ticket,
-  ChevronLeft,
-  Calendar,
-  Layers,
-  Image as ImageIcon,
+  ShieldCheck,
+  Plus,
+  Pencil,
+  ArrowLeft,
 } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
 import { getAccountById, getAccountStats, getPawnTicketsByAccountId } from "@/services/api";
 import { customerKeys } from "@/lib/queryKeys";
 import { formatCurrency } from "@/lib/format";
+import { StatusBadge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { CustomerDetail, CustomerStatsResponse } from "@/types/customer";
 import type { PawnTicketRecord } from "@/types/pawn";
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
 
   const { data: customerData, isLoading: isLoadingCustomer } = useQuery({
     queryKey: customerKeys.detail(id),
@@ -55,15 +52,13 @@ export default function CustomerDetailPage() {
 
   if (isLoading) {
     return (
-      <AppShell>
-        <div className="mx-auto w-full max-w-5xl animate-pulse space-y-6">
-          <div className="h-6 w-32 rounded bg-slate-100" />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="h-64 rounded-2xl bg-slate-100 md:col-span-1" />
-            <div className="h-64 rounded-2xl bg-slate-100 md:col-span-2" />
-          </div>
+      <div className="space-y-6 animate-pulse">
+        <div className="h-6 w-32 rounded bg-[#F6F7F8]" />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="h-64 rounded-xl bg-[#F6F7F8] md:col-span-1" />
+          <div className="h-64 rounded-xl bg-[#F6F7F8] md:col-span-2" />
         </div>
-      </AppShell>
+      </div>
     );
   }
 
@@ -123,195 +118,220 @@ export default function CustomerDetailPage() {
     "0";
 
   return (
-    <AppShell>
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Customers →"
+        title={customer.full_name}
+        subtitle="Complete borrower portfolio, active collateral exposure, and repayment history."
+        breadcrumbs={
           <Link
             href="/customers"
-            className="flex items-center gap-1 text-sm font-semibold text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center gap-1 text-xs text-[#55606D] hover:text-[#14181F]"
           >
-            <ChevronLeft className="h-4 w-4" /> Back to Customers
+            <ArrowLeft className="h-3 w-3" /> Back to directory
           </Link>
-          <Link
-            href={`/customers/${id}/edit`}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Edit Profile
-          </Link>
-        </div>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/customers/${id}/edit`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9EC] bg-white px-3 py-1.5 text-xs font-semibold text-[#14181F] hover:bg-[#F6F7F8] transition-colors"
+            >
+              <Pencil className="h-3.5 w-3.5 text-[#55606D]" />
+              <span>Edit Profile</span>
+            </Link>
+            <Link
+              href={`/pawn-tickets/new?customer_id=${id}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#14181F] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#314259] transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>New Loan Ticket</span>
+            </Link>
+          </div>
+        }
+      />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm">
+      {/* Main 2-Column Overview */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {/* Left Column: Customer Identity Card */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 space-y-5">
+          <div className="flex flex-col items-center text-center">
             {customer.customer_photo_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={customer.customer_photo_url}
                 alt={customer.full_name}
-                className="h-24 w-24 rounded-full border-2 border-slate-100 object-cover shadow-sm"
+                className="h-20 w-20 rounded-xl border border-[#E7E9EC] object-cover"
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-3xl font-semibold text-slate-600">
+
+              <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-[#F6F7F8] text-xl font-semibold text-[#314259] border border-[#E7E9EC]">
                 {customer.full_name.substring(0, 2).toUpperCase()}
               </div>
             )}
-            <h2 className="mt-4 text-lg font-bold text-slate-900">{customer.full_name}</h2>
-            <p className="text-sm text-slate-500">{customer.gender ?? "Gender unspecified"}</p>
+            <h2 className="mt-3 text-base font-semibold text-[#14181F]">
+              {customer.full_name}
+            </h2>
+            <p className="text-xs text-[#8A94A3]">
+              {customer.gender ?? "Borrower"} &middot; Member since{" "}
+              {customer.createdAt ? new Date(customer.createdAt).getFullYear() : "2026"}
+            </p>
+          </div>
 
-            <div className="mt-6 w-full space-y-3 border-t border-slate-100 pt-6 text-left">
-              <div className="flex items-center gap-2.5 text-sm text-slate-600">
-                <Phone className="h-4 w-4 shrink-0 text-slate-400" />
-                <span>{customer.phone_number}</span>
-              </div>
-              <div className="flex items-start gap-2.5 text-sm text-slate-600">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                <span>
-                  {customer.address
-                    ? [customer.address.line1, customer.address.city, customer.address.pincode].filter(Boolean).join(", ")
-                    : "No address registered"}
-                </span>
-              </div>
+          <div className="space-y-3 border-t border-[#E7E9EC] pt-4 text-xs">
+            <div className="flex items-center gap-2.5 text-[#55606D]">
+              <Phone className="h-3.5 w-3.5 text-[#8A94A3] shrink-0" />
+              <span className="font-mono text-[#14181F]">{customer.phone_number}</span>
             </div>
-
-            <div className="mt-6 w-full space-y-2 rounded-xl border border-slate-100 bg-slate-50 p-4 text-left">
-              <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">KYC Verification</p>
-              <div className="text-sm">
-                <span className="text-slate-500">Aadhaar: </span>
-                <span className="font-semibold text-slate-800">
-                  {customer.aadhaar_number ? `XXXX-XXXX-${customer.aadhaar_number.slice(-4)}` : "Not verified"}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="text-slate-500">PAN: </span>
-                <span className="font-semibold text-slate-800 uppercase">
-                  {customer.pan_number ?? "Not registered"}
-                </span>
-              </div>
+            <div className="flex items-start gap-2.5 text-[#55606D]">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 text-[#8A94A3] shrink-0" />
+              <span>
+                {customer.address
+                  ? [customer.address.line1, customer.address.city, customer.address.pincode]
+                      .filter(Boolean)
+                      .join(", ")
+                  : "No address recorded"}
+              </span>
             </div>
           </div>
 
-          <div className="space-y-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm md:col-span-2">
-            <h3 className="border-b border-slate-100 pb-3 text-sm font-semibold text-slate-900">Financial Ledger Balance</h3>
-            
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <DollarSign className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-medium tracking-wider uppercase">Total Active Loan Balance</span>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(Number(totalActiveLoan))}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <Layers className="h-4 w-4 text-slate-400" />
-                  <span className="text-xs font-medium tracking-wider uppercase">Historical Total Valuation</span>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(Number(totalLoanValue))}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <DollarSign className="h-4 w-4 text-emerald-500" />
-                  <span className="text-xs font-medium tracking-wider uppercase">Total Interest Paid</span>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(Number(interestPaid))}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                  <span className="text-xs font-medium tracking-wider uppercase">Total Principal Paid</span>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {formatCurrency(Number(principalPaid))}
-                </p>
-              </div>
+          {/* KYC Credentials Box */}
+          <div className="rounded-lg border border-[#E7E9EC] bg-[#F6F7F8] p-3.5 space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8A94A3]">
+                KYC Verification
+              </span>
+              <ShieldCheck className="h-3.5 w-3.5 text-[#059669]" />
             </div>
-
-            <div className="flex items-center justify-between border-t border-slate-100 pt-6">
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="text-xs font-medium tracking-wider text-slate-400 uppercase">Total Pledged Tickets</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">{totalTickets}</p>
-                </div>
-                <div className="h-8 w-px bg-slate-200" />
-                <div>
-                  <p className="text-xs font-medium tracking-wider text-slate-400 uppercase">Active Tickets</p>
-                  <p className="mt-1 text-lg font-bold text-[#1E3A66]">{activeTickets}</p>
-                </div>
-              </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#55606D]">Aadhaar</span>
+              <span className="font-mono font-medium text-[#14181F]">
+                {customer.aadhaar_number
+                  ? `•••• •••• ${customer.aadhaar_number.slice(-4)}`
+                  : "Not provided"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[#55606D]">PAN Card</span>
+              <span className="font-mono font-medium text-[#14181F] uppercase">
+                {customer.pan_number || "Not provided"}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <Ticket className="h-5 w-5 text-slate-400" />
-            <h3 className="text-sm font-semibold text-slate-900">Pledge Portfolio History</h3>
+        {/* Right Column: Financial Exposure & Balances */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 md:col-span-2 space-y-5">
+          <div className="border-b border-[#E7E9EC] pb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[#14181F]">
+              Financial Ledger Exposure
+            </h3>
+            <span className="text-xs text-[#8A94A3]">
+              {activeTickets} active pledges of {totalTickets} total loans
+            </span>
           </div>
 
-          {tickets.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-400">
-              No pawn tickets registered for this customer.
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-[#E7E9EC] bg-[#F6F7F8] p-4">
+              <span className="text-[11px] font-medium text-[#8A94A3] uppercase tracking-wider block">
+                Active Loan Balance
+              </span>
+              <p className="mt-1 text-2xl font-semibold font-mono text-[#14181F]">
+                {formatCurrency(Number(totalActiveLoan))}
+              </p>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-100 text-xs font-medium tracking-wide text-slate-400 uppercase">
-                    <th className="py-3 pr-4 font-medium">Ticket ID</th>
-                    <th className="py-3 px-4 font-medium">Items Pledged</th>
-                    <th className="py-3 px-4 font-medium">Loan Value</th>
-                    <th className="py-3 px-4 font-medium">Rate</th>
-                    <th className="py-3 px-4 font-medium">Date</th>
-                    <th className="py-3 pl-4 text-right font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50 text-sm text-slate-700">
-                  {tickets.map((ticket) => {
-                    const statusClass =
-                      (ticket.status || "").toLowerCase() === "active"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                        : (ticket.status || "").toLowerCase() === "settled"
-                        ? "bg-blue-50 text-blue-700 border-blue-100"
-                        : "bg-amber-50 text-amber-700 border-amber-100";
 
-                    return (
-                      <tr key={ticket.id} className="hover:bg-slate-50/50">
-                        <td className="py-4 pr-4 font-mono font-semibold text-slate-900">
-                          <Link href={`/pawn-tickets/${ticket.id}`} className="hover:underline text-[#1E3A66]">
-                            {ticket.ticket_number}
-                          </Link>
-                        </td>
-                        <td className="max-w-xs truncate py-4 px-4 font-medium">
-                          {ticket.items.map((i) => `${i.name} (${i.weight_grams}g)`).join(", ")}
-                        </td>
-                        <td className="py-4 px-4 font-medium text-slate-900">
-                          {formatCurrency(Number(ticket.loan_amount))}
-                        </td>
-                        <td className="py-4 px-4 font-medium">{ticket.interest_rate}%</td>
-                        <td className="py-4 px-4 text-slate-500">
-                          {new Date(ticket.pawned_date).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 pl-4 text-right">
-                          <span className={`inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-semibold uppercase ${statusClass}`}>
-                            {ticket.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="rounded-lg border border-[#E7E9EC] bg-[#F6F7F8] p-4">
+              <span className="text-[11px] font-medium text-[#8A94A3] uppercase tracking-wider block">
+                Historical Valuation
+              </span>
+              <p className="mt-1 text-2xl font-semibold font-mono text-[#55606D]">
+                {formatCurrency(Number(totalLoanValue))}
+              </p>
             </div>
-          )}
+
+            <div className="rounded-lg border border-[#E7E9EC] bg-[#F6F7F8] p-4">
+              <span className="text-[11px] font-medium text-[#8A94A3] uppercase tracking-wider block">
+                Total Interest Paid
+              </span>
+              <p className="mt-1 text-2xl font-semibold font-mono text-[#059669]">
+                {formatCurrency(Number(interestPaid))}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-[#E7E9EC] bg-[#F6F7F8] p-4">
+              <span className="text-[11px] font-medium text-[#8A94A3] uppercase tracking-wider block">
+                Total Principal Repaid
+              </span>
+              <p className="mt-1 text-2xl font-semibold font-mono text-[#2563EB]">
+                {formatCurrency(Number(principalPaid))}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </AppShell>
+
+      {/* Pledge Portfolio History Table */}
+      <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E7E9EC] pb-3">
+          <div className="flex items-center gap-2">
+            <Ticket className="h-4 w-4 text-[#314259]" />
+            <h3 className="text-sm font-semibold text-[#14181F]">
+              Pledge Portfolio History
+            </h3>
+          </div>
+        </div>
+
+        {tickets.length === 0 ? (
+          <div className="py-8 text-center text-xs text-[#8A94A3]">
+            No pawn tickets registered for this customer yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-[#E7E9EC] bg-[#F6F7F8] text-[11px] font-semibold text-[#55606D] uppercase tracking-wider">
+                  <th className="py-3 px-3">Ticket ID</th>
+                  <th className="py-3 px-3">Pledged Collateral</th>
+                  <th className="py-3 px-3">Principal Loan</th>
+                  <th className="py-3 px-3">Rate</th>
+                  <th className="py-3 px-3">Pawned Date</th>
+                  <th className="py-3 px-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E7E9EC]">
+                {tickets.map((ticket) => (
+                  <tr key={ticket.id} className="hover:bg-[#F6F7F8]/60 transition-colors">
+                    <td className="py-3 px-3 font-mono font-semibold text-[#14181F]">
+                      <Link
+                        href={`/pawn-tickets/${ticket.id}`}
+                        className="hover:underline text-[#314259]"
+                      >
+                        {ticket.ticket_number}
+                      </Link>
+                    </td>
+                    <td className="py-3 px-3 text-[#55606D] max-w-xs truncate">
+                      {ticket.items?.map((i) => `${i.name} (${i.weight_grams}g)`).join(", ") || "Collateral items"}
+                    </td>
+                    <td className="py-3 px-3 font-mono font-semibold text-[#14181F]">
+                      {formatCurrency(Number(ticket.loan_amount))}
+                    </td>
+                    <td className="py-3 px-3 text-[#55606D] font-mono">
+                      {ticket.interest_rate}% monthly
+                    </td>
+                    <td className="py-3 px-3 text-[#8A94A3] font-mono">
+                      {new Date(ticket.pawned_date).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <StatusBadge status={ticket.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

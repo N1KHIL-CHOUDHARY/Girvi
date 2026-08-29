@@ -5,10 +5,12 @@ import { useParams, useRouter, notFound } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { User } from "lucide-react";
+import { User, ArrowLeft, MapPin, FileCheck, Save } from "lucide-react";
 
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
 import FileUpload from "@/components/ui/FileUpload";
 import { getAccountById, updateAccount, uploadFile } from "@/services/api";
 import { customerKeys } from "@/lib/queryKeys";
@@ -25,9 +27,6 @@ interface CustomerFormState {
   pan_number: string;
   customer_photo_url: string;
 }
-
-const selectClass =
-  "h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66]";
 
 function CustomerEditForm({ id, customer }: { id: string; customer: CustomerDetail }) {
   const router = useRouter();
@@ -50,10 +49,10 @@ function CustomerEditForm({ id, customer }: { id: string; customer: CustomerDeta
   const updateMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => updateAccount(id, payload),
     onSuccess: () => {
-      toast.success("Customer updated successfully");
+      toast.success("Customer profile updated successfully");
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
       queryClient.invalidateQueries({ queryKey: customerKeys.detail(id) });
-      router.push("/customers");
+      router.push(`/customers/${id}`);
     },
     onError: (error: any) => {
       const payload = error?.response?.data;
@@ -140,59 +139,62 @@ function CustomerEditForm({ id, customer }: { id: string; customer: CustomerDeta
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      <div className="mb-6 flex items-center gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-100 bg-slate-50">
-          <User className="h-5 w-5 text-slate-400" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Update Customer
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Editing details for {formData.full_name}
-          </p>
-        </div>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        eyebrow="Customers →"
+        title="Edit Customer Profile"
+        subtitle={`Updating information and KYC details for ${formData.full_name}`}
+        breadcrumbs={
+          <Link
+            href={`/customers/${id}`}
+            className="inline-flex items-center gap-1 text-xs text-[#55606D] hover:text-[#14181F]"
+          >
+            <ArrowLeft className="h-3 w-3" /> Back to profile
+          </Link>
+        }
+      />
 
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8"
-      >
-        <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div>
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input
-              id="full_name"
-              name="full_name"
-              value={formData.full_name}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-              className={errors.full_name ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
-            />
-            {errors.full_name && (
-              <span className="mt-1 block text-xs text-rose-500">{errors.full_name}</span>
-            )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Personal Details */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#E7E9EC] pb-3">
+            <User className="h-4 w-4 text-[#314259]" />
+            <h2 className="text-sm font-semibold text-[#14181F]">
+              Personal Information
+            </h2>
           </div>
-          <div>
-            <Label htmlFor="phone_number">Phone Number</Label>
-            <Input
-              id="phone_number"
-              name="phone_number"
-              type="tel"
-              inputMode="numeric"
-              value={formData.phone_number}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-              className={errors.phone_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
-            />
-            {errors.phone_number && (
-              <span className="mt-1 block text-xs text-rose-500">{errors.phone_number}</span>
-            )}
-          </div>
-        </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="full_name" required>
+                Full Name
+              </Label>
+              <Input
+                id="full_name"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+                error={errors.full_name}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone_number" required>
+                Phone Number
+              </Label>
+              <Input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                inputMode="numeric"
+                value={formData.phone_number}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+                error={errors.phone_number}
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="gender">Gender</Label>
             <select
@@ -201,13 +203,24 @@ function CustomerEditForm({ id, customer }: { id: string; customer: CustomerDeta
               value={formData.gender}
               onChange={handleChange}
               disabled={updateMutation.isPending}
-              className={selectClass}
+              className="h-10 w-full rounded-xl border border-[#E7E9EC] bg-white px-3.5 text-sm text-[#14181F] focus:border-[#14181F] focus:outline-none focus:ring-1 focus:ring-[#14181F] cursor-pointer"
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
           </div>
+        </div>
+
+        {/* Address */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#E7E9EC] pb-3">
+            <MapPin className="h-4 w-4 text-[#314259]" />
+            <h2 className="text-sm font-semibold text-[#14181F]">
+              Residential Address
+            </h2>
+          </div>
+
           <div>
             <Label htmlFor="line1">Address Line</Label>
             <Input
@@ -218,98 +231,101 @@ function CustomerEditForm({ id, customer }: { id: string; customer: CustomerDeta
               disabled={updateMutation.isPending}
             />
           </div>
-        </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-            />
-          </div>
-          <div>
-            <Label htmlFor="pincode">Pincode</Label>
-            <Input
-              id="pincode"
-              name="pincode"
-              inputMode="numeric"
-              value={formData.pincode}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-              className={errors.pincode ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
-            />
-            {errors.pincode && (
-              <span className="mt-1 block text-xs text-rose-500">{errors.pincode}</span>
-            )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="city">City / Area</Label>
+              <Input
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pincode">Pincode</Label>
+              <Input
+                id="pincode"
+                name="pincode"
+                inputMode="numeric"
+                value={formData.pincode}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+                error={errors.pincode}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="aadhaar_number">Aadhaar Number</Label>
-            <Input
-              id="aadhaar_number"
-              name="aadhaar_number"
-              inputMode="numeric"
-              value={formData.aadhaar_number}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-              className={errors.aadhaar_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
-            />
-            {errors.aadhaar_number && (
-              <span className="mt-1 block text-xs text-rose-500">{errors.aadhaar_number}</span>
-            )}
+        {/* KYC */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 sm:p-6 space-y-4">
+          <div className="flex items-center gap-2 border-b border-[#E7E9EC] pb-3">
+            <FileCheck className="h-4 w-4 text-[#314259]" />
+            <h2 className="text-sm font-semibold text-[#14181F]">
+              KYC & Identity Verification
+            </h2>
           </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="aadhaar_number">Aadhaar Number (12 Digits)</Label>
+              <Input
+                id="aadhaar_number"
+                name="aadhaar_number"
+                inputMode="numeric"
+                value={formData.aadhaar_number}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+                error={errors.aadhaar_number}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pan_number">PAN Number</Label>
+              <Input
+                id="pan_number"
+                name="pan_number"
+                autoComplete="off"
+                value={formData.pan_number}
+                onChange={handleChange}
+                disabled={updateMutation.isPending}
+                error={errors.pan_number}
+              />
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="pan_number">PAN Number</Label>
-            <Input
-              id="pan_number"
-              name="pan_number"
-              autoComplete="off"
-              value={formData.pan_number}
-              onChange={handleChange}
-              disabled={updateMutation.isPending}
-              className={errors.pan_number ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500" : ""}
+            <Label>Customer Photo</Label>
+            <FileUpload
+              value={formData.customer_photo_url}
+              onUpload={async (file) => {
+                const res = await uploadFile<{ url: string }>(file);
+                return res.data.url;
+              }}
+              onChange={(url) =>
+                setFormData((prev) => ({ ...prev, customer_photo_url: url }))
+              }
+              label="Borrower photo"
             />
-            {errors.pan_number && (
-              <span className="mt-1 block text-xs text-rose-500">{errors.pan_number}</span>
-            )}
           </div>
         </div>
 
-        <div className="mb-8">
-          <Label>Customer Photo</Label>
-          <FileUpload
-            value={formData.customer_photo_url}
-            onUpload={async (file) => {
-              const res = await uploadFile<{ url: string }>(file);
-              return res.data.url;
-            }}
-            onChange={(url) =>
-              setFormData((prev) => ({ ...prev, customer_photo_url: url }))
-            }
-            label="Customer photo"
-          />
-        </div>
-
-        <div className="flex flex-col justify-end gap-3 border-t border-slate-100 pt-6 sm:flex-row">
-          <Link
-            href="/customers"
-            className="flex items-center justify-center rounded-xl bg-slate-100 px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+        <div className="flex items-center justify-end gap-3 border-t border-[#E7E9EC] pt-4">
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/customers/${id}`)}
+            disabled={updateMutation.isPending}
           >
             Cancel
-          </Link>
-          <button
+          </Button>
+          <Button
             type="submit"
-            disabled={updateMutation.isPending}
-            className="flex items-center justify-center rounded-xl bg-[#1E3A66] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:cursor-not-allowed disabled:opacity-50"
+            variant="primary"
+            isLoading={updateMutation.isPending}
+            leftIcon={<Save className="h-4 w-4" />}
           >
-            {updateMutation.isPending ? "Saving..." : "Save Changes"}
-          </button>
+            Save Changes
+          </Button>
         </div>
       </form>
     </div>
@@ -337,12 +353,12 @@ export default function UpdateCustomer() {
 
   if (loadingCustomer || !customerData?.data) {
     return (
-      <div className="mx-auto w-full max-w-3xl animate-pulse rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
-        <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
-        <div className="h-4 w-1/4 rounded bg-slate-100" />
+      <div className="mx-auto max-w-3xl space-y-6 animate-pulse">
+        <div className="h-6 w-1/3 rounded bg-[#F6F7F8]" />
+        <div className="h-64 rounded-xl bg-[#F6F7F8]" />
       </div>
     );
   }
 
   return <CustomerEditForm id={id} customer={customerData.data} />;
-}
+}

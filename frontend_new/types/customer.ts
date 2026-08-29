@@ -13,9 +13,12 @@ export interface CustomerListItem {
   address?: CustomerAddress;
   gender?: CustomerGender | null;
   customer_photo_url?: string | null;
+  aadhaar_number?: string | null;
+  pan_number?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
 
 export interface CustomerDetail extends CustomerListItem {
   aadhaar_number?: string | null;
