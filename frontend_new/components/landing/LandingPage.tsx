@@ -152,12 +152,12 @@ export function LandingPage() {
 
   const faqs = [
     {
-      q: "Is GRIVI free?",
-      a: "GRIVI is currently in early access. Shops that join now get full access while we build alongside real pawnbrokers, and we'll communicate any pricing changes well in advance before they take effect.",
+      q: "Is GIRVI free?",
+      a: "GIRVI is currently in early access. Shops that join now get full access while we build alongside real pawnbrokers, and we'll communicate any pricing changes well in advance before they take effect.",
     },
     {
       q: "Do I need to install anything?",
-      a: "No. GRIVI runs entirely in your browser, so there's nothing to install or maintain on your store computers — you just sign in and get to work.",
+      a: "No. GIRVI runs entirely in your browser, so there's nothing to install or maintain on your store computers — you just sign in and get to work.",
     },
     {
       q: "Can my staff have different permissions?",
@@ -169,7 +169,7 @@ export function LandingPage() {
     },
     {
       q: "How does interest calculation work?",
-      a: "GRIVI calculates interest and outstanding balances automatically based on the rate and terms you set on each ticket, so nothing has to be worked out by hand.",
+      a: "GIRVI calculates interest and outstanding balances automatically based on the rate and terms you set on each ticket, so nothing has to be worked out by hand.",
     },
     {
       q: "Is my customer data secure?",
@@ -195,7 +195,7 @@ export function LandingPage() {
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center pr-6">
             <span className="text-slate-300">Early access is now open —</span>
             <button onClick={() => scrollToSection("pricing")} className="font-semibold underline underline-offset-2 hover:text-slate-200">
-              Join GRIVI
+              Join GIRVI
             </button>
           </div>
           <button
@@ -220,7 +220,7 @@ export function LandingPage() {
               <Ticket className="h-3.5 w-3.5 rotate-12" />
             </div>
             <span className="font-semibold text-[15px] tracking-tight">
-              GRIVI
+              GIRVI
             </span>
           </Link>
 
@@ -396,7 +396,7 @@ export function LandingPage() {
           </div>
           <div className="lg:col-span-8 order-1 lg:order-2 rounded-2xl bg-[#F6F7F8] p-6">
             <div className="rounded-xl border border-[#E7E9EC] bg-white overflow-hidden">
-              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">grivi.app/customers</div>
+              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">girvi.app/customers</div>
               <div className="p-4">
                 <div className="flex justify-between items-center mb-3">
                   <div className="relative w-2/3">
@@ -431,7 +431,7 @@ export function LandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-8 rounded-2xl bg-[#F6F7F8] p-6">
             <div className="rounded-xl border border-[#E7E9EC] bg-white overflow-hidden">
-              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">grivi.app/pawn-tickets/new</div>
+              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">girvi.app/pawn-tickets/new</div>
               <div className="p-5">
                 <span className="text-[10px] text-[#8A94A3] font-semibold block uppercase tracking-wider mb-1">Ticket Builder</span>
                 <span className="text-sm font-semibold block mb-4">Generate Collateral Ticket</span>
@@ -471,7 +471,7 @@ export function LandingPage() {
           </div>
           <div className="lg:col-span-8 order-1 lg:order-2 rounded-2xl bg-[#F6F7F8] p-6">
             <div className="rounded-xl border border-[#E7E9EC] bg-white overflow-hidden">
-              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">grivi.app/reports</div>
+              <div className="border-b border-[#E7E9EC] px-4 py-2 text-[11px] text-[#8A94A3]">girvi.app/reports</div>
               <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-xs font-semibold">Monthly Performance Summary</span>
@@ -498,7 +498,7 @@ export function LandingPage() {
           <div className="bg-white rounded-2xl border border-[#E7E9EC] overflow-hidden">
             <div className="grid grid-cols-2 border-b border-[#E7E9EC]">
               <div className="p-4 text-center text-[13px] font-medium text-[#8A94A3] border-r border-[#E7E9EC]">Before</div>
-              <div className="p-4 text-center text-[13px] font-semibold text-[#14181F]">With GRIVI</div>
+              <div className="p-4 text-center text-[13px] font-semibold text-[#14181F]">With GIRVI</div>
             </div>
             {beforeAfterRows.map(([before, after], idx) => (
               <div key={idx} className={`grid grid-cols-2 ${idx !== beforeAfterRows.length - 1 ? "border-b border-[#F1F2F4]" : ""}`}>
@@ -529,7 +529,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="max-w-xl mb-10">
             <h2 className="text-3xl md:text-[34px] font-semibold tracking-tight mb-3">Don&apos;t take our word for it.</h2>
-            <p className="text-[#55606D] text-[15px]">Click through the product and see how GRIVI works before creating an account.</p>
+            <p className="text-[#55606D] text-[15px]">Click through the product and see how GIRVI works before creating an account.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-[#E7E9EC] overflow-hidden flex flex-col lg:flex-row min-h-[560px]">
@@ -779,7 +779,7 @@ export function LandingPage() {
           <span className="text-[13px] text-[#8A94A3] mb-4 block">Pricing</span>
           <h2 className="text-3xl md:text-[36px] font-semibold tracking-tight mb-4">Get early access while we&apos;re building.</h2>
           <p className="text-[#55606D] text-[15px] leading-relaxed mb-8">
-            We&apos;re working directly with the first generation of pawn shops on GRIVI. Join now
+            We&apos;re working directly with the first generation of pawn shops on GIRVI. Join now
             for full access, and we&apos;ll keep you informed well ahead of any pricing changes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -835,7 +835,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-2 mb-10">
             <div className="h-7 w-7 rounded-md bg-[#14181F] flex items-center justify-center text-white"><Ticket className="h-3.5 w-3.5 rotate-12" /></div>
-            <span className="font-semibold text-[15px]">GRIVI</span>
+            <span className="font-semibold text-[15px]">GIRVI</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-14">
@@ -866,7 +866,7 @@ export function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-8 border-t border-[#E7E9EC]">
-            <span className="text-[12.5px] text-[#8A94A3]">© 2026 GRIVI. All rights reserved.</span>
+            <span className="text-[12.5px] text-[#8A94A3]">© 2026 GIRVI. All rights reserved.</span>
             <div className="flex gap-2 w-full sm:w-auto">
               <input type="email" placeholder="Your email" className="text-[13px] px-3 py-2 border border-[#E7E9EC] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#14181F] flex-1 sm:w-56" />
               <button className="text-[13px] font-semibold px-3.5 py-2 rounded-lg bg-[#14181F] text-white hover:bg-[#314259] transition-colors shrink-0">Subscribe</button>

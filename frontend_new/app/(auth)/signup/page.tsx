@@ -146,7 +146,7 @@ export default function Signup() {
             id="email"
             name="email"
             type="email"
-            placeholder="you@grivi.io"
+            placeholder="you@girvi.io"
             value={form.email}
             onChange={handleChange}
             disabled={isLoading}

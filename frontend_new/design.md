@@ -1,4 +1,4 @@
-# GRIVI — Design Language
+# GIRVI — Design Language
 
 
 A reference for the visual system used on the landing page, so the rest of the app (dashboard,

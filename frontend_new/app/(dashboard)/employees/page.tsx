@@ -192,7 +192,7 @@ export default function Employees() {
               id="email"
               type="email"
               name="email"
-              placeholder="priya@grivi.io"
+              placeholder="priya@girvi.io"
               value={form.email}
               onChange={handleChange}
               disabled={createMutation.isPending}

@@ -102,7 +102,7 @@ export function Sidebar({
               <Ticket className="h-3.5 w-3.5 rotate-12" strokeWidth={2} />
             </div>
             <span className="font-semibold text-[15px] tracking-tight text-[#14181F]">
-              GRIVI
+              GIRVI
             </span>
           </Link>
         </div>

@@ -73,7 +73,7 @@ export default function ForgotPassword() {
           <Input
             id="email"
             type="email"
-            placeholder="admin@grivi.io"
+            placeholder="admin@girvi.io"
             value={email}
             onChange={(e) => {
               setError(null);

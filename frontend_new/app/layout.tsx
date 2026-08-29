@@ -10,33 +10,33 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  applicationName: "GRIVI",
+  applicationName: "GIRVI",
 
   title: {
-    default: "GRIVI — Pawn & Pledge Management",
-    template: "%s | GRIVI",
+    default: "GIRVI — Pawn & Pledge Management",
+    template: "%s | GIRVI",
   },
 
   description:
-    "GRIVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
+    "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
 
   verification: {
     google: "5ZYZFZoEHymcKOhBNcpQlLewaUzMs2HLFd9IOuW6KPM",
   },
 
   openGraph: {
-    title: "GRIVI — Pawn & Pledge Management",
+    title: "GIRVI — Pawn & Pledge Management",
     description:
-      "GRIVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
-    siteName: "GRIVI",
+      "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
+    siteName: "GIRVI",
     type: "website",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "GRIVI — Pawn & Pledge Management",
+    title: "GIRVI — Pawn & Pledge Management",
     description:
-      "GRIVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
+      "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
   },
 };
 

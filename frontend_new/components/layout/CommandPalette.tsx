@@ -263,7 +263,7 @@ export function CommandPalette({
             <span>↑↓ Navigate</span>
             <span>↵ Open</span>
           </div>
-          <span>GRIVI Global Search</span>
+          <span>GIRVI Global Search</span>
 
         </div>
       </div>

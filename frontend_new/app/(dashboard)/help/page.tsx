@@ -181,7 +181,7 @@ export default function HelpPage() {
         </div>
         <div className="flex items-center gap-3">
           <a
-            href="mailto:support@grivi.io"
+            href="mailto:support@girvi.io"
             className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9EC] bg-white px-3 py-1.5 font-semibold text-[#14181F] hover:bg-[#F6F7F8]"
           >
             <Mail className="h-3.5 w-3.5" />

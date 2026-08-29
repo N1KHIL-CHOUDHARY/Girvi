@@ -60,7 +60,7 @@ export default function Login() {
           Welcome back
         </h1>
         <p className="mt-0.5 text-xs text-[#8A94A3]">
-          Sign in to your GRIVI workspace
+          Sign in to your GIRVI workspace
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export default function Login() {
           <Input
             id="email"
             type="email"
-            placeholder="admin@grivi.io"
+            placeholder="admin@girvi.io"
 
             value={email}
             onChange={(e) => {
