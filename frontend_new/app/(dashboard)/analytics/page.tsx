@@ -11,7 +11,7 @@ import { getDashboardStats } from "@/services/api";
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<"30d" | "90d" | "1y">("30d");
 
-  const { data: statsData } = useQuery({
+  const { data: statsData, isLoading } = useQuery({
     queryKey: ["analytics-stats", timeRange],
     queryFn: async () => {
       const res = await getDashboardStats<any>();
@@ -20,23 +20,16 @@ export default function AnalyticsPage() {
   });
 
   const rawStats = (statsData ?? {}) as any;
-  const activeLoanAmount = rawStats?.activeLoans?.totalAmount ?? 1450000;
-  const settledAmount = rawStats?.settledLoans?.totalAmount ?? 820000;
-  const defaultAmount = rawStats?.overdueLoans?.totalAmount ?? 35000;
+  const activeLoanAmount = Number(rawStats?.stats?.total_loan_active || rawStats?.activeLoans?.totalAmount || 0);
+  const monthlyLoanGiven = Number(rawStats?.stats?.monthly_loan_given || 0);
+  const totalActiveTickets = Number(rawStats?.stats?.total_active_tickets || 0);
+  const settledAmount = Number(rawStats?.settledLoans?.totalAmount || 0);
+  const defaultAmount = Number(rawStats?.overdueLoans?.totalAmount || 0);
 
+  const performanceMonths: Array<{ month: string; disbursed: number; interest: number; repaid: number }> =
+    rawStats?.monthly_performance ?? [];
 
-
-  // Monthly yield / performance data
-  const performanceMonths = [
-    { month: "Jan", disbursed: 320000, interest: 28800, repaid: 210000 },
-    { month: "Feb", disbursed: 410000, interest: 36900, repaid: 290000 },
-    { month: "Mar", disbursed: 380000, interest: 34200, repaid: 310000 },
-    { month: "Apr", disbursed: 490000, interest: 44100, repaid: 380000 },
-    { month: "May", disbursed: 520000, interest: 46800, repaid: 420000 },
-    { month: "Jun", disbursed: 580000, interest: 52200, repaid: 490000 },
-  ];
-
-  const maxDisbursed = Math.max(...performanceMonths.map((m) => m.disbursed));
+  const maxDisbursed = performanceMonths.length > 0 ? Math.max(...performanceMonths.map((m) => m.disbursed || 1)) : 1;
 
   return (
     <div className="space-y-6">
@@ -68,29 +61,27 @@ export default function AnalyticsPage() {
         <StatCard
           label="Active Pledged Principal"
           value={formatCurrency(activeLoanAmount)}
-          delta="+8.4% vs last period"
-          deltaDirection="up"
+          isLoading={isLoading}
         />
         <StatCard
-          label="Monthly Interest Accrual"
-          value={formatCurrency((activeLoanAmount * 0.03))}
-          delta="36.0% Annualized APR"
-          tone="emerald"
+          label="Monthly Disbursed"
+          value={formatCurrency(monthlyLoanGiven)}
+          tone="navy"
+          isLoading={isLoading}
         />
         <StatCard
-          label="Repaid Principal Recovered"
-          value={formatCurrency(settledAmount)}
-          delta="92.4% Recovery rate"
+          label="Active Pawn Tickets"
+          value={String(totalActiveTickets)}
           tone="blue"
+          isLoading={isLoading}
         />
         <StatCard
-          label="Overdue At-Risk Exposure"
+          label="Overdue Exposure"
           value={formatCurrency(defaultAmount)}
-          delta="2.1% of active book"
           tone="rose"
+          isLoading={isLoading}
         />
       </div>
-
 
       {/* Main Charts & Visualizations */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -114,29 +105,35 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="pt-4">
-            <div className="grid grid-cols-6 gap-3 items-end h-52 pb-4">
-              {performanceMonths.map((m) => {
-                const barHeight = (m.disbursed / maxDisbursed) * 100;
-                return (
-                  <div key={m.month} className="flex flex-col items-center gap-2 h-full justify-end">
-                    <span className="text-[10px] font-mono text-[#8A94A3]">
-                      {(m.disbursed / 1000).toFixed(0)}k
-                    </span>
-                    <div className="w-full max-w-[36px] flex flex-col gap-1 items-center">
-                      <div
-                        className="w-full bg-[#14181F] rounded-t transition-all hover:bg-[#314259]"
-                        style={{ height: `${barHeight}%` }}
-                      />
-                      <div
-                        className="w-full bg-[#059669] rounded-t transition-all"
-                        style={{ height: `${barHeight * 0.15}%` }}
-                      />
+            {performanceMonths.length === 0 ? (
+              <div className="flex h-52 items-center justify-center text-xs text-[#8A94A3]">
+                No monthly disbursement data available yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-6 gap-3 items-end h-52 pb-4">
+                {performanceMonths.map((m) => {
+                  const barHeight = maxDisbursed > 0 ? (m.disbursed / maxDisbursed) * 100 : 0;
+                  return (
+                    <div key={m.month} className="flex flex-col items-center gap-2 h-full justify-end">
+                      <span className="text-[10px] font-mono text-[#8A94A3]">
+                        {(m.disbursed / 1000).toFixed(0)}k
+                      </span>
+                      <div className="w-full max-w-[36px] flex flex-col gap-1 items-center">
+                        <div
+                          className="w-full bg-[#14181F] rounded-t transition-all hover:bg-[#314259]"
+                          style={{ height: `${barHeight}%` }}
+                        />
+                        <div
+                          className="w-full bg-[#059669] rounded-t transition-all"
+                          style={{ height: `${barHeight * 0.15}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-[#55606D]">{m.month}</span>
                     </div>
-                    <span className="text-xs font-medium text-[#55606D]">{m.month}</span>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -146,47 +143,37 @@ export default function AnalyticsPage() {
             <h3 className="text-sm font-semibold text-[#14181F]">
               Collateral Vault Composition
             </h3>
-            <p className="text-xs text-[#8A94A3]">Weighted exposure by asset type</p>
+            <p className="text-xs text-[#8A94A3]">Summary of active pledged portfolio</p>
           </div>
 
           <div className="space-y-4 pt-2">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-[#14181F]">22K / 24K Gold Jewelry</span>
-                <span className="font-mono text-[#55606D]">82.4% (₹11.95L)</span>
+                <span className="font-semibold text-[#14181F]">Active Loan Portfolio</span>
+                <span className="font-mono text-[#55606D]">{formatCurrency(activeLoanAmount)}</span>
               </div>
               <div className="h-2 w-full rounded-full bg-[#F6F7F8] overflow-hidden">
-                <div className="h-full bg-[#D97706] rounded-full" style={{ width: "82.4%" }} />
+                <div className="h-full bg-[#D97706] rounded-full" style={{ width: activeLoanAmount > 0 ? "100%" : "0%" }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-[#14181F]">Silver Articles / Bullion</span>
-                <span className="font-mono text-[#55606D]">11.8% (₹1.71L)</span>
+                <span className="font-semibold text-[#14181F]">Settled Loans</span>
+                <span className="font-mono text-[#55606D]">{formatCurrency(settledAmount)}</span>
               </div>
               <div className="h-2 w-full rounded-full bg-[#F6F7F8] overflow-hidden">
-                <div className="h-full bg-[#314259] rounded-full" style={{ width: "11.8%" }} />
+                <div className="h-full bg-[#314259] rounded-full" style={{ width: settledAmount > 0 ? "100%" : "0%" }} />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-[#14181F]">Diamonds &amp; Gemstones</span>
-                <span className="font-mono text-[#55606D]">4.2% (₹60.9K)</span>
+                <span className="font-semibold text-[#14181F]">Overdue Exposure</span>
+                <span className="font-mono text-[#55606D]">{formatCurrency(defaultAmount)}</span>
               </div>
               <div className="h-2 w-full rounded-full bg-[#F6F7F8] overflow-hidden">
-                <div className="h-full bg-[#2563EB] rounded-full" style={{ width: "4.2%" }} />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-[#14181F]">Watches &amp; Luxury</span>
-                <span className="font-mono text-[#55606D]">1.6% (₹23.2K)</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-[#F6F7F8] overflow-hidden">
-                <div className="h-full bg-[#8A94A3] rounded-full" style={{ width: "1.6%" }} />
+                <div className="h-full bg-[#E11D48] rounded-full" style={{ width: defaultAmount > 0 ? "100%" : "0%" }} />
               </div>
             </div>
           </div>

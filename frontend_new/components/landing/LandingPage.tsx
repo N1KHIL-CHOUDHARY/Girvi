@@ -62,13 +62,13 @@ export function LandingPage() {
     setMobileMenuOpen(false);
   };
 
-  const mockCustomers = [
+  const demoCustomers = [
     { id: "1", name: "David Miller", city: "Chicago", tickets: 2, totalLoan: 2500, kyc: "Verified" },
     { id: "2", name: "Sophia Martinez", city: "Miami", tickets: 1, totalLoan: 850, kyc: "Verified" },
     { id: "3", name: "James Wilson", city: "Dallas", tickets: 3, totalLoan: 4200, kyc: "Pending Docs" },
     { id: "4", name: "Emma Thompson", city: "New York", tickets: 0, totalLoan: 0, kyc: "Verified" },
   ];
-  const filteredCustomers = mockCustomers.filter((c) =>
+  const filteredCustomers = demoCustomers.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

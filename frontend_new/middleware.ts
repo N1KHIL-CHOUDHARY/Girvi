@@ -4,12 +4,6 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
   const { pathname } = request.nextUrl;
-  const isDev = process.env.NODE_ENV === "development";
-
-  // In development, allow free navigation across all pages without authentication
-  if (isDev) {
-    return NextResponse.next();
-  }
 
   const isAuthPage =
     pathname === "/login" ||

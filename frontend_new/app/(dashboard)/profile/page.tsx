@@ -15,28 +15,41 @@ import { Badge } from "@/components/ui/Badge";
 import { profileApi } from "@/services/api";
 
 export default function ProfilePage() {
-  const { data: profileData } = useQuery({
-
+  const { data: profileResponse, isLoading } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
       const res = await profileApi.getProfile<any>();
-      return res.data;
+      return res;
     },
   });
 
-  const profile = profileData || {
-    full_name: "Nikhil Choudhary",
-    email: "nikhil@grivi.io",
-    role: "Administrator",
+  const profile = profileResponse?.data?.user || profileResponse?.data || null;
 
-    phone: "+91 98765 43210",
-    shop: {
-      id: "SH-2026-HQ",
-      name: "Choudhary Jewelers & Pawn Brokers",
-      phone: "+91 98765 00000",
-      address: "Suite 402, Zaveri Bazaar, Mumbai 400002",
-    },
-  };
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6 animate-pulse">
+        <div className="h-6 w-32 rounded bg-[#F6F7F8]" />
+        <div className="h-48 rounded-xl bg-[#F6F7F8]" />
+        <div className="h-48 rounded-xl bg-[#F6F7F8]" />
+      </div>
+    );
+  }
+
+  const fullName = profile?.full_name || profile?.fullName || "User";
+  const email = profile?.email || "No email available";
+  const role = profile?.role || "Staff";
+  const phone = profile?.phone || profile?.phone_number || "Not set";
+  const shopName = profile?.shop?.name || "Main Store";
+  const shopId = profile?.shop?.id || "—";
+  const shopAddress = profile?.shop?.address || "Address not provided";
+
+  const initials = fullName
+    .split(" ")
+    .filter(Boolean)
+    .map((p: string) => p[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase() || "U";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -59,16 +72,16 @@ export default function ProfilePage() {
       <div className="rounded-xl border border-[#E7E9EC] bg-white p-6 space-y-6">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#F6F7F8] border border-[#E7E9EC] text-2xl font-semibold text-[#314259]">
-            {(profile.full_name || "AD").substring(0, 2).toUpperCase()}
+            {initials}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-[#14181F]">
-                {profile.full_name}
+                {fullName}
               </h2>
-              <Badge tone="info">{profile.role?.toUpperCase() || "ADMIN"}</Badge>
+              <Badge tone="info">{String(role).toUpperCase()}</Badge>
             </div>
-            <p className="text-xs text-[#8A94A3] mt-0.5">{profile.email}</p>
+            <p className="text-xs text-[#8A94A3] mt-0.5">{email}</p>
           </div>
         </div>
 
@@ -77,7 +90,7 @@ export default function ProfilePage() {
             <span className="text-[11px] text-[#8A94A3] block">Phone Contact</span>
             <div className="flex items-center gap-2 text-[#14181F]">
               <Phone className="h-3.5 w-3.5 text-[#8A94A3]" />
-              <span className="font-mono">{profile.phone || "Not set"}</span>
+              <span className="font-mono">{phone}</span>
             </div>
           </div>
 
@@ -85,7 +98,7 @@ export default function ProfilePage() {
             <span className="text-[11px] text-[#8A94A3] block">Account Authority</span>
             <div className="flex items-center gap-2 text-[#059669] font-medium">
               <Shield className="h-3.5 w-3.5" />
-              <span>Full System Administrator Access</span>
+              <span className="capitalize">{String(role)} Permissions</span>
             </div>
           </div>
         </div>
@@ -104,14 +117,14 @@ export default function ProfilePage() {
           <div>
             <span className="text-[11px] text-[#8A94A3] block">Business Name</span>
             <span className="font-semibold text-[#14181F]">
-              {profile.shop?.name || "Main Branch"}
+              {shopName}
             </span>
           </div>
 
           <div>
             <span className="text-[11px] text-[#8A94A3] block">Store ID</span>
             <span className="font-mono text-[#55606D]">
-              {profile.shop?.id || "SH-2026-HQ"}
+              {shopId}
             </span>
           </div>
 
@@ -119,7 +132,7 @@ export default function ProfilePage() {
             <span className="text-[11px] text-[#8A94A3] block">Registered Address</span>
             <div className="flex items-start gap-2 mt-1 text-[#55606D]">
               <MapPin className="h-3.5 w-3.5 text-[#8A94A3] shrink-0 mt-0.5" />
-              <span>{profile.shop?.address || "Address registered on file"}</span>
+              <span>{shopAddress}</span>
             </div>
           </div>
         </div>

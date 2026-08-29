@@ -100,36 +100,28 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Active Loan Portfolio"
-          value={formatCurrency(stats?.total_loan_active ?? 184250)}
-          delta="4.2%"
-          deltaDirection="up"
-          subtitle="vs last month"
+          value={formatCurrency(stats?.total_loan_active ?? 0)}
           icon={Wallet}
           tone="navy"
           isLoading={isLoading}
         />
         <StatCard
           label="Monthly Disbursed"
-          value={formatCurrency(stats?.monthly_loan_given ?? 42500)}
-          subtitle="38 loans created"
+          value={formatCurrency(stats?.monthly_loan_given ?? 0)}
           icon={TrendingUp}
           tone="navy"
           isLoading={isLoading}
         />
         <StatCard
           label="Active Pawn Tickets"
-          value={String(stats?.total_active_tickets ?? 38)}
-          subtitle="1 overdue ticket"
+          value={String(stats?.total_active_tickets ?? 0)}
           icon={Ticket}
           tone="navy"
           isLoading={isLoading}
         />
         <StatCard
           label="Interest Realized"
-          value={formatCurrency(stats?.interest_collected ?? 4850)}
-          delta="12.0%"
-          deltaDirection="up"
-          subtitle="accrued this cycle"
+          value={formatCurrency(stats?.interest_collected ?? 0)}
           icon={DollarSign}
           tone="emerald"
           isLoading={isLoading}

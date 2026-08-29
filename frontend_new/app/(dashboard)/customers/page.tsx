@@ -223,15 +223,17 @@ export default function Customers() {
             KYC Compliance
           </span>
           <p className="mt-1 text-2xl font-semibold font-mono text-[#059669]">
-            98.4%
+            {totalCount > 0 && customers.length > 0
+              ? `${Math.round((customers.filter((c) => Boolean(c.aadhaar_number)).length / customers.length) * 100)}%`
+              : "0%"}
           </p>
         </div>
         <div className="rounded-xl border border-[#E7E9EC] bg-white p-4">
           <span className="text-[11px] font-medium text-[#8A94A3] uppercase tracking-wider block">
-            Active Pledgers
+            Verified Profiles
           </span>
           <p className="mt-1 text-2xl font-semibold font-mono text-[#14181F]">
-            {Math.max(1, Math.round(totalCount * 0.82))}
+            {customers.filter((c) => Boolean(c.aadhaar_number || c.pan_number)).length}
           </p>
         </div>
       </div>

@@ -26,43 +26,7 @@ interface NotificationItem {
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "n-1",
-      title: "Loan Overdue Notice",
-      message: "Ticket T-8821 for Rajesh Kumar has surpassed 90 days without interest settlement.",
-      timestamp: "10 mins ago",
-      read: false,
-      type: "warning",
-      ticketId: "mock-ticket-1",
-    },
-    {
-      id: "n-2",
-      title: "Interest Payment Received",
-      message: "₹4,500 interest received on Ticket T-9042 from Anita Patel via Cash.",
-      timestamp: "1 hour ago",
-      read: false,
-      type: "success",
-      ticketId: "mock-ticket-2",
-    },
-    {
-      id: "n-3",
-      title: "KYC Verification Complete",
-      message: "Aadhaar and PAN details for Vikram Singh successfully verified.",
-      timestamp: "3 hours ago",
-      read: true,
-      type: "info",
-      customerId: "mock-cust-1",
-    },
-    {
-      id: "n-4",
-      title: "Collateral Released",
-      message: "Loan Ticket T-7612 settled and 22K Gold Chain released to borrower.",
-      timestamp: "Yesterday",
-      read: true,
-      type: "info",
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const [filter, setFilter] = useState<"all" | "unread">("all");
 

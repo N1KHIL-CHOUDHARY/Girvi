@@ -190,38 +190,14 @@ apiClient.interceptors.response.use(
   }
 );
 
-import {
-  devUserProfile,
-  devDashboardStats,
-  devCustomers,
-  devPawnTickets,
-  devPayments,
-  devEmployees,
-  devRoles,
-} from "./devMockData";
-
 export const signup = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/auth/signup", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Signed up in development mode", data: { token: "dev-jwt-token" } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/auth/signup", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const login = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/auth/login", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Logged in in development mode", data: { token: "dev-jwt-token" } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/auth/login", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const logout = async <T = unknown>(): Promise<ApiResponse<T>> => {
@@ -234,15 +210,8 @@ export const logout = async <T = unknown>(): Promise<ApiResponse<T>> => {
 };
 
 export const getProfile = async <T = unknown>(): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>("/app/profile/me");
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, data: devUserProfile as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>("/app/profile/me");
+  return res as unknown as ApiResponse<T>;
 };
 
 export const changePassword = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
@@ -251,373 +220,144 @@ export const changePassword = async <T = unknown>(data: unknown): Promise<ApiRes
 };
 
 export const updateUserPreferences = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.put<ApiResponse<T>>("/app/profile/users/preferences", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Preferences updated", data: data as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.put<ApiResponse<T>>("/app/profile/users/preferences", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getAccounts = async <T = unknown>(page = 1, search = ""): Promise<ApiResponse<T>> => {
-  try {
-    const params = buildCleanParams({ page, search, limit: 10 });
-    const res = await apiClient.get<ApiResponse<T>>("/app/customers", { params });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const filtered = devCustomers.filter((c) =>
-        !search ? true : c.full_name.toLowerCase().includes(search.toLowerCase()) || c.phone_number.includes(search)
-      );
-      return {
-        success: true,
-        data: filtered as unknown as T,
-        meta: { total: filtered.length, page, limit: 10, totalPages: 1 },
-      };
-    }
-    throw err;
-  }
+  const params = buildCleanParams({ page, search, limit: 10 });
+  const res = await apiClient.get<ApiResponse<T>>("/app/customers", { params });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getAccountById = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const found = devCustomers.find((c) => c.id === id) || devCustomers[0];
-      return { success: true, data: found as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const createAccount = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/app/customers", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Customer created", data: { id: `cust-${Date.now()}`, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/app/customers", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const updateAccount = async <T = unknown>(id: string, data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.put<ApiResponse<T>>(`/app/customers/${id}`, data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Customer updated", data: { id, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.put<ApiResponse<T>>(`/app/customers/${id}`, data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const deleteAccount = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.delete<ApiResponse<T>>(`/app/customers/${id}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Customer deleted" } as any;
-    }
-    throw err;
-  }
+  const res = await apiClient.delete<ApiResponse<T>>(`/app/customers/${id}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getAccountStats = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}/stats`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return {
-        success: true,
-        data: {
-          stats: {
-            total_active_loan: 1200,
-            total_loan_value: 2500,
-            total_tickets: 2,
-            active_tickets: 1,
-            total_interest_paid: 120,
-            total_principal_paid: 1300,
-          },
-        } as any,
-      };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}/stats`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getCustomerTickets = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}/tickets`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const tickets = devPawnTickets.filter((t) => t.customer_id === id || t.customer?.id === id);
-      return { success: true, data: (tickets.length > 0 ? tickets : [devPawnTickets[0]]) as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>(`/app/customers/${id}/tickets`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getPawnTicketsByAccountId = getCustomerTickets;
 
 export const getPawnTickets = async <T = unknown>(page = 1, search = "", status = ""): Promise<ApiResponse<T>> => {
-  try {
-    const params = buildCleanParams({ page, search, status, limit: 10 });
-    const res = await apiClient.get<ApiResponse<T>>("/app/pawns", { params });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      let list = devPawnTickets;
-      if (status && status !== "all") {
-        list = list.filter((t) => t.status === status);
-      }
-      if (search) {
-        list = list.filter(
-          (t) =>
-            t.ticket_number.toLowerCase().includes(search.toLowerCase()) ||
-            t.customer?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-            t.items?.[0]?.name?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      return {
-        success: true,
-        data: list as unknown as T,
-        meta: { total: list.length, page, limit: 10, totalPages: 1 },
-      };
-    }
-    throw err;
-  }
+  const params = buildCleanParams({ page, search, status, limit: 10 });
+  const res = await apiClient.get<ApiResponse<T>>("/app/pawns", { params });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getPawnTicketById = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>(`/app/pawns/${id}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const found = devPawnTickets.find((t) => t.id === id) || devPawnTickets[0];
-      return { success: true, data: found as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>(`/app/pawns/${id}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const createPawnTicket = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/app/pawns", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Ticket created", data: { id: `pt-${Date.now()}`, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/app/pawns", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const updatePawnTicket = async <T = unknown>(id: string, data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.put<ApiResponse<T>>(`/app/pawns/${id}`, data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Ticket updated", data: { id, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.put<ApiResponse<T>>(`/app/pawns/${id}`, data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const deletePawnTicket = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.delete<ApiResponse<T>>(`/app/pawns/${id}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Ticket deleted" } as any;
-    }
-    throw err;
-  }
+  const res = await apiClient.delete<ApiResponse<T>>(`/app/pawns/${id}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const updatePawnTicketStatus = async <T = unknown>(id: string, status: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.patch<ApiResponse<T>>(`/app/pawns/${id}/status`, { status });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: `Status updated to ${status}`, data: { id, status } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.patch<ApiResponse<T>>(`/app/pawns/${id}/status`, { status });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getPaymentsForTicket = async <T = unknown>(ticketId: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>(`/app/payments/ticket/${ticketId}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const filtered = devPayments.filter((p) => p.ticket_id === ticketId);
-      return { success: true, data: (filtered.length > 0 ? filtered : devPayments.slice(0, 2)) as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>(`/app/payments/ticket/${ticketId}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const createPayment = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/app/payments", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Payment recorded", data: { id: `pay-${Date.now()}`, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/app/payments", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getEmployees = async <T = unknown>(): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>("/app/employees");
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, data: devEmployees as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>("/app/employees");
+  return res as unknown as ApiResponse<T>;
 };
 
 export const createEmployee = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/app/employees", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Employee created", data: { id: `emp-${Date.now()}`, ...(data as any) } as any };
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/app/employees", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const deleteEmployee = async <T = unknown>(id: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.delete<ApiResponse<T>>(`/app/employees/${id}`);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Employee deleted" } as any;
-    }
-    throw err;
-  }
+  const res = await apiClient.delete<ApiResponse<T>>(`/app/employees/${id}`);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getRoles = async <T = unknown>(): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>("/app/roles");
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, data: devRoles as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>("/app/roles");
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getFinancialReport = async <T = unknown>(page = 1, search = ""): Promise<ApiResponse<T>> => {
-  try {
-    const params = buildCleanParams({ page, search, limit: 10 });
-    const res = await apiClient.get<ApiResponse<T>>("/app/reports/financial", { params });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      const rows = devPawnTickets.map((t) => ({
-        id: t.id,
-        ticket_number: t.ticket_number,
-        customer_name: t.customer?.full_name ?? "Customer",
-        original_loan_amount: Number(t.original_loan_amount),
-        loan_amount: Number(t.loan_amount),
-        total_interest_paid: Number(t.loan_amount) * 0.06,
-        total_principal_paid: t.status === "settled" ? Number(t.original_loan_amount) : 0,
-        status: t.status,
-      }));
-      return {
-        success: true,
-        data: rows as unknown as T,
-        meta: { total: rows.length, page, limit: 10, totalPages: 1 },
-      };
-    }
-    throw err;
-  }
+  const params = buildCleanParams({ page, search, limit: 10 });
+  const res = await apiClient.get<ApiResponse<T>>("/app/reports/financial", { params });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getPaymentsLedger = getFinancialReport;
 
 export const fetchDashboardStats = async <T = unknown>(): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.get<ApiResponse<T>>("/app/reports/dashboard");
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, data: devDashboardStats as unknown as T };
-    }
-    throw err;
-  }
+  const res = await apiClient.get<ApiResponse<T>>("/app/reports/dashboard");
+  return res as unknown as ApiResponse<T>;
 };
 
 export const getDashboardStats = fetchDashboardStats;
 
-
 export const uploadFile = async <T = unknown>(fileOrFormData: File | FormData): Promise<ApiResponse<T>> => {
-  try {
-    let body: FormData;
-    if (typeof File !== "undefined" && fileOrFormData instanceof File) {
-      body = new FormData();
-      body.append("file", fileOrFormData);
-    } else {
-      body = fileOrFormData as FormData;
-    }
-    const res = await apiClient.post<ApiResponse<T>>("/app/upload", body, { headers: { "Content-Type": "multipart/form-data" } });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, data: { url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80" } as any };
-    }
-    throw err;
+  let body: FormData;
+  if (typeof File !== "undefined" && fileOrFormData instanceof File) {
+    body = new FormData();
+    body.append("file", fileOrFormData);
+  } else {
+    body = fileOrFormData as FormData;
   }
+  const res = await apiClient.post<ApiResponse<T>>("/app/upload", body, { headers: { "Content-Type": "multipart/form-data" } });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const forgotPassword = async <T = unknown>(email: string): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/auth/forgot-password", { email });
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Reset link sent" } as any;
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/auth/forgot-password", { email });
+  return res as unknown as ApiResponse<T>;
 };
 
 export const resetPassword = async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-  try {
-    const res = await apiClient.post<ApiResponse<T>>("/auth/reset-password", data);
-    return res as unknown as ApiResponse<T>;
-  } catch (err) {
-    if (process.env.NODE_ENV === "development") {
-      return { success: true, message: "Password reset" } as any;
-    }
-    throw err;
-  }
+  const res = await apiClient.post<ApiResponse<T>>("/auth/reset-password", data);
+  return res as unknown as ApiResponse<T>;
 };
 
 export const profileApi = {
@@ -625,28 +365,13 @@ export const profileApi = {
     return getProfile<T>();
   },
   updateProfile: async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-    try {
-      const res = await apiClient.patch<ApiResponse<T>>("/app/profile/me", data);
-      return res as unknown as ApiResponse<T>;
-    } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        return { success: true, message: "Profile updated", data: data as any };
-      }
-      throw err;
-    }
+    const res = await apiClient.patch<ApiResponse<T>>("/app/profile/me", data);
+    return res as unknown as ApiResponse<T>;
   },
   changePassword: async <T = unknown>(data: unknown): Promise<ApiResponse<T>> => {
-    try {
-      const res = await apiClient.post<ApiResponse<T>>("/app/profile/change-password", data);
-      return res as unknown as ApiResponse<T>;
-    } catch (err) {
-      if (process.env.NODE_ENV === "development") {
-        return { success: true, message: "Password changed" } as any;
-      }
-      throw err;
-    }
+    const res = await apiClient.post<ApiResponse<T>>("/app/profile/change-password", data);
+    return res as unknown as ApiResponse<T>;
   },
 };
 
 export default apiClient;
-

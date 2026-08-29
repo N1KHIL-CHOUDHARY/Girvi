@@ -11,12 +11,19 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   applicationName: "GRIVI",
+
   title: {
     default: "GRIVI — Pawn & Pledge Management",
     template: "%s | GRIVI",
   },
+
   description:
     "GRIVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
+
+  verification: {
+    google: "5ZYZFZoEHymcKOhBNcpQlLewaUzMs2HLFd9IOuW6KPM",
+  },
+
   openGraph: {
     title: "GRIVI — Pawn & Pledge Management",
     description:
@@ -24,6 +31,7 @@ export const metadata: Metadata = {
     siteName: "GRIVI",
     type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
     title: "GRIVI — Pawn & Pledge Management",
@@ -31,7 +39,6 @@ export const metadata: Metadata = {
       "GRIVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
   },
 };
-
 
 export default function RootLayout({
   children,
@@ -46,4 +53,3 @@ export default function RootLayout({
     </html>
   );
 }
-
