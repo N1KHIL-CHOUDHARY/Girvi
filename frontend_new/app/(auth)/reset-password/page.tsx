@@ -3,11 +3,12 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { KeyRound, Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { resetPassword, getApiErrorMessage } from "@/services/api";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
+import { AuthLayout } from "@/app/(auth)/AuthLayout";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -62,14 +63,14 @@ function ResetPasswordForm() {
   return (
     <>
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
           <span>{success}</span>
         </div>
@@ -138,24 +139,21 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <div className="w-full max-w-sm rounded-xl border border-[#E7E9EC] bg-white p-7 sm:p-8 space-y-6">
-      <div className="flex flex-col items-center text-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#314259] text-white">
-          <KeyRound className="h-5 w-5" />
-        </div>
-        <h1 className="mt-3 text-base font-semibold text-[#14181F]">
-          Set new password
-        </h1>
-        <p className="mt-0.5 text-xs text-[#8A94A3]">
-          Create a secure password for your account
-        </p>
+    <AuthLayout
+      eyebrow="New password"
+      headline="Choose a password you'll remember."
+      subtext="This resets access for your entire store workspace, not just one device."
+    >
+      <div className="mb-7">
+        <h1 className="text-xl font-semibold text-[#14181F]">Set new password</h1>
+        <p className="mt-1 text-[13px] text-[#8A94A3]">Create a secure password for your account.</p>
       </div>
 
       <Suspense fallback={<div className="py-6 text-center text-xs text-[#8A94A3]">Loading token...</div>}>
         <ResetPasswordForm />
       </Suspense>
 
-      <div className="border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+      <div className="mt-6 border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
         <Link
           href="/login"
           className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline"
@@ -164,7 +162,6 @@ export default function ResetPassword() {
           <span>Return to login</span>
         </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
-

@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
 import { signup, setStoredToken, getApiErrorMessage } from "@/services/api";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
+import { AuthLayout } from "@/app/(auth)/AuthLayout";
 import type { AuthResponse } from "@/types/auth";
 
 interface SignupForm {
@@ -72,21 +73,18 @@ export default function Signup() {
   };
 
   return (
-    <div className="w-full max-w-sm rounded-xl border border-[#E7E9EC] bg-white p-7 sm:p-8 space-y-6">
-      <div className="flex flex-col items-center text-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#314259] text-white">
-          <ShieldCheck className="h-5 w-5" />
-        </div>
-        <h1 className="mt-3 text-base font-semibold text-[#14181F]">
-          Create store workspace
-        </h1>
-        <p className="mt-0.5 text-xs text-[#8A94A3]">
-          Start managing collateralized pawn loans
-        </p>
+    <AuthLayout
+      eyebrow="Early access"
+      headline="Set up your store's ledger in minutes."
+      subtext="No installs, no spreadsheets — just customers, tickets and repayments in one place."
+    >
+      <div className="mb-7">
+        <h1 className="text-xl font-semibold text-[#14181F]">Create store workspace</h1>
+        <p className="mt-1 text-[13px] text-[#8A94A3]">Start managing collateralized pawn loans.</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
@@ -152,7 +150,6 @@ export default function Signup() {
             disabled={isLoading}
             required
           />
-
         </div>
 
         <div>
@@ -195,12 +192,12 @@ export default function Signup() {
         </Button>
       </form>
 
-      <div className="border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+      <div className="mt-6 border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
         Already have an account?{" "}
         <Link href="/login" className="font-semibold text-[#14181F] hover:underline">
           Sign in
         </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
-}
+}
