@@ -1,24 +1,19 @@
-# Stage 1: Build
 FROM node:22-alpine AS builder
 
 WORKDIR /usr/src/app
 
-# Install pnpm globally
 RUN npm install -g pnpm
 
 COPY package.json pnpm-lock.yaml* tsconfig.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies (including devDependencies)
 RUN pnpm install --frozen-lockfile
 
 COPY src ./src
 
-# Generate Prisma Client and build the TypeScript application
 RUN pnpm prisma:generate
 RUN pnpm build
 
-# Stage 2: Production
 FROM node:22-alpine
 
 WORKDIR /usr/src/app
@@ -28,16 +23,13 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml* ./
 COPY prisma ./prisma/
 
-# Install only production dependencies
 RUN pnpm install --prod --frozen-lockfile
 
-# Generate Prisma Client for the production environment
-RUN pnpm prisma generate
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/src/app/node_modules/@prisma ./node_modules/@prisma
 
-# Ensure uploads storage folder exists
 RUN mkdir -p storage/uploads
 
-# Copy compiled JavaScript files from build stage
 COPY --from=builder /usr/src/app/dist ./dist
 
 EXPOSE 5000
