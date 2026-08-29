@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -97,12 +98,17 @@ export function Sidebar({
             href="/dashboard"
             prefetch={false}
             onClick={onClose}
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-2.5 group"
           >
-            <div className="h-7 w-7 rounded-md bg-[#314259] flex items-center justify-center text-white shrink-0">
-              <Ticket className="h-3.5 w-3.5 rotate-12" strokeWidth={2} />
-            </div>
-            <span className="font-semibold text-[15px] tracking-tight text-[#14181F]">
+            <Image
+              src="/icon.png"
+              alt="GIRVI Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain shrink-0"
+              priority
+            />
+            <span className="font-semibold text-[15px] tracking-tight text-[#14181F] group-hover:text-black transition-colors">
               GIRVI
             </span>
           </Link>

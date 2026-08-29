@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "./SideBar";
 import { Topbar } from "./TopBar";
@@ -23,7 +22,6 @@ interface UserProfile {
 const AppShellContext = createContext(false);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const isInside = useContext(AppShellContext);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -40,19 +38,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  const isPublicPage =
-    pathname === "/" ||
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    pathname === "/register" ||
-    pathname === "/forgot-password" ||
-    pathname === "/reset-password" ||
-    pathname === "/onboarding" ||
-    pathname === "/not-found";
-
-  if (isPublicPage) {
-    return <div className="min-h-screen bg-[#F6F7F8]">{children}</div>;
-  }
 
   const userName =
     profileData?.user?.full_name || profileData?.full_name || "Store Manager";
