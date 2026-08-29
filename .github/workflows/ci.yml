@@ -1,70 +1,21 @@
-name: Node.js CI
-
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
-
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pawn_manager
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm package manager
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.15.0
-
-      - name: Setup Node.js environment
+- name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: './backend/pnpm-lock.yaml'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
 
       - name: Set Environment Variables Template
         run: cp .env.example .env
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate Prisma Client bindings
-        run: pnpm prisma:generate
+        run: npx prisma generate
 
       - name: Run unit test suites
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pawn_manager?schema=public
           REDIS_URL: redis://localhost:6379
-        run: pnpm test
+        run: npm test
