@@ -3,12 +3,11 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Wallet, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { KeyRound, Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { resetPassword, getApiErrorMessage } from "@/services/api";
-
-const inputClass =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66] disabled:cursor-not-allowed disabled:opacity-50";
-const labelClass = "mb-1.5 block text-xs font-medium text-slate-500";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -52,7 +51,7 @@ function ResetPasswordForm() {
       setSuccess("Your password has been reset successfully. Redirecting to login...");
       setTimeout(() => {
         router.push("/login");
-      }, 3000);
+      }, 2500);
     } catch (err) {
       setError(getApiErrorMessage(err, "Failed to reset password. The link may have expired."));
     } finally {
@@ -63,28 +62,29 @@ function ResetPasswordForm() {
   return (
     <>
       {error && (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-4 text-sm text-rose-800">
-          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 text-sm text-emerald-800">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+        <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
           <span>{success}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="password" className={labelClass}>New Password</label>
+          <Label htmlFor="password" required>
+            New Password
+          </Label>
           <div className="relative">
-            <input
+            <Input
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              className={`${inputClass} pr-10`}
               value={password}
               onChange={(e) => {
                 setError(null);
@@ -96,7 +96,8 @@ function ResetPasswordForm() {
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A94A3] hover:text-[#14181F]"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -104,12 +105,13 @@ function ResetPasswordForm() {
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className={labelClass}>Confirm Password</label>
-          <input
+          <Label htmlFor="confirmPassword" required>
+            Confirm New Password
+          </Label>
+          <Input
             id="confirmPassword"
             type="password"
             placeholder="••••••••"
-            className={inputClass}
             value={confirmPassword}
             onChange={(e) => {
               setError(null);
@@ -120,14 +122,15 @@ function ResetPasswordForm() {
           />
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full flex items-center justify-center rounded-xl bg-[#1E3A66] py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:opacity-50"
+          variant="primary"
+          className="w-full"
+          isLoading={isLoading}
+          rightIcon={<ArrowRight className="h-4 w-4" />}
         >
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-          Reset Password
-        </button>
+          Update Password
+        </Button>
       </form>
     </>
   );
@@ -135,29 +138,33 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA] p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-sm sm:p-10">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#1E3A66]">
-            <Wallet className="h-5 w-5 text-white" strokeWidth={2.2} />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reset Password</h1>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Set your new credentials below
-          </p>
+    <div className="w-full max-w-sm rounded-xl border border-[#E7E9EC] bg-white p-7 sm:p-8 space-y-6">
+      <div className="flex flex-col items-center text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#314259] text-white">
+          <KeyRound className="h-5 w-5" />
         </div>
-
-        <Suspense fallback={<div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-[#1E3A66]" /></div>}>
-          <ResetPasswordForm />
-        </Suspense>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Back to{" "}
-          <Link href="/login" className="font-medium text-[#1E3A66]">
-            Log in
-          </Link>
+        <h1 className="mt-3 text-base font-semibold text-[#14181F]">
+          Set new password
+        </h1>
+        <p className="mt-0.5 text-xs text-[#8A94A3]">
+          Create a secure password for your account
         </p>
+      </div>
+
+      <Suspense fallback={<div className="py-6 text-center text-xs text-[#8A94A3]">Loading token...</div>}>
+        <ResetPasswordForm />
+      </Suspense>
+
+      <div className="border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Return to login</span>
+        </Link>
       </div>
     </div>
   );
 }
+

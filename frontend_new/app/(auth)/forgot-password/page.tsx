@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Wallet, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { KeyRound, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { forgotPassword, getApiErrorMessage } from "@/services/api";
-
-const inputClass =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66] disabled:cursor-not-allowed disabled:opacity-50";
-const labelClass = "mb-1.5 block text-xs font-medium text-slate-500";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -39,67 +38,74 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA] p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-sm sm:p-10">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#1E3A66]">
-            <Wallet className="h-5 w-5 text-white" strokeWidth={2.2} />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Forgot Password</h1>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Enter your email to receive a password reset link
-          </p>
+    <div className="w-full max-w-sm rounded-xl border border-[#E7E9EC] bg-white p-7 sm:p-8 space-y-6">
+      <div className="flex flex-col items-center text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#314259] text-white">
+          <KeyRound className="h-5 w-5" />
+        </div>
+        <h1 className="mt-3 text-base font-semibold text-[#14181F]">
+          Recover access
+        </h1>
+        <p className="mt-0.5 text-xs text-[#8A94A3]">
+          Enter your registered email to reset your credentials
+        </p>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+          <span>{success}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="email" required>
+            Registered Email Address
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="admin@grivi.io"
+            value={email}
+            onChange={(e) => {
+              setError(null);
+              setEmail(e.target.value);
+            }}
+            disabled={isLoading}
+            required
+          />
+
         </div>
 
-        {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-4 text-sm text-rose-800">
-            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
-            <span>{error}</span>
-          </div>
-        )}
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full"
+          isLoading={isLoading}
+          rightIcon={<ArrowRight className="h-4 w-4" />}
+        >
+          Send Reset Instructions
+        </Button>
+      </form>
 
-        {success && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 text-sm text-emerald-800">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
-            <span>{success}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className={labelClass}>Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="bala@gmail.com"
-              className={inputClass}
-              value={email}
-              onChange={(e) => {
-                setError(null);
-                setEmail(e.target.value);
-              }}
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex items-center justify-center rounded-xl bg-[#1E3A66] py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:opacity-50"
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Send Reset Link
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Back to{" "}
-          <Link href="/login" className="font-medium text-[#1E3A66]">
-            Log in
-          </Link>
-        </p>
+      <div className="border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Return to login</span>
+        </Link>
       </div>
     </div>
   );
 }
+
