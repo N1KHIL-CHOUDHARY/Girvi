@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataTable, Column } from "@/components/ui/DataTable";
 import { StatusBadge } from "@/components/ui/Badge";
 import { usePaymentsLedger } from "@/hooks/usePaymentsLedger";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatCurrency } from "@/lib/format";
-import { Button } from "@/components/ui/Button";
-import { BarChart3, Printer, RefreshCw, AlertCircle, TrendingUp, DollarSign, Wallet } from "lucide-react";
+import { BarChart3, Printer, RefreshCw, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import type { FinancialReportRow } from "@/types/report";
+
 
 export default function Reports() {
   const [page, setPage] = useState(1);
@@ -19,13 +19,11 @@ export default function Reports() {
   const [pageSize, setPageSize] = useState(10);
   const debouncedSearch = useDebounce(search, 300);
 
-  // Query payments ledger report
   const { data, isLoading, error, refetch, isRefetching } = usePaymentsLedger(page, debouncedSearch);
 
   const records = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
 
-  // Simple aggregation totals based on loaded list
   const totalPrincipalLent = records.reduce((sum: number, r: FinancialReportRow) => sum + Number(r.original_loan_amount || 0), 0);
   const totalInterestCollected = records.reduce((sum: number, r: FinancialReportRow) => sum + Number(r.total_interest_paid || 0), 0);
   const activeCount = records.filter((r: FinancialReportRow) => r.status === "active").length;
@@ -34,29 +32,6 @@ export default function Reports() {
     window.print();
   };
 
-  const pageActions = (
-    <div className="flex gap-2 no-print">
-      <Button
-        variant="secondary"
-        onClick={() => void refetch()}
-        isLoading={isRefetching}
-        leftIcon={<RefreshCw className="h-4 w-4" />}
-        size="sm"
-      >
-        Refresh
-      </Button>
-      <Button
-        variant="primary"
-        onClick={handlePrint}
-        leftIcon={<Printer className="h-4 w-4" />}
-        size="sm"
-      >
-        Print Report Vouchers
-      </Button>
-    </div>
-  );
-
-  // Column definitions for the report list
   const columns: Column<FinancialReportRow>[] = [
     {
       key: "ticket_number",
@@ -64,7 +39,7 @@ export default function Reports() {
       render: (r) => (
         <Link
           href={`/pawn-tickets/${r.id}`}
-          className="font-mono font-bold text-[var(--color-primary)] hover:underline"
+          className="font-mono font-semibold text-[#14181F] hover:underline"
         >
           {r.ticket_number}
         </Link>
@@ -73,32 +48,45 @@ export default function Reports() {
     {
       key: "customer_name",
       header: "Customer",
-      render: (r) => <span className="font-semibold text-[var(--color-text-primary)]">{r.customer_name}</span>,
+      render: (r) => <span className="font-semibold text-[#14181F]">{r.customer_name}</span>,
     },
     {
       key: "original_loan_amount",
       header: "Principal Lent",
-      render: (r) => <span className="font-mono text-xs font-semibold text-[var(--color-text-secondary)]">{formatCurrency(r.original_loan_amount)}</span>,
+      render: (r) => (
+        <span className="font-mono text-xs font-semibold text-[#55606D]">
+          {formatCurrency(Number(r.original_loan_amount))}
+        </span>
+      ),
     },
     {
       key: "total_interest_paid",
       header: "Interest Paid",
-      render: (r) => <span className="font-mono text-xs font-bold text-[var(--color-success-text)]">{formatCurrency(r.total_interest_paid)}</span>,
+      render: (r) => (
+        <span className="font-mono text-xs font-semibold text-[#059669]">
+          {formatCurrency(Number(r.total_interest_paid))}
+        </span>
+      ),
     },
     {
       key: "total_principal_paid",
       header: "Principal Returned",
-      render: (r) => <span className="font-mono text-xs font-bold text-[var(--color-info-text)]">{formatCurrency(r.total_principal_paid)}</span>,
+      render: (r) => (
+        <span className="font-mono text-xs font-semibold text-[#2563EB]">
+          {formatCurrency(Number(r.total_principal_paid))}
+        </span>
+      ),
     },
     {
       key: "status",
       header: "Status",
-      render: (r) => <StatusBadge status={r.status.charAt(0).toUpperCase() + r.status.slice(1)} />,
+      align: "right",
+      render: (r) => <StatusBadge status={r.status} />,
     },
   ];
 
   return (
-    <AppShell>
+    <div className="space-y-6">
       {/* Print summary layout header */}
       <div className="print-only border-b border-black pb-4 mb-6 text-sm font-mono bg-white text-center">
         <h1 className="text-lg font-bold">PAWN SHOP MANAGER</h1>
@@ -107,52 +95,70 @@ export default function Reports() {
       </div>
 
       <PageHeader
-        title="Store Financial Audit Reports"
+        eyebrow="Insights →"
+        title="Financial Audit & Reports"
         subtitle="Review global loan capital payouts, active principal balances, interest collections, and auditing records."
-        actions={pageActions}
+        actions={
+          <div className="flex gap-2 no-print">
+            <Button
+              variant="secondary"
+              onClick={() => void refetch()}
+              isLoading={isRefetching}
+              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+              size="sm"
+            >
+              Refresh
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handlePrint}
+              leftIcon={<Printer className="h-3.5 w-3.5" />}
+              size="sm"
+            >
+              Print Vouchers
+            </Button>
+          </div>
+        }
         className="no-print"
       />
 
       {error && (
-        <div className="mb-6 flex items-start gap-3 rounded-[var(--radius-xl)] border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] p-4 text-[var(--color-danger-text)]">
-          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-          <div className="text-sm">
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-900">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-600" />
+          <div className="text-xs">
             <p className="font-bold">Error loading financial audit records</p>
-            <p className="mt-0.5 text-xs opacity-90">{error.message}</p>
+            <p className="mt-0.5 opacity-90">{error.message}</p>
           </div>
         </div>
       )}
 
       {/* Aggregate Report summary cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border-light)] bg-white p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Report Principal Lent</p>
-            <p className="mt-1.5 text-xl font-bold text-[var(--color-text-primary)] font-mono">{formatCurrency(totalPrincipalLent)}</p>
-          </div>
-          <div className="h-9 w-9 rounded-[var(--radius-md)] bg-[var(--color-info-bg)] text-[var(--color-info-text)] flex items-center justify-center border border-[var(--color-info-border)]">
-            <Wallet className="h-4 w-4" />
-          </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-4">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-[#8A94A3] block">
+            Report Principal Lent
+          </span>
+          <p className="mt-1 text-2xl font-semibold font-mono text-[#14181F]">
+            {formatCurrency(totalPrincipalLent)}
+          </p>
         </div>
 
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border-light)] bg-white p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Report Interest Paid</p>
-            <p className="mt-1.5 text-xl font-bold text-[var(--color-success-text)] font-mono">{formatCurrency(totalInterestCollected)}</p>
-          </div>
-          <div className="h-9 w-9 rounded-[var(--radius-md)] bg-[var(--color-success-bg)] text-[var(--color-success-text)] flex items-center justify-center border border-[var(--color-success-border)]">
-            <TrendingUp className="h-4 w-4" />
-          </div>
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-4">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-[#8A94A3] block">
+            Report Interest Paid
+          </span>
+          <p className="mt-1 text-2xl font-semibold font-mono text-[#059669]">
+            {formatCurrency(totalInterestCollected)}
+          </p>
         </div>
 
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border-light)] bg-white p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Report Active Pledges</p>
-            <p className="mt-1.5 text-xl font-bold text-[var(--color-text-primary)] font-mono">{activeCount} active</p>
-          </div>
-          <div className="h-9 w-9 rounded-[var(--radius-md)] bg-[var(--color-primary-light)] text-[var(--color-primary)] flex items-center justify-center border border-[var(--color-border)]">
-            <BarChart3 className="h-4 w-4" />
-          </div>
+        <div className="rounded-xl border border-[#E7E9EC] bg-white p-4">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-[#8A94A3] block">
+            Report Active Pledges
+          </span>
+          <p className="mt-1 text-2xl font-semibold font-mono text-[#14181F]">
+            {activeCount} active loans
+          </p>
         </div>
       </div>
 
@@ -163,14 +169,12 @@ export default function Reports() {
         getRowId={(r) => r.id}
         emptyTitle="No report entries generated"
         emptyDescription="Review filters or search query terms to load accounting ledger records."
-        emptyIcon={<BarChart3 className="h-6 w-6" />}
-        // Pagination state
+        emptyIcon={<BarChart3 className="h-8 w-8 text-[#8A94A3]" />}
         currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}
         pageSize={pageSize}
         onPageSizeChange={setPageSize}
-        // Search control
         searchQuery={search}
         onSearchChange={(q) => {
           setSearch(q);
@@ -178,6 +182,7 @@ export default function Reports() {
         }}
         searchPlaceholder="Search ticket ID or customer..."
       />
-    </AppShell>
+    </div>
   );
 }
+

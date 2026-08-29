@@ -14,7 +14,9 @@ export interface DashboardTopCustomer {
   id: string;
   full_name: string;
   total_loan: string;
+  active_tickets?: number;
 }
+
 
 export interface DashboardActivityUser {
   full_name: string;
@@ -32,7 +34,10 @@ export interface DashboardStats {
   total_loan_active: string;
   monthly_loan_given: string;
   total_active_tickets: number;
+  interest_collected?: number | string;
+  vault_items_count?: number;
 }
+
 
 export interface DashboardStatsResponse {
   stats: DashboardStats;
