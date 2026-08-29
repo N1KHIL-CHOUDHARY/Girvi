@@ -12,7 +12,10 @@ import {
 
 export class PawnService {
   async listTickets(params: { page: number; limit: number; status?: string; search?: string; customerId?: string }) {
-    const { tickets, totalCount } = await pawnRepository.findAndCount(params);
+    const shopId = getTenantShopId();
+    if (!shopId) throw new AppError("Tenant context required", 400);
+
+    const { tickets, totalCount } = await pawnRepository.findAndCount({ ...params, shopId });
     const totalPages = Math.ceil(totalCount / params.limit);
 
     const formatted = tickets.map((t) => ({
@@ -64,7 +67,10 @@ export class PawnService {
   }
 
   async getTicketById(id: string) {
-    const ticket = await pawnRepository.findById(id);
+    const shopId = getTenantShopId();
+    if (!shopId) throw new AppError("Tenant context required", 400);
+
+    const ticket = await pawnRepository.findById(id, shopId);
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
     }
@@ -133,16 +139,16 @@ export class PawnService {
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError("Tenant context required", 400);
 
-    const customer = await prisma.customer.findUnique({
-      where: { id: data.customer_id },
+    const customer = await prisma.customer.findFirst({
+      where: { id: data.customer_id, shopId, deletedAt: null },
     });
     if (!customer) {
-      throw new NotFoundError("Customer not found");
+      throw new NotFoundError("Customer not found in your shop");
     }
 
-    const existing = await pawnRepository.findByTicketNumber(data.ticket_number);
+    const existing = await pawnRepository.findByTicketNumber(data.ticket_number, shopId);
     if (existing) {
-      throw new ConflictError(`Ticket number '${data.ticket_number}' is already allocated`);
+      throw new ConflictError(`Ticket number '${data.ticket_number}' is already allocated in your shop`);
     }
 
     const pawnedDate = data.pawned_date ? new Date(data.pawned_date) : new Date();
@@ -164,7 +170,7 @@ export class PawnService {
       weightGrams: new Prisma.Decimal(item.weight_grams),
       purity: item.purity || null,
       description: item.description || null,
-      itemPhotoUrl: item.item_photo_url || null,
+      itemPhotoUrl: item.item_photo_url || null,  
     }));
 
     return prisma.$transaction(async (tx) => {
@@ -197,6 +203,19 @@ export class PawnService {
         data: ticketData,
       });
 
+      // Automated double-entry ledger record for disbursed loan
+      await tx.ledgerEntry.create({
+        data: {
+          shop: { connect: { id: shopId } },
+          ticket: { connect: { id: ticket.id } },
+          type: "debit",
+          category: "principal_disbursed",
+          amount: originalLoanAmount,
+          entryDate: pawnedDate,
+          description: `Disbursed pawn loan for ticket ${ticket.ticketNumber}`,
+        }
+      });
+
       const auditData: Prisma.AuditLogCreateInput = {
         entityName: "PawnTicket",
         entityId: ticket.id,
@@ -227,7 +246,7 @@ export class PawnService {
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError("Tenant context required", 400);
 
-    const ticket = await pawnRepository.findById(id);
+    const ticket = await pawnRepository.findById(id, shopId);
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
     }
@@ -237,7 +256,7 @@ export class PawnService {
     const newValues: Record<string, unknown> = {};
 
     if (data.ticket_number !== undefined && data.ticket_number !== ticket.ticketNumber) {
-      const existing = await pawnRepository.findByTicketNumber(String(data.ticket_number));
+      const existing = await pawnRepository.findByTicketNumber(String(data.ticket_number), shopId);
       if (existing) {
         throw new ConflictError(`Ticket number '${data.ticket_number}' is already allocated`);
       }
@@ -311,12 +330,12 @@ export class PawnService {
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError("Tenant context required", 400);
 
-    const ticket = await pawnRepository.findById(id);
+    const ticket = await pawnRepository.findById(id, shopId);
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
     }
 
-    await pawnRepository.delete(id);
+    await pawnRepository.delete(id, shopId);
 
     const auditData: Prisma.AuditLogCreateInput = {
       entityName: "PawnTicket",
@@ -328,10 +347,10 @@ export class PawnService {
       },
       ...(userId
         ? {
-            user: {
-              connect: { id: userId }
+              user: {
+                connect: { id: userId }
+              }
             }
-          }
         : {})
     };
 
@@ -345,7 +364,7 @@ export class PawnService {
     const userId = getTenantUserId() ?? null;
     if (!shopId) throw new AppError("Tenant context required", 400);
 
-    const ticket = await pawnRepository.findById(id);
+    const ticket = await pawnRepository.findById(id, shopId);
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
     }
@@ -387,18 +406,21 @@ export class PawnService {
   }
 
   async getTicketStats(id: string) {
-    const ticket = await pawnRepository.findById(id);
+    const shopId = getTenantShopId();
+    if (!shopId) throw new AppError("Tenant context required", 400);
+
+    const ticket = await pawnRepository.findById(id, shopId);
     if (!ticket) {
       throw new NotFoundError("Pawn ticket not found");
     }
 
     const [paymentsCount, paymentGroups] = await Promise.all([
       prisma.payment.count({
-        where: { ticketId: id }
+        where: { ticketId: id, shopId, deletedAt: null }
       }),
       prisma.payment.groupBy({
         by: ['paymentFor'],
-        where: { ticketId: id },
+        where: { ticketId: id, shopId, deletedAt: null },
         _sum: { amountPaid: true }
       })
     ]);

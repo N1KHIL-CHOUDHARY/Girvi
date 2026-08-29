@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { prisma } from '../../config/database';
 import { redisClient } from '../../config/redis';
 import { getDailyDatabaseReadStatus, performDailyDatabaseRead } from '../../jobs/daily-db-reader.job';
+import { env } from '../../config/env';
 
 const router = Router();
 
@@ -52,7 +53,18 @@ router.get('/health/daily-ping', (_req: Request, res: Response): void => {
   });
 });
 
-router.post('/health/daily-ping', async (_req: Request, res: Response): Promise<void> => {
+router.post('/health/daily-ping', async (req: Request, res: Response): Promise<void> => {
+  const healthKey = req.headers['x-health-key'] as string;
+  const expectedSecret = process.env.HEALTH_CHECK_SECRET || env.JWT_SECRET;
+
+  if (process.env.NODE_ENV === 'production' && (!healthKey || healthKey !== expectedSecret)) {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized: Valid x-health-key header required to trigger manual keep-alive'
+    });
+    return;
+  }
+
   const result = await performDailyDatabaseRead();
   res.status(result.success ? 200 : 500).json({
     success: result.success,

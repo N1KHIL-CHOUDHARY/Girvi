@@ -1,9 +1,12 @@
 import { Role, Permission, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
+import { getTenantShopId } from '../../common/context/tenant.context';
 
 export class RoleRepository {
-  async findAll(): Promise<(Role & { permissions: { permission: Permission }[] })[]> {
+  async findAll(shopId?: string): Promise<(Role & { permissions: { permission: Permission }[] })[]> {
+    const effectiveShopId = shopId || getTenantShopId();
     return prisma.role.findMany({
+      where: effectiveShopId ? { shopId: effectiveShopId } : undefined,
       include: {
         permissions: {
           include: {
@@ -15,9 +18,13 @@ export class RoleRepository {
     });
   }
 
-  async findById(id: string): Promise<(Role & { permissions: { permission: Permission }[] }) | null> {
-    return prisma.role.findUnique({
-      where: { id },
+  async findById(id: string, shopId?: string): Promise<(Role & { permissions: { permission: Permission }[] }) | null> {
+    const effectiveShopId = shopId || getTenantShopId();
+    return prisma.role.findFirst({
+      where: {
+        id,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {})
+      },
       include: {
         permissions: {
           include: {
@@ -28,9 +35,13 @@ export class RoleRepository {
     });
   }
 
-  async findByName(name: string): Promise<Role | null> {
+  async findByName(name: string, shopId?: string): Promise<Role | null> {
+    const effectiveShopId = shopId || getTenantShopId();
     return prisma.role.findFirst({
-      where: { name }
+      where: {
+        name: name.toLowerCase().trim(),
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {})
+      }
     });
   }
 
@@ -40,14 +51,34 @@ export class RoleRepository {
     });
   }
 
-  async update(id: string, data: { name?: string; description?: string }): Promise<Role> {
+  async update(id: string, data: { name?: string; description?: string }, shopId?: string): Promise<Role> {
+    const effectiveShopId = shopId || getTenantShopId();
+    if (effectiveShopId) {
+      const existing = await prisma.role.findFirst({
+        where: { id, shopId: effectiveShopId }
+      });
+      if (!existing) {
+        throw new Error('Role not found or access denied');
+      }
+    }
+
     return prisma.role.update({
       where: { id },
       data
     });
   }
 
-  async delete(id: string): Promise<Role> {
+  async delete(id: string, shopId?: string): Promise<Role> {
+    const effectiveShopId = shopId || getTenantShopId();
+    if (effectiveShopId) {
+      const existing = await prisma.role.findFirst({
+        where: { id, shopId: effectiveShopId }
+      });
+      if (!existing) {
+        throw new Error('Role not found or access denied');
+      }
+    }
+
     return prisma.role.delete({
       where: { id }
     });

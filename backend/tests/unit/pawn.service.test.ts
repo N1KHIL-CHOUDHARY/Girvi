@@ -35,6 +35,7 @@ describe("PawnService Unit Tests", () => {
   });
 
   it("should throw NotFoundError if ticket by ID is not found", async () => {
+    vi.spyOn(tenantContext, "getStore").mockReturnValue({ shopId: "shop-1" });
     vi.mocked(pawnRepository.findById).mockResolvedValue(null);
     await expect(pawnService.getTicketById("t-invalid")).rejects.toThrow(
       new NotFoundError("Pawn ticket not found")

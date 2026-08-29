@@ -80,6 +80,8 @@ model User {
   lastLoginAt    DateTime?
   loginAttempts  Int           @default(0)
   lockedUntil    DateTime?
+  isEmailVerified      Boolean       @default(false)
+  emailVerifiedAt      DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   createdAt      DateTime      @default(now())

@@ -351,25 +351,36 @@ export class CustomerService {
   }
 
   async getCustomerStats(id: string): Promise<CustomerStatsResult> {
-    const customer = await customerRepository.findById(id);
+    const shopId = getTenantShopId();
+    const customer = await customerRepository.findById(id, shopId);
     if (!customer) {
       throw new NotFoundError('Customer not found');
     }
 
+    const ticketWhere = {
+      customerId: id,
+      ...(shopId ? { shopId } : {}),
+      deletedAt: null,
+    };
+
     const [ticketAgg, activeTicketAgg, paymentGroups] = await Promise.all([
       prisma.pawnTicket.aggregate({
-        where: { customerId: id },
+        where: ticketWhere,
         _sum: { originalLoanAmount: true },
         _count: { id: true }
       }),
       prisma.pawnTicket.aggregate({
-        where: { customerId: id, status: 'active' },
+        where: { ...ticketWhere, status: 'active' },
         _sum: { loanAmount: true },
         _count: { id: true }
       }),
       prisma.payment.groupBy({
         by: ['paymentFor'],
-        where: { customerId: id },
+        where: {
+          customerId: id,
+          ...(shopId ? { shopId } : {}),
+          deletedAt: null
+        },
         _sum: { amountPaid: true }
       })
     ]);

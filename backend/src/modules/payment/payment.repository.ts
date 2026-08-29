@@ -1,27 +1,44 @@
 import { Payment, PawnTicket, LedgerEntry, Prisma } from '@prisma/client';
 import { prisma, executeTenantRawQuery } from '../../config/database';
+import { getTenantShopId } from '../../common/context/tenant.context';
 
 export type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export class PaymentRepository {
-  async findByTicketId(ticketId: string): Promise<Payment[]> {
+  async findByTicketId(ticketId: string, shopId?: string): Promise<Payment[]> {
+    const effectiveShopId = shopId || getTenantShopId();
     return prisma.payment.findMany({
-      where: { ticketId },
+      where: {
+        ticketId,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {}),
+        deletedAt: null
+      },
       orderBy: { paymentDate: 'desc' }
     });
   }
 
-  async findById(id: string): Promise<Payment | null> {
-    return prisma.payment.findUnique({
-      where: { id }
+  async findById(id: string, shopId?: string): Promise<Payment | null> {
+    const effectiveShopId = shopId || getTenantShopId();
+    return prisma.payment.findFirst({
+      where: {
+        id,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {}),
+        deletedAt: null
+      }
     });
   }
 
   async findByIdempotencyKey(
-    idempotencyKey: string
+    idempotencyKey: string,
+    shopId?: string
   ): Promise<(Payment & { ticket?: PawnTicket | null }) | null> {
-    return prisma.payment.findUnique({
-      where: { idempotencyKey },
+    const effectiveShopId = shopId || getTenantShopId();
+    return prisma.payment.findFirst({
+      where: {
+        idempotencyKey,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {}),
+        deletedAt: null
+      },
       include: {
         ticket: true
       }

@@ -2,8 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 import crypto from "crypto";
-import { User, Shop, Role } from '@prisma/client';
-import { authRepository } from './auth.repository';
+import { User } from '@prisma/client';
+import { authRepository, UserWithRoleAndPermissions } from './auth.repository';
 import { env } from '../../config/env';
 import { prisma } from '../../config/database';
 import { redisClient } from '../../config/redis';
@@ -72,7 +72,7 @@ export class AuthService {
     data: { email: string; password: string },
     ipAddress?: string,
     userAgent?: string
-  ): Promise<{ user: User & { shop: Shop; role: Role | null }; token: string; refreshToken: string }> {
+  ): Promise<{ user: UserWithRoleAndPermissions; token: string; refreshToken: string }> {
     // 1. Find all users matching the email globally
     const users = await authRepository.findUsersByEmail(data.email);
     if (users.length === 0) {
@@ -295,7 +295,12 @@ export class AuthService {
       throw new ValidationError('Invalid or expired email verification token');
     }
 
-    // Trigger verification: update KYC status or record verification
+    // Trigger verification: update email verification status in DB
+    await authRepository.updateUser(userId, {
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
+    });
+
     await redisClient.del(cacheKey);
     logger.info({ userId }, 'Email verified successfully');
   }

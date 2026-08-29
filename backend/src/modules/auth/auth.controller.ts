@@ -59,6 +59,17 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    const permissions: Record<string, boolean> = {};
+    if (user.role?.name === "owner") {
+      permissions["*"] = true;
+    } else if (user.role?.permissions) {
+      user.role.permissions.forEach((rp) => {
+        if (rp.permission?.code) {
+          permissions[rp.permission.code] = true;
+        }
+      });
+    }
+
     sendSuccess(
       res,
       {
@@ -71,7 +82,7 @@ export class AuthController {
           full_name: `${user.firstName} ${user.lastName}`.trim(),
           email: user.email,
           language: user.language,
-          permissions: user.role?.name === "owner" ? { "*": true } : {},
+          permissions,
         },
       },
       "Login successful"

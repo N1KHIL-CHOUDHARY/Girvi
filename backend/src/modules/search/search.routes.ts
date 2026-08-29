@@ -23,11 +23,23 @@ router.get('/', authMiddleware, asyncHandler(async (req: Request, res: Response)
   const customers = await prisma.customer.findMany({
     where: {
       shopId,
+      deletedAt: null,
       OR: [
         { fullName: { contains: query, mode: 'insensitive' } },
         { phoneNumber: { contains: query, mode: 'insensitive' } },
         { customerCode: { contains: query, mode: 'insensitive' } }
       ]
+    },
+    select: {
+      id: true,
+      fullName: true,
+      phoneNumber: true,
+      customerCode: true,
+      customerPhotoUrl: true,
+      gender: true,
+      kycStatus: true,
+      aadhaarNumberLast4: true,
+      panNumberLast4: true
     },
     take: 5
   });
@@ -35,7 +47,17 @@ router.get('/', authMiddleware, asyncHandler(async (req: Request, res: Response)
   const tickets = await prisma.pawnTicket.findMany({
     where: {
       shopId,
+      deletedAt: null,
       ticketNumber: { contains: query, mode: 'insensitive' }
+    },
+    select: {
+      id: true,
+      ticketNumber: true,
+      loanAmount: true,
+      originalLoanAmount: true,
+      status: true,
+      pawnedDate: true,
+      maturityDate: true
     },
     take: 5
   });

@@ -4,7 +4,7 @@ import { authMiddleware } from '../../common/middleware/auth.middleware';
 import { prisma } from '../../config/database';
 import { sendSuccess } from '../../common/utils/apiResponse';
 import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
-import { NotFoundError, AppError } from '../../common/errors/AppError';
+import { NotFoundError, AppError, AuthorizationError } from '../../common/errors/AppError';
 import { asyncHandler } from '../../common/utils/asyncHandler';
 import { employeeService } from './employee.service';
 
@@ -72,6 +72,31 @@ router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<vo
   if (!userId || !shopId) throw new AppError('Unauthenticated context', 401);
 
   const { firstName, lastName, email, phone, shopName, shopPhone, shopAddress } = req.body;
+
+  const isUpdatingShop = shopName !== undefined || shopPhone !== undefined || shopAddress !== undefined;
+  if (isUpdatingShop) {
+    const userWithRole = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: { permission: true }
+            }
+          }
+        }
+      }
+    });
+
+    const isOwner = userWithRole?.role?.name === 'owner';
+    const hasSettingsPerm = userWithRole?.role?.permissions.some(
+      (p) => p.permission.code === 'manage:settings'
+    );
+
+    if (!isOwner && !hasSettingsPerm) {
+      throw new AuthorizationError('Only shop owners or users with manage:settings permission can modify shop settings');
+    }
+  }
 
   const userUpdateData: Prisma.UserUpdateInput = {};
   if (firstName !== undefined) userUpdateData.firstName = firstName;
@@ -149,12 +174,18 @@ router.post('/change-password', asyncHandler(async (req: Request, res: Response)
   const userId = getTenantUserId();
   if (!userId) throw new AppError('Unauthenticated context', 401);
 
-  const { oldPassword, newPassword } = req.body;
-  if (!oldPassword || !newPassword) {
-    throw new AppError('Old password and new password are required', 400);
+  const currentPassword = req.body.currentPassword || req.body.oldPassword;
+  const newPassword = req.body.newPassword;
+
+  if (!currentPassword || !newPassword) {
+    throw new AppError('Current password and new password are required', 400);
   }
 
-  await employeeService.changePassword(userId, oldPassword, newPassword);
+  if (typeof newPassword === 'string' && newPassword.length < 8) {
+    throw new AppError('New password must be at least 8 characters', 400);
+  }
+
+  await employeeService.changePassword(userId, currentPassword, newPassword);
 
   sendSuccess(res, undefined, 'Password changed successfully');
 }));

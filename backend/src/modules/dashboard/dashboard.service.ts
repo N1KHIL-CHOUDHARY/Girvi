@@ -52,33 +52,37 @@ export class DashboardService {
       }
     }
 
-    // 2. Fetch and calculate dashboard data
+    // 2. Fetch and calculate dashboard data strictly scoped to this shopId
     const startOfMonth = dayjs().startOf('month').toDate();
 
     const [activeTickets, monthlyTickets, genderDataRaw, areaDataRaw, activityLogs] = await Promise.all([
-      // Active tickets
+      // Active tickets for this shop
       prisma.pawnTicket.findMany({
-        where: { status: 'active' }
+        where: { shopId, status: 'active', deletedAt: null }
       }),
-      // Monthly issued tickets
+      // Monthly issued tickets for this shop
       prisma.pawnTicket.findMany({
         where: {
-          pawnedDate: { gte: startOfMonth }
+          shopId,
+          pawnedDate: { gte: startOfMonth },
+          deletedAt: null
         }
       }),
-      // Customers gender grouping
+      // Customers gender grouping for this shop
       prisma.customer.groupBy({
         by: ['gender'],
+        where: { shopId, deletedAt: null },
         _count: { gender: true }
       }),
-      // Customers pincode grouping
+      // Customers pincode grouping for this shop
       prisma.customer.groupBy({
         by: ['addressPincode'],
-        _count: { addressPincode: true },
-        where: { addressPincode: { not: null } }
+        where: { shopId, addressPincode: { not: null }, deletedAt: null },
+        _count: { addressPincode: true }
       }),
-      // Recent activities
+      // Recent activities for this shop
       prisma.activityLog.findMany({
+        where: { shopId },
         include: {
           user: true
         },
@@ -115,9 +119,10 @@ export class DashboardService {
       count: a._count.addressPincode
     }));
 
-    // Calculate top customers by aggregate loan amount using database-level aggregation
+    // Calculate top customers by aggregate loan amount scoped to shop
     const topCustomersGrouped = await prisma.pawnTicket.groupBy({
       by: ['customerId'],
+      where: { shopId, deletedAt: null },
       _sum: {
         originalLoanAmount: true
       },
@@ -130,9 +135,11 @@ export class DashboardService {
     });
 
     const topCustomerIds = topCustomersGrouped.map((cg) => cg.customerId);
-    const customersInfo = await prisma.customer.findMany({
-      where: { id: { in: topCustomerIds } }
-    });
+    const customersInfo = topCustomerIds.length > 0
+      ? await prisma.customer.findMany({
+          where: { id: { in: topCustomerIds }, shopId, deletedAt: null }
+        })
+      : [];
 
     const infoMap = new Map(customersInfo.map((c) => [c.id, c.fullName]));
 

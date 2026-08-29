@@ -12,7 +12,8 @@ import {
 
 export class RoleService {
   async getAllRoles(): Promise<(Role & { permissions: string[] })[]> {
-    const roles = await roleRepository.findAll();
+    const shopId = getTenantShopId();
+    const roles = await roleRepository.findAll(shopId);
     return roles.map((role) => ({
       ...role,
       permissions: role.permissions.map((rp) => rp.permission.code)
@@ -20,7 +21,8 @@ export class RoleService {
   }
 
   async getRoleById(id: string): Promise<Role & { permissions: string[] }> {
-    const role = await roleRepository.findById(id);
+    const shopId = getTenantShopId();
+    const role = await roleRepository.findById(id, shopId);
     if (!role) {
       throw new NotFoundError('Role not found');
     }
@@ -34,8 +36,8 @@ export class RoleService {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    // 1. Block duplicate name
-    const existing = await roleRepository.findByName(data.name);
+    // 1. Block duplicate name within shop
+    const existing = await roleRepository.findByName(data.name, shopId);
     if (existing) {
       throw new ConflictError('A role with this name already exists in your shop');
     }
@@ -102,7 +104,7 @@ export class RoleService {
     const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const role = await roleRepository.findById(id);
+    const role = await roleRepository.findById(id, shopId);
     if (!role) {
       throw new NotFoundError('Role not found');
     }
@@ -112,11 +114,11 @@ export class RoleService {
       throw new ValidationError('The owner role is protected and cannot be modified');
     }
 
-    // 2. Check duplicates
+    // 2. Check duplicates within shop
     if (data.name && data.name.toLowerCase().trim() !== role.name) {
-      const existing = await roleRepository.findByName(data.name);
+      const existing = await roleRepository.findByName(data.name, shopId);
       if (existing) {
-        throw new ConflictError('A role with this name already exists');
+        throw new ConflictError('A role with this name already exists in your shop');
       }
     }
 
@@ -156,9 +158,9 @@ export class RoleService {
     });
 
     // 4. Invalidate Redis permission cache for all users of this role
-    if (data.permissions) {
+    if (data.permissions && redisClient.isOpen) {
       const users = await prisma.user.findMany({
-        where: { roleId: id }
+        where: { roleId: id, shopId }
       });
       for (const u of users) {
         await redisClient.del(`user:permissions:${u.id}`);
@@ -194,7 +196,7 @@ export class RoleService {
     const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const role = await roleRepository.findById(id);
+    const role = await roleRepository.findById(id, shopId);
     if (!role) {
       throw new NotFoundError('Role not found');
     }
@@ -206,14 +208,14 @@ export class RoleService {
 
     // 2. Cannot delete role if in use by active users
     const usersCount = await prisma.user.count({
-      where: { roleId: id }
+      where: { roleId: id, shopId, deletedAt: null }
     });
     if (usersCount > 0) {
       throw new ConflictError(`Cannot delete role. It is currently assigned to ${usersCount} employee(s)`);
     }
 
     // 3. Delete
-    await roleRepository.delete(id);
+    await roleRepository.delete(id, shopId);
 
     // 4. Audit
     const deleteAuditData: Prisma.AuditLogCreateInput = {

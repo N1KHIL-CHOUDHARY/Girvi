@@ -12,12 +12,19 @@ export class ReportsService {
     const { page, limit, search } = params;
     const skip = (page - 1) * limit;
 
-    const whereClause: Prisma.PawnTicketWhereInput = {};
+    const whereClause: Prisma.PawnTicketWhereInput = {
+      shopId,
+      deletedAt: null
+    };
 
     if (search) {
-      whereClause.OR = [
-        { ticketNumber: { contains: search, mode: 'insensitive' } },
-        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+      whereClause.AND = [
+        {
+          OR: [
+            { ticketNumber: { contains: search, mode: 'insensitive' } },
+            { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+          ]
+        }
       ];
     }
 
@@ -26,7 +33,9 @@ export class ReportsService {
         where: whereClause,
         include: {
           customer: true,
-          payments: true
+          payments: {
+            where: { deletedAt: null }
+          }
         },
         orderBy: { pawnedDate: 'desc' },
         skip,
@@ -73,12 +82,19 @@ export class ReportsService {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const whereClause: Prisma.PawnTicketWhereInput = {};
+    const whereClause: Prisma.PawnTicketWhereInput = {
+      shopId,
+      deletedAt: null
+    };
 
     if (search) {
-      whereClause.OR = [
-        { ticketNumber: { contains: search, mode: 'insensitive' } },
-        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+      whereClause.AND = [
+        {
+          OR: [
+            { ticketNumber: { contains: search, mode: 'insensitive' } },
+            { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+          ]
+        }
       ];
     }
 
@@ -86,7 +102,9 @@ export class ReportsService {
       where: whereClause,
       include: {
         customer: true,
-        payments: true
+        payments: {
+          where: { deletedAt: null }
+        }
       },
       orderBy: { pawnedDate: 'desc' }
     });
@@ -116,12 +134,19 @@ export class ReportsService {
     const shopId = getTenantShopId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const whereClause: Prisma.PawnTicketWhereInput = {};
+    const whereClause: Prisma.PawnTicketWhereInput = {
+      shopId,
+      deletedAt: null
+    };
 
     if (search) {
-      whereClause.OR = [
-        { ticketNumber: { contains: search, mode: 'insensitive' } },
-        { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+      whereClause.AND = [
+        {
+          OR: [
+            { ticketNumber: { contains: search, mode: 'insensitive' } },
+            { customer: { fullName: { contains: search, mode: 'insensitive' } } }
+          ]
+        }
       ];
     }
 
@@ -129,7 +154,9 @@ export class ReportsService {
       where: whereClause,
       include: {
         customer: true,
-        payments: true
+        payments: {
+          where: { deletedAt: null }
+        }
       },
       orderBy: { pawnedDate: 'desc' }
     });

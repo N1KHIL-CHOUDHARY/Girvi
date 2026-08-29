@@ -31,7 +31,10 @@ export interface PaymentResponse {
 
 export class PaymentService {
   async getPaymentsForTicket(ticketId: string) {
-    const list = await paymentRepository.findByTicketId(ticketId);
+    const shopId = getTenantShopId();
+    if (!shopId) throw new AppError("Tenant context required", 400);
+
+    const list = await paymentRepository.findByTicketId(ticketId, shopId);
     return list.map((p) => ({
       id: p.id,
       shop_id: p.shopId,
@@ -52,9 +55,9 @@ export class PaymentService {
 
     const idempotencyKey = data.idempotencyKey || data.idempotency_key;
 
-    // 1. Upfront Idempotency Check
+    // 1. Upfront Idempotency Check scoped to shop
     if (idempotencyKey) {
-      const existingPayment = await paymentRepository.findByIdempotencyKey(idempotencyKey);
+      const existingPayment = await paymentRepository.findByIdempotencyKey(idempotencyKey, shopId);
       if (existingPayment) {
         return {
           payment: {
@@ -112,8 +115,8 @@ export class PaymentService {
 
       // Check idempotency in case of concurrent requests waiting on the row lock
       if (idempotencyKey) {
-        const concurrentPayment = await tx.payment.findUnique({
-          where: { idempotencyKey },
+        const concurrentPayment = await tx.payment.findFirst({
+          where: { idempotencyKey, shopId, deletedAt: null },
           include: { ticket: true },
         });
         if (concurrentPayment) {

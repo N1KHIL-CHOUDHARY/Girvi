@@ -1,27 +1,53 @@
-import { Shop, User, Role,Prisma } from '@prisma/client';
+import { Shop, User, Role, RolePermission, Permission, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
+import { ALL_PERMISSIONS } from '../../common/constants/permissions';
+
+export type UserWithRoleAndPermissions = User & {
+  shop: Shop;
+  role: (Role & {
+    permissions: (RolePermission & {
+      permission: Permission;
+    })[];
+  }) | null;
+};
 
 export class AuthRepository {
   /**
    * Look up a user by email, searching globally across all shops.
    * This is used during authentication (login, reset password).
    */
-  async findUsersByEmail(email: string): Promise<(User & { shop: Shop; role: Role | null })[]> {
+  async findUsersByEmail(email: string): Promise<UserWithRoleAndPermissions[]> {
     return prisma.user.findMany({
       where: { email },
       include: {
         shop: true,
-        role: true
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true
+              }
+            }
+          }
+        }
       }
     });
   }
 
-  async findUserById(id: string): Promise<(User & { shop: Shop; role: Role | null }) | null> {
+  async findUserById(id: string): Promise<UserWithRoleAndPermissions | null> {
     return prisma.user.findUnique({
       where: { id },
       include: {
         shop: true,
-        role: true
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -40,40 +66,50 @@ export class AuthRepository {
       const shop = await tx.shop.create({
         data: {
           name: data.shopName,
-          email: data.email
-        }
+          email: data.email,
+        },
       });
 
-      // 2. Fetch all system permissions to link them to the owner role
-      const systemPermissions = await tx.permission.findMany();
+      // 2. Fetch or fallback to all permissions from permissions constants if table is empty
+      let systemPermissions = await tx.permission.findMany();
 
-      // 3. Create the 'owner' Role for the Shop
+      if (systemPermissions.length === 0) {
+        // Seed permissions on-the-fly if system permissions haven't been migrated/seeded
+        const defaultPermissions = Object.values(ALL_PERMISSIONS);
+
+        await tx.permission.createMany({
+          data: defaultPermissions.map((permissionName) => ({
+            code: permissionName,
+            name: permissionName,
+            description: `Permission for ${permissionName}`,
+          })),
+          skipDuplicates: true,
+        });
+
+        systemPermissions = await tx.permission.findMany();
+      }
+
+      // 3. Create the 'owner' Role with nested RolePermission relations
       const ownerRole = await tx.role.create({
         data: {
           shopId: shop.id,
           name: 'owner',
-          description: 'Shop owner with full access permissions'
-        }
+          description: 'Shop owner with full access permissions',
+          permissions: {
+            create: systemPermissions.map((perm) => ({
+              permissionId: perm.id,
+            })),
+          },
+        },
       });
 
-      // 4. Map all permissions to the owner role in RolePermission
-      if (systemPermissions.length > 0) {
-        await tx.rolePermission.createMany({
-          data: systemPermissions.map((perm) => ({
-            roleId: ownerRole.id,
-            permissionId: perm.id
-          }))
-        });
-      }
-
-      // 5. Create the Owner User
-      const names = data.fullName.split(' ');
+      // 4. Parse Name and Username
+      const names = data.fullName.trim().split(' ');
       const firstName = names[0] || 'Owner';
       const lastName = names.slice(1).join(' ') || '';
-      
-      // Use email prefix as username default
       const username = data.email.split('@')[0] || `owner_${shop.id.slice(0, 5)}`;
 
+      // 5. Create the Owner User connected to the owner role
       const user = await tx.user.create({
         data: {
           shopId: shop.id,
@@ -83,18 +119,19 @@ export class AuthRepository {
           email: data.email,
           username,
           password: data.passwordHash,
-          isActive: true
-        }
+          isActive: true,
+          isEmailVerified: false,
+        },
       });
 
-      // 6. Log activity
+      // 6. Log Activity
       await tx.activityLog.create({
         data: {
           shopId: shop.id,
           userId: user.id,
           action: 'register',
-          details: { message: 'Shop and owner registered successfully' }
-        }
+          details: { message: 'Shop and owner registered successfully' },
+        },
       });
 
       return { user, shop };

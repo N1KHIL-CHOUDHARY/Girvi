@@ -1,5 +1,6 @@
 import { PawnTicket, PawnItem, Customer, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database';
+import { getTenantShopId } from '../../common/context/tenant.context';
 
 export class PawnRepository {
   async findAndCount(params: {
@@ -8,11 +9,16 @@ export class PawnRepository {
     status?: string;
     search?: string;
     customerId?: string;
+    shopId?: string;
   }): Promise<{ tickets: (PawnTicket & { customer: Customer; items: PawnItem[] })[]; totalCount: number }> {
     const { page, limit, status, search, customerId } = params;
+    const shopId = params.shopId || getTenantShopId();
     const skip = (page - 1) * limit;
 
-    const whereClause: Prisma.PawnTicketWhereInput = {};
+    const whereClause: Prisma.PawnTicketWhereInput = {
+      ...(shopId ? { shopId } : {}),
+      deletedAt: null
+    };
 
     if (status) {
       whereClause.status = status;
@@ -23,10 +29,14 @@ export class PawnRepository {
     }
 
     if (search) {
-      whereClause.OR = [
-        { ticketNumber: { contains: search, mode: 'insensitive' } },
-        { customer: { fullName: { contains: search, mode: 'insensitive' } } },
-        { customer: { phoneNumber: { contains: search } } }
+      whereClause.AND = [
+        {
+          OR: [
+            { ticketNumber: { contains: search, mode: 'insensitive' } },
+            { customer: { fullName: { contains: search, mode: 'insensitive' } } },
+            { customer: { phoneNumber: { contains: search } } }
+          ]
+        }
       ];
     }
 
@@ -35,7 +45,9 @@ export class PawnRepository {
         where: whereClause,
         include: {
           customer: true,
-          items: true
+          items: {
+            where: { deletedAt: null }
+          }
         },
         orderBy: { pawnedDate: 'desc' },
         skip,
@@ -49,19 +61,31 @@ export class PawnRepository {
     return { tickets, totalCount };
   }
 
-  async findById(id: string): Promise<(PawnTicket & { customer: Customer; items: PawnItem[] }) | null> {
-    return prisma.pawnTicket.findUnique({
-      where: { id },
+  async findById(id: string, shopId?: string): Promise<(PawnTicket & { customer: Customer; items: PawnItem[] }) | null> {
+    const effectiveShopId = shopId || getTenantShopId();
+    return prisma.pawnTicket.findFirst({
+      where: {
+        id,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {}),
+        deletedAt: null
+      },
       include: {
         customer: true,
-        items: true
+        items: {
+          where: { deletedAt: null }
+        }
       }
     });
   }
 
-  async findByTicketNumber(ticketNumber: string): Promise<PawnTicket | null> {
+  async findByTicketNumber(ticketNumber: string, shopId?: string): Promise<PawnTicket | null> {
+    const effectiveShopId = shopId || getTenantShopId();
     return prisma.pawnTicket.findFirst({
-      where: { ticketNumber }
+      where: {
+        ticketNumber,
+        ...(effectiveShopId ? { shopId: effectiveShopId } : {}),
+        deletedAt: null
+      }
     });
   }
 
@@ -151,8 +175,19 @@ export class PawnRepository {
       purity?: string;
       description?: string;
       itemPhotoUrl?: string;
-    }[]
+    }[],
+    shopId?: string
   ): Promise<PawnTicket> {
+    const effectiveShopId = shopId || getTenantShopId();
+    if (effectiveShopId) {
+      const existing = await prisma.pawnTicket.findFirst({
+        where: { id, shopId: effectiveShopId, deletedAt: null }
+      });
+      if (!existing) {
+        throw new Error('Pawn ticket not found or access denied');
+      }
+    }
+
     return prisma.$transaction(async (tx) => {
       const ticket = await tx.pawnTicket.update({
         where: { id },
@@ -181,9 +216,22 @@ export class PawnRepository {
     });
   }
 
-  async delete(id: string): Promise<PawnTicket> {
-    return prisma.pawnTicket.delete({
-      where: { id }
+  async delete(id: string, shopId?: string): Promise<PawnTicket> {
+    const effectiveShopId = shopId || getTenantShopId();
+    if (effectiveShopId) {
+      const existing = await prisma.pawnTicket.findFirst({
+        where: { id, shopId: effectiveShopId, deletedAt: null }
+      });
+      if (!existing) {
+        throw new Error('Pawn ticket not found or access denied');
+      }
+    }
+
+    return prisma.pawnTicket.update({
+      where: { id },
+      data: {
+        deletedAt: new Date()
+      }
     });
   }
 }

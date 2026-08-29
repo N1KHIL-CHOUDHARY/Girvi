@@ -12,7 +12,8 @@ import {
 
 export class EmployeeService {
   async getAllEmployees(): Promise<(User & { role: Role | null })[]> {
-    return employeeRepository.findAll();
+    const shopId = getTenantShopId();
+    return employeeRepository.findAll(shopId);
   }
 
   async createEmployee(data: Record<string, unknown>): Promise<User> {
@@ -26,14 +27,14 @@ export class EmployeeService {
     const password = String(data.password || '');
 
     // 1. Check duplicate username or email within this shop
-    const duplicate = await employeeRepository.checkDuplicate(email, username);
+    const duplicate = await employeeRepository.checkDuplicate(email, username, shopId);
     if (duplicate) {
-      throw new ConflictError('An employee with this email or username already exists');
+      throw new ConflictError('An employee with this email or username already exists in your shop');
     }
 
     // 2. Verify role exists in the shop
-    const role = await prisma.role.findUnique({
-      where: { id: roleId }
+    const role = await prisma.role.findFirst({
+      where: { id: roleId, shopId }
     });
     if (!role) {
       throw new NotFoundError('Selected role does not exist in your shop');
@@ -52,6 +53,7 @@ export class EmployeeService {
       password: passwordHash,
       phone: typeof data.phone === 'string' ? data.phone : null,
       isActive: true,
+      isEmailVerified: true,
       shop: {
         connect: { id: shopId }
       },
@@ -93,7 +95,7 @@ export class EmployeeService {
     if (!shopId) throw new AppError('Tenant context required', 400);
 
     // 1. Check if employee exists
-    const employee = await employeeRepository.findById(id);
+    const employee = await employeeRepository.findById(id, shopId);
     if (!employee) {
       throw new NotFoundError('Employee not found');
     }
@@ -112,9 +114,9 @@ export class EmployeeService {
       const emailToCheck = typeof data.email === 'string' ? data.email : employee.email;
       const userToCheck = typeof data.username === 'string' ? data.username : employee.username;
       
-      const duplicate = await employeeRepository.checkDuplicate(emailToCheck, userToCheck, id);
+      const duplicate = await employeeRepository.checkDuplicate(emailToCheck, userToCheck, shopId, id);
       if (duplicate) {
-        throw new ConflictError('An employee with this email or username already exists');
+        throw new ConflictError('An employee with this email or username already exists in your shop');
       }
     }
 
@@ -156,11 +158,11 @@ export class EmployeeService {
         throw new ValidationError('Owners cannot modify their own role');
       }
 
-      const role = await prisma.role.findUnique({
-        where: { id: String(data.roleId) }
+      const role = await prisma.role.findFirst({
+        where: { id: String(data.roleId), shopId }
       });
       if (!role) {
-        throw new NotFoundError('Selected role does not exist');
+        throw new NotFoundError('Selected role does not exist in your shop');
       }
       updatePayload.role = { connect: { id: String(data.roleId) } };
       oldValues.roleId = employee.roleId;
@@ -174,7 +176,7 @@ export class EmployeeService {
     }
 
     // 6. Update user
-    const updated = await employeeRepository.update(id, updatePayload);
+    const updated = await employeeRepository.update(id, updatePayload, shopId);
 
     // 7. Write audit log
     const auditData: Prisma.AuditLogCreateInput = {
@@ -207,7 +209,7 @@ export class EmployeeService {
     const actorId = getTenantUserId();
     if (!shopId) throw new AppError('Tenant context required', 400);
 
-    const employee = await employeeRepository.findById(id);
+    const employee = await employeeRepository.findById(id, shopId);
     if (!employee) {
       throw new NotFoundError('Employee not found');
     }
@@ -223,7 +225,7 @@ export class EmployeeService {
     }
 
     // 3. Delete
-    await employeeRepository.delete(id);
+    await employeeRepository.delete(id, shopId);
 
     // 4. Audit
     const auditData: Prisma.AuditLogCreateInput = {
@@ -249,7 +251,8 @@ export class EmployeeService {
   }
 
   async changePassword(userId: string, oldPass: string, newPass: string): Promise<void> {
-    const user = await employeeRepository.findById(userId);
+    const shopId = getTenantShopId();
+    const user = await employeeRepository.findById(userId, shopId);
     if (!user) {
       throw new NotFoundError('Employee not found');
     }
@@ -264,7 +267,7 @@ export class EmployeeService {
 
     await employeeRepository.update(userId, {
       password: passwordHash
-    });
+    }, shopId);
   }
 }
 
