@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { KeyRound, AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { forgotPassword, getApiErrorMessage } from "@/services/api";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
+import { AuthLayout } from "@/app/(auth)/AuthLayout";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -38,28 +39,27 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="w-full max-w-sm rounded-xl border border-[#E7E9EC] bg-white p-7 sm:p-8 space-y-6">
-      <div className="flex flex-col items-center text-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#314259] text-white">
-          <KeyRound className="h-5 w-5" />
-        </div>
-        <h1 className="mt-3 text-base font-semibold text-[#14181F]">
-          Recover access
-        </h1>
-        <p className="mt-0.5 text-xs text-[#8A94A3]">
-          Enter your registered email to reset your credentials
+    <AuthLayout
+      eyebrow="Account recovery"
+      headline="We'll get you back into the ledger."
+      subtext="Enter your email and we'll send a link to reset your password."
+    >
+      <div className="mb-7">
+        <h1 className="text-xl font-semibold text-[#14181F]">Recover access</h1>
+        <p className="mt-1 text-[13px] text-[#8A94A3]">
+          Enter your registered email to reset your credentials.
         </p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
           <span>{success}</span>
         </div>
@@ -82,7 +82,6 @@ export default function ForgotPassword() {
             disabled={isLoading}
             required
           />
-
         </div>
 
         <Button
@@ -96,7 +95,7 @@ export default function ForgotPassword() {
         </Button>
       </form>
 
-      <div className="border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+      <div className="mt-6 border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
         <Link
           href="/login"
           className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline"
@@ -105,7 +104,6 @@ export default function ForgotPassword() {
           <span>Return to login</span>
         </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
-
