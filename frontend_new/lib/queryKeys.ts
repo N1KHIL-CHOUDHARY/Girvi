@@ -18,8 +18,9 @@ export const pawnTicketKeys = {
 
 export const paymentKeys = {
   all: ["payments"] as const,
-  ledger: () => [...paymentKeys.all, "ledger"] as const,
-  ledgerList: (page: number, search: string) => [...paymentKeys.ledger(), { page, search }] as const,
+  ledger: (page?: number, search?: string) => [...paymentKeys.all, "ledger", { page, search }] as const,
+  ledgerList: (page: number, search: string) => [...paymentKeys.all, "ledger", { page, search }] as const,
   byTicket: (ticketId: string) => [...paymentKeys.all, "ticket", ticketId] as const,
 };
+
 

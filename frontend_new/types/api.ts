@@ -6,11 +6,14 @@ export interface ApiResponse<T> {
   meta?: {
     page?: number;
     limit?: number;
+    total?: number;
     totalItems?: number;
     totalPages?: number;
     totalCount?: number;
+    [key: string]: any;
   };
 }
+
 
 export interface PaginatedQueryParams {
   page?: number;
