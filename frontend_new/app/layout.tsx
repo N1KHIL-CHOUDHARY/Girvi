@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   description:
     "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
 
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/icon.png",
+    apple: [
+      { url: "/icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+
   verification: {
     google: "5ZYZFZoEHymcKOhBNcpQlLewaUzMs2HLFd9IOuW6KPM",
   },
@@ -30,13 +41,22 @@ export const metadata: Metadata = {
       "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
     siteName: "GIRVI",
     type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "GIRVI Logo",
+      },
+    ],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "GIRVI — Pawn & Pledge Management",
     description:
       "GIRVI is a modern pawn and pledge management platform for managing customers, pledges, payments, assets, interest and daily business operations.",
+    images: ["/icon.png"],
   },
 };
 
