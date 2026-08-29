@@ -3,18 +3,24 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { UserPlus, Pencil, Trash2, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  UserPlus,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
+  Users,
+} from "lucide-react";
 
-import { AppShell } from "@/components/layout/AppShell";
-import { StatusBadge } from "@/components/ui/Badge";
+
+import { StatusBadge, Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useEmployees } from "@/hooks/useEmployees";
 import { createEmployee, deleteEmployee, getRoles, getApiErrorMessage } from "@/services/api";
 import type { Role } from "@/types/role";
 import type { Employee } from "@/types/employee";
-
-const inputClass =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66] disabled:cursor-not-allowed disabled:opacity-50";
-const labelClass = "mb-1.5 block text-xs font-medium text-slate-500";
 
 interface EmployeeFormState {
   firstName: string;
@@ -61,7 +67,7 @@ export default function Employees() {
   const createMutation = useMutation({
     mutationFn: (payload: any) => createEmployee(payload),
     onSuccess: () => {
-      toast.success("Employee created successfully");
+      toast.success("Staff account created successfully");
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       setForm(initialFormState);
     },
@@ -73,7 +79,7 @@ export default function Employees() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteEmployee(id),
     onSuccess: () => {
-      toast.success("Employee deleted successfully");
+      toast.success("Employee account removed");
       queryClient.invalidateQueries({ queryKey: ["employees"] });
     },
     onError: (err: any) => {
@@ -109,117 +115,124 @@ export default function Employees() {
   };
 
   return (
-    <AppShell>
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Manage Employees</h1>
-          <p className="mt-1 text-sm text-slate-500">Add and manage your staff accounts.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          disabled={isLoading}
-          className="flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Management →"
+        title="Staff & Role Permissions"
+        subtitle="Manage appraiser, cashier, and administrator credentials and store access."
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void refetch()}
+            disabled={isLoading}
+            leftIcon={<RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       {error && (
-        <div className="mb-6 rounded-2xl border border-rose-100 bg-rose-50 p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-500" />
-            <div>
-              <p className="text-sm font-medium text-rose-900">Error loading employees</p>
-              <p className="mt-1 text-sm text-rose-700">{error.message}</p>
-            </div>
-          </div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" />
+          <p className="text-xs font-medium text-red-900">{error.message}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-        {/* Creation Form */}
-        <form onSubmit={handleSubmit} className="h-fit rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900 border-b border-slate-50 pb-3">
-            <UserPlus className="h-4 w-4 text-slate-400" />
-            Add New Employee
-          </h3>
+        {/* Add Employee Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="h-fit rounded-xl border border-[#E7E9EC] bg-white p-5 space-y-4"
+        >
+          <div className="flex items-center gap-2 border-b border-[#E7E9EC] pb-3">
+            <UserPlus className="h-4 w-4 text-[#314259]" />
+            <h3 className="text-sm font-semibold text-[#14181F]">
+              Add Staff Member
+            </h3>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="firstName" className={labelClass}>First Name *</label>
-              <input
+              <Label htmlFor="firstName" required>
+                First Name
+              </Label>
+              <Input
                 id="firstName"
                 name="firstName"
-                placeholder="Nikhil"
+                placeholder="Priya"
                 value={form.firstName}
                 onChange={handleChange}
                 disabled={createMutation.isPending}
-                className={inputClass}
                 required
               />
             </div>
             <div>
-              <label htmlFor="lastName" className={labelClass}>Last Name *</label>
-              <input
+              <Label htmlFor="lastName" required>
+                Last Name
+              </Label>
+              <Input
                 id="lastName"
                 name="lastName"
-                placeholder="Choudhary"
+                placeholder="Sharma"
                 value={form.lastName}
                 onChange={handleChange}
                 disabled={createMutation.isPending}
-                className={inputClass}
                 required
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className={labelClass}>Email Address *</label>
-            <input
+            <Label htmlFor="email" required>
+              Email Address
+            </Label>
+            <Input
               id="email"
               type="email"
               name="email"
-              placeholder="nikhil@example.com"
+              placeholder="priya@grivi.io"
               value={form.email}
               onChange={handleChange}
               disabled={createMutation.isPending}
-              className={inputClass}
               required
             />
+
           </div>
 
           <div>
-            <label htmlFor="phone" className={labelClass}>Phone Number</label>
-            <input
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
               id="phone"
               name="phone"
               placeholder="9876543210"
               value={form.phone}
               onChange={handleChange}
               disabled={createMutation.isPending}
-              className={inputClass}
             />
           </div>
 
           <div>
-            <label htmlFor="username" className={labelClass}>Username *</label>
-            <input
+            <Label htmlFor="username" required>
+              Username
+            </Label>
+            <Input
               id="username"
               name="username"
-              placeholder="nikhilc"
+              placeholder="priyas"
               value={form.username}
               onChange={handleChange}
               disabled={createMutation.isPending}
-              className={inputClass}
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className={labelClass}>Password *</label>
-            <input
+            <Label htmlFor="password" required>
+              Password
+            </Label>
+            <Input
               id="password"
               type="password"
               name="password"
@@ -227,72 +240,78 @@ export default function Employees() {
               value={form.password}
               onChange={handleChange}
               disabled={createMutation.isPending}
-              className={inputClass}
               required
             />
           </div>
 
           <div>
-            <label htmlFor="roleId" className={labelClass}>Assign Role *</label>
+            <Label htmlFor="roleId" required>
+              Assigned Role
+            </Label>
             <select
               id="roleId"
               name="roleId"
               value={form.roleId}
               onChange={handleChange}
               disabled={createMutation.isPending || isRolesLoading}
-              className={`${inputClass} cursor-pointer appearance-none`}
+              className="h-10 w-full rounded-xl border border-[#E7E9EC] bg-white px-3 text-xs text-[#14181F] focus:border-[#14181F] focus:outline-none focus:ring-1 focus:ring-[#14181F] cursor-pointer"
               required
             >
               <option value="">Select role</option>
-              {Array.isArray(roles) && roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
-                </option>
-              ))}
+              {Array.isArray(roles) &&
+                roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name.charAt(0).toUpperCase() + r.name.slice(1)}
+                  </option>
+                ))}
             </select>
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={createMutation.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E3A66] py-2.5 text-sm font-semibold text-white hover:bg-[#17294D] disabled:opacity-50"
+            variant="primary"
+            className="w-full"
+            isLoading={createMutation.isPending}
+            leftIcon={<UserPlus className="h-4 w-4" />}
           >
-            {createMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              "Create Employee"
-            )}
-          </button>
+            Create Staff Account
+          </Button>
         </form>
 
-        {/* List Table */}
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden h-fit">
+        {/* Staff Roster Table */}
+        <div className="rounded-xl border border-[#E7E9EC] bg-white overflow-hidden h-fit">
+          <div className="border-b border-[#E7E9EC] p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-[#314259]" />
+              <h3 className="text-sm font-semibold text-[#14181F]">Staff Roster</h3>
+            </div>
+            <span className="text-xs text-[#8A94A3]">
+              {employeesData.length} team members
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-xs font-medium uppercase tracking-wide text-slate-400">
-                  <th className="px-6 py-3 font-medium">Name</th>
-                  <th className="px-6 py-3 font-medium">Username</th>
-                  <th className="px-6 py-3 font-medium">Email</th>
-                  <th className="px-6 py-3 font-medium">Role</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
+                <tr className="border-b border-[#E7E9EC] bg-[#F6F7F8] text-[11px] font-semibold text-[#55606D] uppercase tracking-wider">
+                  <th className="py-3 px-4">Staff Member</th>
+                  <th className="py-3 px-4">Username</th>
+                  <th className="py-3 px-4">Role</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-[#E7E9EC]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-sm text-slate-500">
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" />
+                    <td colSpan={5} className="py-12 text-center text-xs text-[#8A94A3]">
+                      Loading staff roster...
                     </td>
                   </tr>
                 ) : !Array.isArray(employeesData) || employeesData.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400">
-                      No employees registered yet.
+                    <td colSpan={5} className="py-12 text-center text-xs text-[#8A94A3]">
+                      No employee accounts registered yet.
                     </td>
                   </tr>
                 ) : (
@@ -302,25 +321,34 @@ export default function Employees() {
                     const statusText = e.isActive ? "Active" : "Inactive";
 
                     return (
-                      <tr key={e.id} className="text-sm text-slate-700 hover:bg-slate-50/60">
-                        <td className="px-6 py-4 font-medium text-slate-900">{fullName}</td>
-                        <td className="px-6 py-4 font-mono">{e.username}</td>
-                        <td className="px-6 py-4">{e.email}</td>
-                        <td className="px-6 py-4 capitalize">{roleName}</td>
-                        <td className="px-6 py-4">
+                      <tr key={e.id} className="hover:bg-[#F6F7F8]/60 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#F6F7F8] border border-[#E7E9EC] font-semibold text-[#314259]">
+                              {e.firstName.substring(0, 1)}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-[#14181F] block">{fullName}</span>
+                              <span className="text-[11px] text-[#8A94A3]">{e.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-[#55606D]">{e.username}</td>
+                        <td className="py-3.5 px-4">
+                          <Badge tone="neutral">{roleName?.toUpperCase() || "STAFF"}</Badge>
+                        </td>
+                        <td className="py-3.5 px-4">
                           <StatusBadge status={statusText} />
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex justify-end gap-1">
-                            <button
-                              onClick={() => handleDelete(e.id, fullName)}
-                              disabled={deleteMutation.isPending}
-                              aria-label="Delete"
-                              className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => handleDelete(e.id, fullName)}
+                            disabled={deleteMutation.isPending}
+                            aria-label="Delete"
+                            className="rounded-lg p-1.5 text-[#8A94A3] hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-40"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     );
@@ -331,6 +359,6 @@ export default function Employees() {
           </div>
         </div>
       </div>
-    </AppShell>
+    </div>
   );
-}
+}
