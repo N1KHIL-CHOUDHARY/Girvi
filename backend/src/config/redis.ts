@@ -143,6 +143,38 @@ export const redisClient = {
     return standardClient ? standardClient.ttl(key) : -1;
   },
 
+  
+  async atomicIncrExpire(key: string, windowSeconds: number): Promise<[number, number]> {
+    const luaScript = [
+      "local current = redis.call('INCR', KEYS[1])",
+      "if current == 1 then",
+      "  redis.call('EXPIRE', KEYS[1], ARGV[1])",
+      "end",
+      "local ttl = redis.call('TTL', KEYS[1])",
+      "return {current, ttl}",
+    ].join('\n');
+
+    if (useUpstash && upstashClient) {
+      const result = await upstashClient.eval(
+        luaScript,
+        [key],
+        [String(windowSeconds)]
+      ) as [number, number];
+      return result;
+    }
+
+    if (standardClient) {
+      const result = await standardClient.eval(
+        luaScript,
+        { keys: [key], arguments: [String(windowSeconds)] }
+      ) as [number, number];
+      return result;
+    }
+
+    // No client available — return safe defaults (fail open)
+    return [1, windowSeconds];
+  },
+
   async ping(): Promise<string> {
     if (useUpstash && upstashClient) {
       try {

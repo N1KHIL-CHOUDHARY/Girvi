@@ -78,7 +78,7 @@ interface PawnUpdatePayload {
     name: string;
     type: string;
     weight_grams: number;
-    purity?: number;
+    purity: string;
     description: string;
     item_photo_url?: string;
   }>;
@@ -177,7 +177,7 @@ const buildPawnUpdatePayload = (formData: PawnFormState): PawnUpdatePayload => (
       name: formData.itemName.trim(),
       type: formData.itemType.trim() || "gold",
       weight_grams: parseRequiredNumber(formData.itemWeight, "Item weight"),
-      purity: parseOptionalNumber(formData.itemPurity),
+      purity: formData.itemPurity.trim(), 
       description: formData.itemDescription.trim(),
       item_photo_url: formData.itemPhotoUrl || undefined,
     },
@@ -499,4 +499,4 @@ export default function UpdatePawn() {
   }
 
   return <PawnTicketEditForm id={id} initialTicket={pawnTicket.data} />;
-}
+}

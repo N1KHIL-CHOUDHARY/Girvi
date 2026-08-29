@@ -165,7 +165,7 @@ export default function NewPawnTicket() {
           name: formData.itemName.trim(),
           type: formData.itemType,
           weight_grams: weightVal,
-          purity: parseFloat(formData.itemPurity) || null,
+          purity: formData.itemPurity.trim() ? formData.itemPurity.trim() : undefined,
           description: formData.itemDescription.trim() || undefined,
           item_photo_url: formData.itemPhotoUrl || undefined,
         },

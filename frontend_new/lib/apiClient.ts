@@ -241,7 +241,7 @@ export const createAccount = async <T = unknown>(data: unknown): Promise<ApiResp
 };
 
 export const updateAccount = async <T = unknown>(id: string, data: unknown): Promise<ApiResponse<T>> => {
-  const res = await apiClient.put<ApiResponse<T>>(`/app/customers/${id}`, data);
+  const res = await apiClient.patch<ApiResponse<T>>(`/app/customers/${id}`, data);
   return res as unknown as ApiResponse<T>;
 };
 

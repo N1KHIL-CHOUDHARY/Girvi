@@ -76,11 +76,11 @@ model User {
   password       String
   phone          String?
   isActive       Boolean       @default(true)
+  isEmailVerified Boolean      @default(false)  
   language       String        @default("en")
   lastLoginAt    DateTime?
   loginAttempts  Int           @default(0)
-  lockedUntil    DateTime?
-  isEmailVerified      Boolean       @default(false)
+  lockedUntil    DateTime? 
   emailVerifiedAt      DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?

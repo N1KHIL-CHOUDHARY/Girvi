@@ -53,9 +53,9 @@ app.use(loggerMiddleware);
 
 app.use(sanitizeMiddleware);
 
+// Static assets and API docs are mounted BEFORE the rate limiter so they
+// are never subject to API rate limiting.
 app.use('/uploads', express.static(path.join(process.cwd(), 'storage', 'uploads')));
-
-app.use(tenantMiddleware);
 
 app.use(
   '/docs',
@@ -73,6 +73,8 @@ app.get('/openapi.json', (_req, res) => {
     }
   });
 });
+
+app.use(tenantMiddleware);
 
 const apiPrefix = '/api/v1';
 
