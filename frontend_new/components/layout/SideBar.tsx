@@ -95,6 +95,7 @@ export function Sidebar({
         <div className="px-5 py-4 border-b border-[#E7E9EC]">
           <Link
             href="/dashboard"
+            prefetch={false}
             onClick={onClose}
             className="flex items-center gap-2.5"
           >
@@ -124,6 +125,7 @@ export function Sidebar({
                   <Link
                     key={href}
                     href={href}
+                    prefetch={false}
                     onClick={onClose}
                     className={cn(
                       "flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors cursor-pointer",

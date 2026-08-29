@@ -47,6 +47,10 @@ export const redisClient = {
     return useUpstash;
   },
 
+  get rawUpstash(): UpstashRedis | null {
+    return upstashClient;
+  },
+
   async connect(): Promise<void> {
     if (useUpstash) return;
     if (standardClient && !standardClient.isOpen) {

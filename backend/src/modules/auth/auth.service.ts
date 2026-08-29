@@ -114,18 +114,15 @@ export class AuthService {
       throw new AuthenticationError('Invalid email or password');
     }
 
-    // 4. Successful Login: reset attempts for the authenticated user
-    if (authenticatedUser.loginAttempts > 0 || authenticatedUser.lockedUntil) {
-      await authRepository.updateUser(authenticatedUser.id, {
-        loginAttempts: 0,
-        lockedUntil: null
-      });
-    }
-
-    // 5. Update last login time
-    await authRepository.updateUser(authenticatedUser.id, {
-      lastLoginAt: new Date()
+    // 4. Successful Login: consolidate lastLoginAt, loginAttempts reset, and lockedUntil reset into a single atomic update
+    const updatedUser = await authRepository.updateUser(authenticatedUser.id, {
+      lastLoginAt: new Date(),
+      loginAttempts: 0,
+      lockedUntil: null,
     });
+    authenticatedUser.lastLoginAt = updatedUser.lastLoginAt;
+    authenticatedUser.loginAttempts = 0;
+    authenticatedUser.lockedUntil = null;
 
     // 6. Generate tokens
     const roleName = authenticatedUser.role?.name || 'worker';
@@ -338,19 +335,26 @@ export class AuthService {
   private async createRefreshToken(userId: string, shopId: string): Promise<string> {
     const token = uuidv4();
     const key = `refresh_token:${token}`;
+    const userTokensKey = `user_tokens:${userId}`;
     
     // Store in Redis (converts REFRESH_EXPIRES e.g., '7d' to seconds)
     const ttlSeconds = 7 * 24 * 60 * 60; // 7 days in seconds
     
-    if (redisClient.isOpen) {
+    if (redisClient.rawUpstash) {
+      const pipeline = redisClient.rawUpstash.pipeline();
+      pipeline.set(key, JSON.stringify({ userId, shopId }), { ex: ttlSeconds });
+      pipeline.sadd(userTokensKey, token);
+      pipeline.expire(userTokensKey, ttlSeconds);
+      await pipeline.exec();
+    } else if (redisClient.isOpen) {
       await redisClient.setEx(
         key,
         ttlSeconds,
         JSON.stringify({ userId, shopId })
       );
       // Track all user tokens for global revoking
-      await redisClient.sAdd(`user_tokens:${userId}`, token);
-      await redisClient.expire(`user_tokens:${userId}`, ttlSeconds);
+      await redisClient.sAdd(userTokensKey, token);
+      await redisClient.expire(userTokensKey, ttlSeconds);
     }
 
     return token;

@@ -19,19 +19,69 @@ export class AuthRepository {
   async findUsersByEmail(email: string): Promise<UserWithRoleAndPermissions[]> {
     return prisma.user.findMany({
       where: { email },
-      include: {
-        shop: true,
+      select: {
+        id: true,
+        shopId: true,
+        roleId: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        username: true,
+        password: true,
+        phone: true,
+        isActive: true,
+        isEmailVerified: true,
+        language: true,
+        lastLoginAt: true,
+        loginAttempts: true,
+        lockedUntil: true,
+        emailVerifiedAt: true,
+        resetPasswordToken: true,
+        resetPasswordExpires: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            address: true,
+            createdAt: true,
+            updatedAt: true,
+            deletedAt: true,
+          },
+        },
         role: {
-          include: {
+          select: {
+            id: true,
+            shopId: true,
+            name: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true,
             permissions: {
-              include: {
-                permission: true
-              }
-            }
-          }
-        }
-      }
-    });
+              select: {
+                roleId: true,
+                permissionId: true,
+                createdAt: true,
+                permission: {
+                  select: {
+                    id: true,
+                    code: true,
+                    name: true,
+                    description: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }) as unknown as Promise<UserWithRoleAndPermissions[]>;
   }
 
   async findUserById(id: string): Promise<UserWithRoleAndPermissions | null> {

@@ -70,6 +70,7 @@ export default function PawnTickets() {
       render: (t) => (
         <Link
           href={`/pawn-tickets/${t.id}`}
+          prefetch={false}
           className="font-mono font-semibold text-[#14181F] hover:underline"
         >
           {t.ticket_number}
@@ -86,6 +87,7 @@ export default function PawnTickets() {
             {t.customer?.id ? (
               <Link
                 href={`/customers/${t.customer.id}`}
+                prefetch={false}
                 className="font-medium text-[#14181F] hover:underline"
               >
                 {customerName}
@@ -166,6 +168,7 @@ export default function PawnTickets() {
           )}
           <Link
             href={`/pawn-tickets/${t.id}`}
+            prefetch={false}
             aria-label="View Ticket Details"
             className="rounded-lg p-1.5 text-[#8A94A3] hover:bg-[#F6F7F8] hover:text-[#14181F] transition-colors"
           >
@@ -173,6 +176,7 @@ export default function PawnTickets() {
           </Link>
           <Link
             href={`/pawn-tickets/${t.id}/edit`}
+            prefetch={false}
             aria-label="Edit Ticket"
             className="rounded-lg p-1.5 text-[#8A94A3] hover:bg-[#F6F7F8] hover:text-[#14181F] transition-colors"
           >
@@ -209,6 +213,7 @@ export default function PawnTickets() {
             </Button>
             <Link
               href="/pawn-tickets/new"
+              prefetch={false}
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#14181F] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#314259] transition-colors shadow-none"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -275,6 +280,7 @@ export default function PawnTickets() {
         emptyAction={
           <Link
             href="/pawn-tickets/new"
+            prefetch={false}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#14181F] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#314259] transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />

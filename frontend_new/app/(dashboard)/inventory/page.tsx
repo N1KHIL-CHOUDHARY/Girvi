@@ -145,6 +145,7 @@ export default function InventoryVaultPage() {
       render: (item) => (
         <Link
           href={`/pawn-tickets/${item.ticketId}`}
+          prefetch={false}
           className="font-mono font-semibold text-xs text-[#14181F] hover:underline"
         >
           {item.ticketNumber}

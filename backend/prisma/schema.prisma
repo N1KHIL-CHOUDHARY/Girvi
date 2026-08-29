@@ -96,6 +96,7 @@ model User {
 
   @@unique([shopId, email])
   @@unique([shopId, username])
+  @@index([email])
 }
 
 model Customer {
@@ -137,6 +138,7 @@ model Customer {
   @@index([createdAt])
   @@index([deletedAt])
   @@index([shopId, createdAt])
+  @@index([shopId, deletedAt])
 }
 
 model PawnTicket {
@@ -176,6 +178,7 @@ model PawnTicket {
   @@index([shopId, status])
   @@index([shopId, customerId])
   @@index([shopId, createdAt])
+  @@index([shopId, status, deletedAt])
 }
 
 model PawnItem {

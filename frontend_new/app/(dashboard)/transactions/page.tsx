@@ -52,6 +52,7 @@ export default function TransactionsJournalPage() {
           <div>
             <Link
               href={`/pawn-tickets/${r.id}`}
+              prefetch={false}
               className="font-mono font-semibold text-xs text-[#14181F] hover:underline block"
             >
               {r.ticket_number}

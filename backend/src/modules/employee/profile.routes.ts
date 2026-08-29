@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { authMiddleware } from '../../common/middleware/auth.middleware';
 import { prisma } from '../../config/database';
+import { redisClient } from '../../config/redis';
 import { sendSuccess } from '../../common/utils/apiResponse';
 import { getTenantShopId, getTenantUserId } from '../../common/context/tenant.context';
 import { NotFoundError, AppError, AuthorizationError } from '../../common/errors/AppError';
@@ -17,6 +18,22 @@ router.get('/me', asyncHandler(async (_req: Request, res: Response): Promise<voi
   const shopId = getTenantShopId();
   if (!userId || !shopId) {
     throw new AppError('Unauthenticated context', 401);
+  }
+
+  res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
+
+  const cacheKey = `user:profile:${userId}`;
+  if (redisClient.isOpen) {
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        sendSuccess(res, parsed, 'Profile and shop details retrieved successfully');
+        return;
+      }
+    } catch (_err) {
+      // Continue to query database if Redis lookup fails
+    }
   }
 
   const user = await prisma.user.findUnique({
@@ -48,7 +65,7 @@ router.get('/me', asyncHandler(async (_req: Request, res: Response): Promise<voi
     });
   }
 
-  sendSuccess(res, {
+  const profileData = {
     id: user.id,
     shopId: user.shopId,
     role: user.role?.name || 'worker',
@@ -63,7 +80,17 @@ router.get('/me', asyncHandler(async (_req: Request, res: Response): Promise<voi
       phone: user.shop.phone,
       address: user.shop.address
     }
-  }, 'Profile and shop details retrieved successfully');
+  };
+
+  if (redisClient.isOpen) {
+    try {
+      await redisClient.setEx(cacheKey, 600, JSON.stringify(profileData));
+    } catch (_err) {
+      // Gracefully ignore cache write failure
+    }
+  }
+
+  sendSuccess(res, profileData, 'Profile and shop details retrieved successfully');
 }));
 
 router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -135,6 +162,15 @@ router.patch('/me', asyncHandler(async (req: Request, res: Response): Promise<vo
     throw new NotFoundError('User profile not found');
   }
 
+  // Invalidate profile cache
+  if (redisClient.isOpen) {
+    try {
+      await redisClient.del(`user:profile:${userId}`);
+    } catch (_err) {
+      // Gracefully ignore cache invalidation failure
+    }
+  }
+
   sendSuccess(res, {
     id: freshUser.id,
     shopId: freshUser.shopId,
@@ -167,6 +203,15 @@ router.put('/users/preferences', asyncHandler(async (req: Request, res: Response
     data: { language }
   });
 
+  // Invalidate profile cache
+  if (redisClient.isOpen) {
+    try {
+      await redisClient.del(`user:profile:${userId}`);
+    } catch (_err) {
+      // Gracefully ignore cache invalidation failure
+    }
+  }
+
   sendSuccess(res, { language: updatedUser.language }, 'User preference updated successfully');
 }));
 
@@ -186,6 +231,15 @@ router.post('/change-password', asyncHandler(async (req: Request, res: Response)
   }
 
   await employeeService.changePassword(userId, currentPassword, newPassword);
+
+  // Invalidate profile cache
+  if (redisClient.isOpen) {
+    try {
+      await redisClient.del(`user:profile:${userId}`);
+    } catch (_err) {
+      // Gracefully ignore cache invalidation failure
+    }
+  }
 
   sendSuccess(res, undefined, 'Password changed successfully');
 }));

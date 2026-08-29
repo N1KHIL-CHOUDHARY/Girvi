@@ -80,6 +80,7 @@ export default function Customers() {
             <div>
               <Link
                 href={`/customers/${c.id}`}
+                prefetch={false}
                 className="font-medium text-[#14181F] hover:underline"
               >
                 {c.full_name}
@@ -149,6 +150,7 @@ export default function Customers() {
         <div className="flex justify-end gap-1">
           <Link
             href={`/customers/${c.id}`}
+            prefetch={false}
             aria-label="View Customer Details"
             className="rounded-lg p-1.5 text-[#8A94A3] hover:bg-[#F6F7F8] hover:text-[#14181F] transition-colors"
           >
@@ -156,6 +158,7 @@ export default function Customers() {
           </Link>
           <Link
             href={`/customers/${c.id}/edit`}
+            prefetch={false}
             aria-label="Edit Customer Profile"
             className="rounded-lg p-1.5 text-[#8A94A3] hover:bg-[#F6F7F8] hover:text-[#14181F] transition-colors"
           >
@@ -192,6 +195,7 @@ export default function Customers() {
             </Button>
             <Link
               href="/customers/new"
+              prefetch={false}
               className="inline-flex items-center gap-1.5 rounded-lg bg-[#14181F] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#314259] transition-colors shadow-none"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -255,6 +259,7 @@ export default function Customers() {
         emptyAction={
           <Link
             href="/customers/new"
+            prefetch={false}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#14181F] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#314259] transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />

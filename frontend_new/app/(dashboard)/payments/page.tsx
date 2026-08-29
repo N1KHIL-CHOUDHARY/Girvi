@@ -53,6 +53,7 @@ export default function PaymentsLedger() {
       render: (r) => (
         <Link
           href={`/pawn-tickets/${r.id}`}
+          prefetch={false}
           className="font-mono font-semibold text-[#14181F] hover:underline"
         >
           {r.ticket_number}

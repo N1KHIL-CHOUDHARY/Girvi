@@ -55,18 +55,21 @@ export class DashboardService {
     // 2. Fetch and calculate dashboard data strictly scoped to this shopId
     const startOfMonth = dayjs().startOf('month').toDate();
 
-    const [activeTickets, monthlyTickets, genderDataRaw, areaDataRaw, activityLogs] = await Promise.all([
-      // Active tickets for this shop
-      prisma.pawnTicket.findMany({
-        where: { shopId, status: 'active', deletedAt: null }
+    const [activeTicketsAgg, monthlyTicketsAgg, genderDataRaw, areaDataRaw, activityLogs] = await Promise.all([
+      // Active tickets aggregate for this shop
+      prisma.pawnTicket.aggregate({
+        where: { shopId, status: 'active', deletedAt: null },
+        _sum: { loanAmount: true },
+        _count: { id: true }
       }),
-      // Monthly issued tickets for this shop
-      prisma.pawnTicket.findMany({
+      // Monthly issued tickets aggregate for this shop
+      prisma.pawnTicket.aggregate({
         where: {
           shopId,
           pawnedDate: { gte: startOfMonth },
           deletedAt: null
-        }
+        },
+        _sum: { originalLoanAmount: true }
       }),
       // Customers gender grouping for this shop
       prisma.customer.groupBy({
@@ -91,20 +94,19 @@ export class DashboardService {
       })
     ]);
 
-    // Aggregate stats
-    const totalLoanActive = activeTickets.reduce(
-      (acc, t) => acc.plus(t.loanAmount),
-      new Prisma.Decimal(0)
-    );
-    const monthlyLoanGiven = monthlyTickets.reduce(
-      (acc, t) => acc.plus(t.originalLoanAmount),
-      new Prisma.Decimal(0)
-    );
+    const totalLoanActive = activeTicketsAgg._sum.loanAmount
+      ? new Prisma.Decimal(activeTicketsAgg._sum.loanAmount).toFixed(2)
+      : '0.00';
+    const totalActiveTickets = activeTicketsAgg._count.id ?? 0;
+
+    const monthlyLoanGiven = monthlyTicketsAgg._sum.originalLoanAmount
+      ? new Prisma.Decimal(monthlyTicketsAgg._sum.originalLoanAmount).toFixed(2)
+      : '0.00';
 
     const stats = {
-      total_loan_active: totalLoanActive.toFixed(2),
-      monthly_loan_given: monthlyLoanGiven.toFixed(2),
-      total_active_tickets: activeTickets.length
+      total_loan_active: totalLoanActive,
+      monthly_loan_given: monthlyLoanGiven,
+      total_active_tickets: totalActiveTickets
     };
 
     // Format gender distribution
