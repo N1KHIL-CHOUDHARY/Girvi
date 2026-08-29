@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ticket, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, notFound } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Save } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { AppShell } from "@/components/layout/AppShell";
+
 import FileUpload from "@/components/ui/FileUpload";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
   getApiErrorMessage,
   getPawnTicketById,
@@ -81,9 +83,6 @@ interface PawnUpdatePayload {
     item_photo_url?: string;
   }>;
 }
-
-const selectClass =
-  "h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 focus:border-[#1E3A66] focus:outline-none focus:ring-1 focus:ring-[#1E3A66]";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -198,7 +197,7 @@ function PawnTicketEditForm({ id, initialTicket }: { id: string; initialTicket: 
       toast.success("Pawn ticket updated successfully");
       queryClient.invalidateQueries({ queryKey: pawnTicketKeys.all });
       queryClient.invalidateQueries({ queryKey: pawnTicketKeys.detail(id) });
-      router.push("/pawn-tickets");
+      router.push(`/pawn-tickets/${id}`);
     },
     onError: (error: any) => {
       const payload = error?.response?.data;
@@ -219,7 +218,7 @@ function PawnTicketEditForm({ id, initialTicket }: { id: string; initialTicket: 
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormState((prev) => ({
@@ -250,147 +249,171 @@ function PawnTicketEditForm({ id, initialTicket }: { id: string; initialTicket: 
   };
 
   return (
-    <AppShell>
-      <div className="mb-6 flex items-center gap-3">
-        <Link
-          href="/pawn-tickets"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-        >
-          <ArrowLeft className="h-4.5 w-4.5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Update Pawn Ticket</h1>
-          <p className="mt-1 text-sm text-slate-500">Editing {formData.ticketNumber} for {customerLabel}</p>
-        </div>
-      </div>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <PageHeader
+        eyebrow="Loans & Tickets →"
+        title="Edit Pawn Ticket"
+        subtitle={`Updating ticket ${formData.ticketNumber} for ${customerLabel}`}
+        breadcrumbs={
+          <Link
+            href={`/pawn-tickets/${id}`}
+            className="inline-flex items-center gap-1 text-xs text-[#55606D] hover:text-[#14181F]"
+          >
+            <ArrowLeft className="h-3 w-3" /> Back to ticket
+          </Link>
+        }
+      />
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h3 className="mb-5 text-sm font-semibold text-slate-900">Customer &amp; Ticket</h3>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left: Customer & Financials */}
+          <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 sm:p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8A94A3] border-b border-[#E7E9EC] pb-2">
+              Borrower &amp; Financial Terms
+            </h3>
 
-          <div className="mb-4">
-            <Label>Customer</Label>
-            <Input value={customerLabel} disabled className="bg-slate-50 text-slate-500" />
-          </div>
-
-          <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="ticketNumber">Ticket Number</Label>
-              <Input
-                id="ticketNumber"
-                name="ticketNumber"
-                value={formData.ticketNumber}
-                onChange={handleChange}
-                required
-              />
+              <Label>Borrower Profile</Label>
+              <Input value={customerLabel} disabled className="bg-[#F6F7F8] text-[#55606D]" />
             </div>
-            <div>
-              <Label htmlFor="pawnedDate">Pawned Date</Label>
-              <Input
-                id="pawnedDate"
-                name="pawnedDate"
-                type="date"
-                value={formData.pawnedDate}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
 
-          <div className="mb-4 grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="ticketNumber" required>
+                  Ticket Number
+                </Label>
+                <Input
+                  id="ticketNumber"
+                  name="ticketNumber"
+                  value={formData.ticketNumber}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="pawnedDate" required>
+                  Pawned Date
+                </Label>
+                <Input
+                  id="pawnedDate"
+                  name="pawnedDate"
+                  type="date"
+                  value={formData.pawnedDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="loanAmount" required>
+                  Loan Principal (₹)
+                </Label>
+                <Input
+                  id="loanAmount"
+                  name="loanAmount"
+                  type="number"
+                  inputMode="decimal"
+                  value={formData.loanAmount}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="interestRate" required>
+                  Interest Rate (% / mo)
+                </Label>
+                <Input
+                  id="interestRate"
+                  name="interestRate"
+                  type="number"
+                  inputMode="decimal"
+                  value={formData.interestRate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="loanAmount">Loan Amount (₹)</Label>
+              <Label htmlFor="advanceAmount">Advance / Deductions (₹)</Label>
               <Input
-                id="loanAmount"
-                name="loanAmount"
+                id="advanceAmount"
+                name="advanceAmount"
                 type="number"
                 inputMode="decimal"
-                value={formData.loanAmount}
+                value={formData.advanceAmount}
                 onChange={handleChange}
                 required
               />
             </div>
+          </div>
+
+          {/* Right: Collateral Asset */}
+          <div className="rounded-xl border border-[#E7E9EC] bg-white p-5 sm:p-6 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8A94A3] border-b border-[#E7E9EC] pb-2">
+              Collateral Specifications
+            </h3>
+
             <div>
-              <Label htmlFor="interestRate">Interest Rate (%)</Label>
+              <Label htmlFor="itemName" required>
+                Item Name
+              </Label>
               <Input
-                id="interestRate"
-                name="interestRate"
-                type="number"
-                inputMode="decimal"
-                value={formData.interestRate}
+                id="itemName"
+                name="itemName"
+                value={formData.itemName}
                 onChange={handleChange}
                 required
               />
             </div>
-          </div>
 
-          <div className="mt-4">
-            <Label htmlFor="advanceAmount">Advance Amount (₹)</Label>
-            <Input
-              id="advanceAmount"
-              name="advanceAmount"
-              type="number"
-              inputMode="decimal"
-              value={formData.advanceAmount}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h3 className="mb-5 text-sm font-semibold text-slate-900">Item Details</h3>
-
-          <div className="mb-4">
-            <Label htmlFor="itemName">Item Name</Label>
-            <Input
-              id="itemName"
-              name="itemName"
-              value={formData.itemName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-4 grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="itemType">Item Type</Label>
-              <Input
-                id="itemType"
-                name="itemType"
-                value={formData.itemType}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="itemType">Category</Label>
+                <select
+                  id="itemType"
+                  name="itemType"
+                  value={formData.itemType}
+                  onChange={handleChange}
+                  className="h-10 w-full rounded-xl border border-[#E7E9EC] bg-white px-3 text-xs text-[#14181F] focus:border-[#14181F] focus:outline-none focus:ring-1 focus:ring-[#14181F] cursor-pointer"
+                >
+                  <option value="gold">Gold</option>
+                  <option value="silver">Silver</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="itemWeight" required>
+                  Gross Weight (grams)
+                </Label>
+                <Input
+                  id="itemWeight"
+                  name="itemWeight"
+                  type="number"
+                  inputMode="decimal"
+                  value={formData.itemWeight}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="itemWeight">Weight (grams)</Label>
-              <Input
-                id="itemWeight"
-                name="itemWeight"
-                type="number"
-                inputMode="decimal"
-                value={formData.itemWeight}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
 
-          <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="itemPurity">Purity</Label>
+              <Label htmlFor="itemPurity">Purity (Karat / %)</Label>
               <Input
                 id="itemPurity"
                 name="itemPurity"
-                type="number"
-                inputMode="decimal"
+                placeholder="e.g. 22"
                 value={formData.itemPurity}
                 onChange={handleChange}
               />
             </div>
+
             <div>
-              <Label htmlFor="itemPhotoUrl">Item Photo</Label>
+              <Label>Item Photo</Label>
               <FileUpload
                 value={formData.itemPhotoUrl}
                 onUpload={async (file) => {
@@ -406,40 +429,43 @@ function PawnTicketEditForm({ id, initialTicket }: { id: string; initialTicket: 
                     },
                   }))
                 }
-                label="Item photo"
+                label="Collateral photo"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="itemDescription">Description &amp; Markings</Label>
+              <textarea
+                id="itemDescription"
+                name="itemDescription"
+                rows={2}
+                value={formData.itemDescription}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-[#E7E9EC] bg-white p-3 text-xs text-[#14181F] placeholder:text-[#8A94A3] focus:border-[#14181F] focus:outline-none focus:ring-1 focus:ring-[#14181F]"
               />
             </div>
           </div>
-
-          <div className="mb-1">
-            <Label htmlFor="itemDescription">Item Description</Label>
-            <Input
-              id="itemDescription"
-              name="itemDescription"
-              value={formData.itemDescription}
-              onChange={handleChange}
-              required
-            />
-          </div>
         </div>
 
-        <div className="flex justify-end gap-3 lg:col-span-2">
-          <Link
-            href="/pawn-tickets"
-            className="flex items-center justify-center rounded-xl bg-slate-100 px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+        <div className="flex justify-end gap-3 border-t border-[#E7E9EC] pt-4">
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/pawn-tickets/${id}`)}
+            disabled={updateMutation.isPending}
           >
             Cancel
-          </Link>
-          <button
+          </Button>
+          <Button
             type="submit"
-            disabled={updateMutation.isPending}
-            className="flex items-center justify-center rounded-xl bg-[#1E3A66] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#17294D] disabled:opacity-50"
+            variant="primary"
+            isLoading={updateMutation.isPending}
+            leftIcon={<Save className="h-4 w-4" />}
           >
-            {updateMutation.isPending ? "Saving..." : "Save Changes"}
-          </button>
+            Save Changes
+          </Button>
         </div>
       </form>
-    </AppShell>
+    </div>
   );
 }
 
@@ -465,16 +491,12 @@ export default function UpdatePawn() {
 
   if (isLoading || !pawnTicket?.data) {
     return (
-      <AppShell>
-        <div className="mx-auto w-full max-w-3xl rounded-2xl border border-slate-100 bg-white p-10 shadow-sm">
-          <div className="animate-pulse">
-            <div className="mb-4 h-6 w-1/3 rounded bg-slate-100" />
-            <div className="h-4 w-1/4 rounded bg-slate-100" />
-          </div>
-        </div>
-      </AppShell>
+      <div className="mx-auto max-w-5xl space-y-6 animate-pulse">
+        <div className="h-6 w-1/3 rounded bg-[#F6F7F8]" />
+        <div className="h-64 rounded-xl bg-[#F6F7F8]" />
+      </div>
     );
   }
 
   return <PawnTicketEditForm id={id} initialTicket={pawnTicket.data} />;
-}
+}
