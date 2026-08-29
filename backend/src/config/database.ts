@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { tenantContext } from "../common/context/tenant.context";
+import { NotFoundError, BadRequestError } from "../common/errors/AppError";
 
 export const globalPrisma = new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["query", "info", "warn", "error"] : ["error", "warn"],
 });
 
-const getPrismaModelProperty = (model: string): string => {
-  return model.charAt(0).toLowerCase() + model.slice(1);
-};
+const getPrismaModelProperty = (model: string): string =>
+  model.charAt(0).toLowerCase() + model.slice(1);
 
 export const TENANT_MODELS: readonly string[] = [
   "Shop",
@@ -19,7 +19,7 @@ export const TENANT_MODELS: readonly string[] = [
   "LedgerEntry",
   "AuditLog",
   "ActivityLog",
-];
+] as const;
 
 export const SOFT_DELETE_MODELS: readonly string[] = [
   "User",
@@ -27,7 +27,7 @@ export const SOFT_DELETE_MODELS: readonly string[] = [
   "PawnTicket",
   "PawnItem",
   "Payment",
-];
+] as const;
 
 interface ExtensionArgs {
   where?: Record<string, unknown>;
@@ -43,7 +43,7 @@ interface ExtensionQueryContext {
   query: (args: ExtensionArgs) => Promise<unknown>;
 }
 
-interface DelegateWithFindFirst {
+interface ModelDelegate {
   findFirst?: (args: ExtensionArgs) => Promise<{ id: string } | null>;
   findFirstOrThrow?: (args: ExtensionArgs) => Promise<{ id: string }>;
   update?: (args: ExtensionArgs) => Promise<unknown>;
@@ -52,166 +52,143 @@ interface DelegateWithFindFirst {
 }
 
 const applyTenantAndSoftDelete = (
-  where: Record<string, unknown>,
+  where: Record<string, unknown> = {},
   model: string,
   shopId?: string
 ): Record<string, unknown> => {
+  const clause = { ...where };
+
   if (shopId && TENANT_MODELS.includes(model)) {
-    if (model === "Shop") {
-      if (where.id === undefined) {
-        where.id = shopId;
-      }
-    } else {
-      if (where.shopId === undefined) {
-        where.shopId = shopId;
-      }
-    }
+    const key = model === "Shop" ? "id" : "shopId";
+    clause[key] = clause[key] ?? shopId;
   }
+
   if (SOFT_DELETE_MODELS.includes(model)) {
-    if (where.deletedAt === undefined) {
-      where.deletedAt = null;
-    }
+    clause.deletedAt = clause.deletedAt ?? null;
   }
-  return where;
+
+  return clause;
+};
+
+const getModelDelegate = (model: string): ModelDelegate | undefined => {
+  const modelProp = getPrismaModelProperty(model);
+  return Reflect.get(globalPrisma, modelProp) as ModelDelegate | undefined;
 };
 
 export const tenantExtensionConfig = {
   query: {
     $allModels: {
       async findMany({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async findFirst({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async findFirstOrThrow({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async findUnique({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
+        const shopId = tenantContext.getStore()?.shopId;
         const requiresIsolation = (shopId && TENANT_MODELS.includes(model)) || SOFT_DELETE_MODELS.includes(model);
 
-        if (requiresIsolation) {
-          const whereClause = applyTenantAndSoftDelete({ ...(args.where ?? {}) }, model, shopId);
-          const modelProp = getPrismaModelProperty(model);
-          const delegate = Reflect.get(globalPrisma, modelProp) as DelegateWithFindFirst | undefined;
-          if (delegate && typeof delegate.findFirst === "function") {
-            return delegate.findFirst({
-              ...args,
-              where: whereClause,
-            });
-          }
+        if (!requiresIsolation) return query(args);
+
+        const delegate = getModelDelegate(model);
+        if (typeof delegate?.findFirst === "function") {
+          return delegate.findFirst({
+            ...args,
+            where: applyTenantAndSoftDelete(args.where, model, shopId),
+          });
         }
 
         return query(args);
       },
 
       async findUniqueOrThrow({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
+        const shopId = tenantContext.getStore()?.shopId;
         const requiresIsolation = (shopId && TENANT_MODELS.includes(model)) || SOFT_DELETE_MODELS.includes(model);
 
-        if (requiresIsolation) {
-          const whereClause = applyTenantAndSoftDelete({ ...(args.where ?? {}) }, model, shopId);
-          const modelProp = getPrismaModelProperty(model);
-          const delegate = Reflect.get(globalPrisma, modelProp) as DelegateWithFindFirst | undefined;
-          if (delegate && typeof delegate.findFirstOrThrow === "function") {
-            return delegate.findFirstOrThrow({
-              ...args,
-              where: whereClause,
-            });
-          }
+        if (!requiresIsolation) return query(args);
+
+        const delegate = getModelDelegate(model);
+        if (typeof delegate?.findFirstOrThrow === "function") {
+          return delegate.findFirstOrThrow({
+            ...args,
+            where: applyTenantAndSoftDelete(args.where, model, shopId),
+          });
         }
 
         return query(args);
       },
 
       async count({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async aggregate({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async groupBy({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async create({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop") {
-          if (args.data && !Array.isArray(args.data) && args.data.shopId === undefined) {
-            args.data.shopId = shopId;
-          }
+        const shopId = tenantContext.getStore()?.shopId;
+        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop" && args.data && !Array.isArray(args.data)) {
+          args.data.shopId = args.data.shopId ?? (args.data.shop ? undefined : shopId);
         }
         return query(args);
       },
 
       async createMany({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop") {
+        const shopId = tenantContext.getStore()?.shopId;
+        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop" && args.data) {
           if (Array.isArray(args.data)) {
-            args.data.forEach((item) => {
-              if (item && item.shopId === undefined) {
-                item.shopId = shopId;
-              }
-            });
-          } else if (args.data && !Array.isArray(args.data) && args.data.shopId === undefined) {
-            args.data.shopId = shopId;
+            for (const item of args.data) {
+              if (item) item.shopId = item.shopId ?? shopId;
+            }
+          } else {
+            args.data.shopId = args.data.shopId ?? shopId;
           }
         }
         return query(args);
       },
 
       async upsert({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop") {
-          if (args.create && args.create.shopId === undefined) {
-            args.create.shopId = shopId;
-          }
+        const shopId = tenantContext.getStore()?.shopId;
+        if (shopId && TENANT_MODELS.includes(model) && model !== "Shop" && args.create) {
+          args.create.shopId = args.create.shopId ?? (args.create.shop ? undefined : shopId);
         }
         return query(args);
       },
 
       async update({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
+        const shopId = tenantContext.getStore()?.shopId;
         const requiresIsolation = (shopId && TENANT_MODELS.includes(model)) || SOFT_DELETE_MODELS.includes(model);
 
         if (requiresIsolation) {
-          const modelProp = getPrismaModelProperty(model);
-          const delegate = Reflect.get(globalPrisma, modelProp) as DelegateWithFindFirst | undefined;
-          if (delegate && typeof delegate.findFirst === "function") {
-            const checkWhere = applyTenantAndSoftDelete({ ...(args.where ?? {}) }, model, shopId);
+          const delegate = getModelDelegate(model);
+          if (typeof delegate?.findFirst === "function") {
+            const checkWhere = applyTenantAndSoftDelete(args.where, model, shopId);
             const existing = await delegate.findFirst({ where: checkWhere });
             if (!existing) {
-              throw new Error(`Record to update not found or access denied for model ${model}`);
+              throw new NotFoundError(`Record to update not found or access denied for model ${model}`);
             }
             if (typeof delegate.update === "function") {
               return delegate.update({
@@ -228,24 +205,21 @@ export const tenantExtensionConfig = {
       },
 
       async updateMany({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
         return query(args);
       },
 
       async delete({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        const modelProp = getPrismaModelProperty(model);
-        const delegate = Reflect.get(globalPrisma, modelProp) as DelegateWithFindFirst | undefined;
+        const shopId = tenantContext.getStore()?.shopId;
+        const delegate = getModelDelegate(model);
 
         if (SOFT_DELETE_MODELS.includes(model)) {
-          const checkWhere = applyTenantAndSoftDelete({ ...(args.where ?? {}) }, model, shopId);
-          if (delegate && typeof delegate.findFirst === "function") {
+          const checkWhere = applyTenantAndSoftDelete(args.where, model, shopId);
+          if (typeof delegate?.findFirst === "function") {
             const existing = await delegate.findFirst({ where: checkWhere });
             if (!existing) {
-              throw new Error(`Record to delete not found or access denied for model ${model}`);
+              throw new NotFoundError(`Record to delete not found or access denied for model ${model}`);
             }
             if (typeof delegate.update === "function") {
               return delegate.update({
@@ -259,11 +233,11 @@ export const tenantExtensionConfig = {
         }
 
         if (shopId && TENANT_MODELS.includes(model)) {
-          if (delegate && typeof delegate.findFirst === "function") {
-            const checkWhere = applyTenantAndSoftDelete({ ...(args.where ?? {}) }, model, shopId);
+          if (typeof delegate?.findFirst === "function") {
+            const checkWhere = applyTenantAndSoftDelete(args.where, model, shopId);
             const existing = await delegate.findFirst({ where: checkWhere });
             if (!existing) {
-              throw new Error(`Record to delete not found or access denied for model ${model}`);
+              throw new NotFoundError(`Record to delete not found or access denied for model ${model}`);
             }
             if (typeof delegate.delete === "function") {
               return delegate.delete({
@@ -279,14 +253,12 @@ export const tenantExtensionConfig = {
       },
 
       async deleteMany({ model, args, query }: ExtensionQueryContext) {
-        const store = tenantContext.getStore();
-        const shopId = store?.shopId;
-        args.where = applyTenantAndSoftDelete(args.where ?? {}, model, shopId);
+        const shopId = tenantContext.getStore()?.shopId;
+        args.where = applyTenantAndSoftDelete(args.where, model, shopId);
 
         if (SOFT_DELETE_MODELS.includes(model)) {
-          const modelProp = getPrismaModelProperty(model);
-          const delegate = Reflect.get(globalPrisma, modelProp) as DelegateWithFindFirst | undefined;
-          if (delegate && typeof delegate.updateMany === "function") {
+          const delegate = getModelDelegate(model);
+          if (typeof delegate?.updateMany === "function") {
             return delegate.updateMany({
               where: args.where,
               data: { deletedAt: new Date() },
@@ -307,7 +279,7 @@ export async function executeTenantRawQuery<T>(
 ): Promise<T> {
   const shopId = tenantContext.getStore()?.shopId;
   if (!shopId) {
-    throw new Error("Tenant context missing: shopId is required for raw query execution.");
+    throw new BadRequestError("Tenant context missing: shopId is required for raw query execution.");
   }
   return queryFn(shopId);
 }
