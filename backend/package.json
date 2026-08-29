@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Enterprise Pawn Shop Management System Backend",
   "main": "dist/server.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "rm -rf dist && tsc",
