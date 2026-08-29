@@ -27,7 +27,8 @@ export const setStoredToken = (token: string | null): void => {
   }
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
-    document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=31536000; SameSite=Lax; Secure`;
+    const isSecure = process.env.NODE_ENV === "production";
+    document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=31536000; SameSite=Lax${isSecure ? "; Secure" : ""}`;
   } else {
     localStorage.removeItem(TOKEN_KEY);
     document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;

@@ -16,8 +16,6 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/customers") ||
     pathname.startsWith("/pawn-tickets") ||
-    pathname.startsWith("/loans") ||
-    pathname.startsWith("/pawn-items") ||
     pathname.startsWith("/inventory") ||
     pathname.startsWith("/payments") ||
     pathname.startsWith("/transactions") ||
@@ -27,13 +25,14 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/notifications") ||
     pathname.startsWith("/settings") ||
     pathname.startsWith("/profile") ||
-    pathname.startsWith("/help");
+    pathname.startsWith("/help") ||
+    pathname.startsWith("/onboarding");
 
   if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && isAuthPage) {
+  if (token && (isAuthPage || pathname === "/")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -48,12 +47,10 @@ export const config = {
     "/register",
     "/forgot-password",
     "/reset-password",
-    "/onboarding",
+    "/onboarding/:path*",
     "/dashboard/:path*",
     "/customers/:path*",
     "/pawn-tickets/:path*",
-    "/loans/:path*",
-    "/pawn-items/:path*",
     "/inventory/:path*",
     "/payments/:path*",
     "/transactions/:path*",
