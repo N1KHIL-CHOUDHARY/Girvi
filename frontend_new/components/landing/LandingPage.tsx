@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion} from "framer-motion";
 import {
   Users,
   Ticket,
@@ -10,7 +10,6 @@ import {
   TrendingUp,
   BarChart3,
   Settings,
-  Shield,
   Search,
   FileSpreadsheet,
   Check,
