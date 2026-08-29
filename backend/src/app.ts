@@ -30,6 +30,9 @@ import { apiReference } from '@scalar/express-api-reference';
 
 const app = express();
 
+// Enable trust proxy for reverse proxies (Render, Cloudflare, Nginx, Heroku, etc.)
+app.set('trust proxy', 1);
+
 app.use(helmet({
   crossOriginResourcePolicy: false
 }));

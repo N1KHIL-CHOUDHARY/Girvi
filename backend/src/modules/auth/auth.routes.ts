@@ -32,6 +32,7 @@ router.post(
 router.post('/logout', authController.logout);
 
 router.post('/refresh-token', authController.refreshToken);
+router.post('/refresh', authController.refreshToken);
 
 router.post(
   '/forgot-password',
