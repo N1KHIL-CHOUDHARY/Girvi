@@ -34,11 +34,10 @@ export function Modal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Focus trap
+  // Focus trap and lock scroll
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      // Focus on close button or modal container initially
       const focusable = modalRef.current?.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex="0"]'
       );
@@ -56,10 +55,10 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-overlay"
+        className="absolute inset-0 bg-[#14181F]/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden
       />
@@ -71,7 +70,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          "relative w-full rounded-[var(--radius-xl)] bg-[var(--color-bg-card)] shadow-[var(--shadow-overlay)] flex flex-col max-h-[90vh] overflow-hidden",
+          "relative w-full rounded-2xl bg-white border border-[#E7E9EC] shadow-[0_8px_24px_rgba(20,24,31,0.08)] flex flex-col max-h-[90vh] overflow-hidden anim-fade-up",
           size === "sm" && "max-w-md",
           size === "md" && "max-w-lg",
           size === "lg" && "max-w-2xl",
@@ -80,19 +79,19 @@ export function Modal({
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--color-border-light)] px-5 py-4 shrink-0">
+        <div className="flex items-center justify-between border-b border-[#E7E9EC] px-5 py-4 shrink-0 bg-white">
           <h2
             id="modal-title"
-            className="text-base font-bold text-[var(--color-text-primary)]"
+            className="text-[15px] font-semibold text-[#14181F]"
           >
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] transition-colors focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-[#8A94A3] hover:bg-[#F6F7F8] hover:text-[#14181F] transition-colors cursor-pointer"
             aria-label="Close modal"
           >
-            <X className="h-4.5 w-4.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -102,3 +101,4 @@ export function Modal({
     </div>
   );
 }
+

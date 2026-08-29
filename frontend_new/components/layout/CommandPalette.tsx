@@ -11,10 +11,17 @@ import {
   UserCog,
   BarChart3,
   Settings,
-  X,
   ArrowRight,
   Loader2,
+  Package,
+  ArrowLeftRight,
+  TrendingUp,
+  Bell,
+  HelpCircle,
+  User,
+  Plus,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 
@@ -24,19 +31,25 @@ interface SearchResult {
   sublabel?: string;
   href: string;
   icon: React.ReactNode;
-  category: "navigation" | "customer" | "ticket";
+  category: "navigation" | "customer" | "ticket" | "action";
 }
 
 const NAV_RESULTS: SearchResult[] = [
-  { id: "nav-dashboard", label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-customers", label: "Customers", sublabel: "Manage client profiles", href: "/customers", icon: <Users className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-customers-new", label: "New Customer", sublabel: "Create a customer profile", href: "/customers/new", icon: <Users className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-pawn-tickets", label: "Pawn Tickets", sublabel: "Manage pledges", href: "/pawn-tickets", icon: <Ticket className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-tickets-new", label: "New Pawn Ticket", sublabel: "Create a pawn ticket", href: "/pawn-tickets/new", icon: <Ticket className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-payments", label: "Payments & Ledger", sublabel: "Track transactions", href: "/payments", icon: <CreditCard className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-employees", label: "Employees", sublabel: "Manage staff", href: "/employees", icon: <UserCog className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-reports", label: "Reports", sublabel: "Financial reports", href: "/reports", icon: <BarChart3 className="h-4 w-4" />, category: "navigation" },
-  { id: "nav-settings", label: "Settings", sublabel: "Preferences", href: "/settings", icon: <Settings className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-dashboard", label: "Overview", sublabel: "Shop operational stats & stream", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-loans-new", label: "Create Pawn Ticket", sublabel: "New collateral pledge & loan", href: "/pawn-tickets/new", icon: <Plus className="h-4 w-4" />, category: "action" },
+  { id: "nav-pawn-tickets", label: "Active Loans", sublabel: "Loan portfolio & tickets", href: "/pawn-tickets", icon: <Ticket className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-customers", label: "Customers", sublabel: "CRM directory & KYC files", href: "/customers", icon: <Users className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-customers-new", label: "New Customer", sublabel: "Onboard borrower profile", href: "/customers/new", icon: <Plus className="h-4 w-4" />, category: "action" },
+  { id: "nav-inventory", label: "Collateral Vault", sublabel: "Gold, silver, diamonds & pledge assets", href: "/inventory", icon: <Package className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-payments", label: "Payments", sublabel: "Record repayments & receipt ledger", href: "/payments", icon: <CreditCard className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-transactions", label: "Transactions", sublabel: "Complete audit ledger", href: "/transactions", icon: <ArrowLeftRight className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-reports", label: "Reports", sublabel: "Financial statements & compliance", href: "/reports", icon: <BarChart3 className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-analytics", label: "Analytics", sublabel: "Risk matrix & capital velocity", href: "/analytics", icon: <TrendingUp className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-employees", label: "Employees", sublabel: "Staff access & role controls", href: "/employees", icon: <UserCog className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-notifications", label: "Notifications", sublabel: "Alerts & overdue warnings", href: "/notifications", icon: <Bell className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-settings", label: "Settings", sublabel: "Store configuration & loan rates", href: "/settings", icon: <Settings className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-profile", label: "Profile", sublabel: "Personal account & credentials", href: "/profile", icon: <User className="h-4 w-4" />, category: "navigation" },
+  { id: "nav-help", label: "Help & Docs", sublabel: "Operational guides & hotkeys", href: "/help", icon: <HelpCircle className="h-4 w-4" />, category: "navigation" },
 ];
 
 export function CommandPalette({
@@ -60,7 +73,6 @@ export function CommandPalette({
     }
 
     if (query.trim().length < 2) {
-      // Filter nav items by sublabel/label locally first if < 2 chars
       return NAV_RESULTS.filter(
         (r) =>
           r.label.toLowerCase().includes(query.toLowerCase()) ||
@@ -68,15 +80,22 @@ export function CommandPalette({
       );
     }
 
-    // Wrap global results
-    return (Array.isArray(globalResults) ? globalResults : []).map((res) => ({
+    const dynResults: SearchResult[] = (Array.isArray(globalResults) ? globalResults : []).map((res) => ({
       id: res.id,
       label: res.title,
       sublabel: res.subtitle,
       href: res.href,
       icon: res.type === "customer" ? <Users className="h-4 w-4" /> : <Ticket className="h-4 w-4" />,
-      category: res.type,
+      category: res.type as any,
     }));
+
+    if (dynResults.length > 0) return dynResults;
+
+    return NAV_RESULTS.filter(
+      (r) =>
+        r.label.toLowerCase().includes(query.toLowerCase()) ||
+        r.sublabel?.toLowerCase().includes(query.toLowerCase())
+    );
   };
 
   const finalResults = getResultsList();
@@ -90,6 +109,18 @@ export function CommandPalette({
     },
     [onClose, router]
   );
+
+  // Global shortcut cmd+k
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        // toggle if already handled by topbar, or open
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Reset on open
   useEffect(() => {
@@ -120,7 +151,6 @@ export function CommandPalette({
     [finalResults, selectedIndex, navigate, onClose]
   );
 
-  // Reset selected index when results change
   useEffect(() => {
     setSelectedIndex(0);
   }, [query, globalResults.length]);
@@ -128,10 +158,10 @@ export function CommandPalette({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-command-palette)] flex items-start justify-center pt-[15vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-overlay"
+        className="absolute inset-0 bg-[#14181F]/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden
       />
@@ -141,26 +171,26 @@ export function CommandPalette({
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        className="relative w-full max-w-lg rounded-[var(--radius-xl)] bg-[var(--color-bg-card)] shadow-[var(--shadow-overlay)] overflow-hidden"
+        className="relative w-full max-w-lg rounded-2xl bg-white border border-[#E7E9EC] shadow-[0_8px_24px_rgba(20,24,31,0.08)] overflow-hidden anim-fade-up"
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-4">
-          <Search className="h-4.5 w-4.5 shrink-0 text-[var(--color-text-muted)]" />
+        <div className="flex items-center gap-3 border-b border-[#E7E9EC] px-4">
+          <Search className="h-4 w-4 shrink-0 text-[#8A94A3]" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search pages, customers, tickets..."
-            className="h-12 flex-1 bg-transparent text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-placeholder)] outline-none"
+            placeholder="Search pages, customers, loans, or collateral..."
+            className="h-12 flex-1 bg-transparent text-sm text-[#14181F] placeholder:text-[#8A94A3] outline-none"
           />
           {isSearchLoading && (
-            <Loader2 className="h-4 w-4 animate-spin text-[var(--color-text-muted)]" />
+            <Loader2 className="h-4 w-4 animate-spin text-[#8A94A3]" />
           )}
           <button
             onClick={onClose}
-            className="flex h-6 items-center rounded border border-[var(--color-border)] px-1.5 text-[10px] font-medium text-[var(--color-text-muted)]"
+            className="flex h-5 items-center rounded border border-[#E7E9EC] px-1.5 text-[10px] font-mono text-[#8A94A3] hover:text-[#14181F] cursor-pointer"
           >
             ESC
           </button>
@@ -169,11 +199,11 @@ export function CommandPalette({
         {/* Results */}
         <div className="max-h-[320px] overflow-y-auto p-2">
           {finalResults.length === 0 ? (
-            <div className="py-8 text-center text-sm text-[var(--color-text-muted)]">
-              No results found for &quot;{query}&quot;
+            <div className="py-8 text-center text-xs text-[#8A94A3]">
+              No records found for &quot;{query}&quot;
             </div>
           ) : (
-            <ul role="listbox">
+            <ul role="listbox" className="space-y-0.5">
               {finalResults.map((result, index) => (
                 <li key={result.id} role="option" aria-selected={index === selectedIndex}>
                   <button
@@ -181,31 +211,44 @@ export function CommandPalette({
                     onClick={() => navigate(result.href)}
                     onMouseEnter={() => setSelectedIndex(index)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-left transition-colors",
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors cursor-pointer",
                       index === selectedIndex
-                        ? "bg-[var(--color-primary)] text-white"
-                        : "text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)]"
+                        ? "bg-[#14181F] text-white"
+                        : "text-[#55606D] hover:bg-[#F6F7F8]"
                     )}
                   >
-                    <span className={cn(
-                      "shrink-0",
-                      index === selectedIndex ? "text-white/80" : "text-[var(--color-text-muted)]"
-                    )}>
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        index === selectedIndex ? "text-white" : "text-[#8A94A3]"
+                      )}
+                    >
                       {result.icon}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{result.label}</p>
+                      <p
+                        className={cn(
+                          "text-xs font-semibold truncate",
+                          index === selectedIndex ? "text-white" : "text-[#14181F]"
+                        )}
+                      >
+                        {result.label}
+                      </p>
                       {result.sublabel && (
-                        <p className={cn(
-                          "text-xs truncate",
-                          index === selectedIndex ? "text-white/60" : "text-[var(--color-text-muted)]"
-                        )}>
+                        <p
+                          className={cn(
+                            "text-[11px] truncate",
+                            index === selectedIndex
+                              ? "text-white/70"
+                              : "text-[#8A94A3]"
+                          )}
+                        >
                           {result.sublabel}
                         </p>
                       )}
                     </div>
                     {index === selectedIndex && (
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-white/60" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-white/70" />
                     )}
                   </button>
                 </li>
@@ -215,12 +258,16 @@ export function CommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-4 border-t border-[var(--color-border)] px-4 py-2 text-[11px] text-[var(--color-text-muted)]">
-          <span>↑↓ Navigate</span>
-          <span>↵ Open</span>
-          <span>ESC Close</span>
+        <div className="flex items-center justify-between border-t border-[#E7E9EC] bg-[#F6F7F8] px-4 py-2 text-[11px] text-[#8A94A3]">
+          <div className="flex items-center gap-3">
+            <span>↑↓ Navigate</span>
+            <span>↵ Open</span>
+          </div>
+          <span>GRIVI Global Search</span>
+
         </div>
       </div>
     </div>
   );
 }
+

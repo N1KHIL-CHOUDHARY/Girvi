@@ -1,57 +1,52 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { FileQuestion, MoveLeft } from "lucide-react";
-import { AppShell } from "@/components/layout/AppShell";
+import { useRouter } from "next/navigation";
+import { HelpCircle, MoveLeft, Home } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export default function NotFound() {
   const router = useRouter();
-  const pathname = usePathname();
-
-  const isRecordNotFound =
-    pathname?.includes("/customers/") ||
-    pathname?.includes("/pawn-tickets/") ||
-    pathname?.includes("/payments/");
-
-  const title = isRecordNotFound ? "Record Not Found" : "Page Not Found";
-  const description = isRecordNotFound
-    ? "The requested database record does not exist, has been removed, or you do not have permission to access it."
-    : "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.";
 
   return (
-    <AppShell>
-      <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
-          <FileQuestion className="h-8 w-8 text-slate-400" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7F8] p-4 text-center">
+      <div className="w-full max-w-md rounded-xl border border-[#E7E9EC] bg-white p-8 space-y-5">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F6F7F8] border border-[#E7E9EC] text-[#314259]">
+          <HelpCircle className="h-6 w-6" />
         </div>
 
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-          404
-        </h1>
-        <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-800">
-          {title}
-        </h2>
-        <p className="mt-3 max-w-md text-sm text-slate-500">
-          {description}
-        </p>
+        <div>
+          <span className="font-mono text-xs font-semibold text-[#8A94A3] uppercase tracking-wider block">
+            Error 404
+          </span>
+          <h1 className="mt-1 text-lg font-semibold text-[#14181F]">
+            Page or Record Not Found
+          </h1>
+          <p className="mt-1 text-xs text-[#55606D] leading-relaxed">
+            The requested database record, pawn ticket, or workspace route does not exist or has been relocated.
+          </p>
+        </div>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <button
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => router.back()}
-            className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-6 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
+            leftIcon={<MoveLeft className="h-3.5 w-3.5" />}
           >
-            <MoveLeft className="h-4 w-4" />
             Go Back
-          </button>
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center rounded-xl bg-[#1E3A66] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#17294D]"
-          >
-            Dashboard Home
+          </Button>
+          <Link href="/dashboard">
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Home className="h-3.5 w-3.5" />}
+            >
+              Dashboard
+            </Button>
           </Link>
         </div>
       </div>
-    </AppShell>
+    </div>
   );
-}
+}

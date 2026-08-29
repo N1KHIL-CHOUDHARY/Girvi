@@ -4,19 +4,26 @@ import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center font-semibold transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+  "inline-flex items-center justify-center font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#14181F] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 select-none cursor-pointer",
   {
     variants: {
       variant: {
-        primary: "bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
-        secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
-        ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2",
-        danger: "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2",
+        primary:
+          "bg-[#14181F] text-white hover:bg-[#314259] active:bg-[#233041] border border-transparent shadow-none",
+        secondary:
+          "border border-[#E7E9EC] bg-white text-[#14181F] hover:bg-[#F6F7F8] active:bg-[#E7E9EC]",
+        ghost:
+          "text-[#55606D] hover:bg-[#F6F7F8] hover:text-[#14181F] active:bg-[#E7E9EC]",
+        danger:
+          "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 focus-visible:ring-red-600",
+        outline:
+          "border border-[#E7E9EC] bg-transparent text-[#14181F] hover:bg-[#F6F7F8]",
       },
       size: {
-        sm: "h-8 rounded-md px-3 text-xs gap-1.5",
-        md: "h-10 rounded-md px-4 text-sm gap-2",
-        lg: "h-12 rounded-lg px-6 text-sm gap-2.5",
+        sm: "h-8 rounded-lg px-3 text-xs gap-1.5 font-medium",
+        md: "h-10 rounded-lg px-4 text-sm gap-2 font-semibold",
+        lg: "h-11 rounded-lg px-5 text-sm gap-2.5 font-semibold",
+        icon: "h-9 w-9 rounded-lg p-0",
       },
     },
     defaultVariants: {
@@ -68,3 +75,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
+

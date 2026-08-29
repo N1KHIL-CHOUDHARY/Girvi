@@ -1,13 +1,13 @@
 import { cn } from "@/lib/utils";
 
-type BadgeTone = "success" | "danger" | "warning" | "neutral" | "info";
+export type BadgeTone = "success" | "danger" | "warning" | "neutral" | "info";
 
 const TONE_STYLES: Record<BadgeTone, string> = {
-  success: "bg-emerald-50 text-emerald-700",
-  danger: "bg-rose-50 text-rose-600",
-  warning: "bg-amber-50 text-amber-700",
-  neutral: "bg-slate-100 text-slate-600",
-  info: "bg-blue-50 text-blue-700",
+  success: "bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]/60",
+  danger: "bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]/60",
+  warning: "bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]/60",
+  info: "bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]/60",
+  neutral: "bg-[#F6F7F8] text-[#55606D] border border-[#E7E9EC]",
 };
 
 export function Badge({
@@ -22,7 +22,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-tight",
         TONE_STYLES[tone],
         className
       )}
@@ -32,17 +32,22 @@ export function Badge({
   );
 }
 
-/** Maps common status strings to a tone automatically. */
+/** Maps common status strings to a functional tone automatically with text label */
 export function StatusBadge({ status }: { status: string }) {
-  const normalized = status.toLowerCase();
-  const tone: BadgeTone =
-    normalized === "active"
-      ? "success"
-      : normalized === "overdue" || normalized === "inactive"
-      ? "danger"
-      : normalized === "closed"
-      ? "neutral"
-      : "info";
+  const normalized = (status || "").toLowerCase();
+  
+  let tone: BadgeTone = "neutral";
+  if (normalized === "active" || normalized === "verified" || normalized === "settled" || normalized === "completed" || normalized === "paid") {
+    tone = "success";
+  } else if (normalized === "overdue" || normalized === "defaulted" || normalized === "inactive" || normalized === "rejected") {
+    tone = "danger";
+  } else if (normalized === "pending" || normalized === "due soon" || normalized === "pending docs" || normalized === "held") {
+    tone = "warning";
+  } else if (normalized === "restricted" || normalized === "auditor" || normalized === "info") {
+    tone = "info";
+  }
 
-  return <Badge tone={tone}>{status}</Badge>;
-}
+  const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown";
+
+  return <Badge tone={tone}>{label}</Badge>;
+}
