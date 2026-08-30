@@ -2,12 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  Mail,
+  KeyRound,
+  ShieldCheck,
+} from "lucide-react";
 import { forgotPassword, getApiErrorMessage } from "@/services/api";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
-import { AuthLayout } from "@/app/(auth)/AuthLayout";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -29,7 +37,9 @@ export default function ForgotPassword() {
 
     try {
       await forgotPassword(email.trim());
-      setSuccess("If the email matches an active account, a password reset link has been dispatched.");
+      setSuccess(
+        "If the email matches an active account, a password reset link has been dispatched."
+      );
       setEmail("");
     } catch (err) {
       setError(getApiErrorMessage(err, "Failed to request password reset. Please try again."));
@@ -39,71 +49,129 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout
-      eyebrow="Account recovery"
-      headline="We'll get you back into the ledger."
-      subtext="Enter your email and we'll send a link to reset your password."
-    >
-      <div className="mb-7">
-        <h1 className="text-xl font-semibold text-[#14181F]">Recover access</h1>
-        <p className="mt-1 text-[13px] text-[#8A94A3]">
-          Enter your registered email to reset your credentials.
-        </p>
+    <main className="relative min-h-screen flex flex-col justify-between bg-[#F8F9FA] text-[#14181F] selection:bg-[#314259] selection:text-white antialiased font-sans px-4 py-8 sm:px-6 lg:px-8">
+      {/* Subtle Background Glow Accent */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/2 -top-24 h-96 w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-100/60 via-purple-50/40 to-transparent blur-3xl" />
       </div>
 
-      {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-          <span>{success}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="email" required>
-            Registered Email Address
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="admin@girvi.io"
-            value={email}
-            onChange={(e) => {
-              setError(null);
-              setEmail(e.target.value);
-            }}
-            disabled={isLoading}
-            required
-          />
-        </div>
-
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-full"
-          isLoading={isLoading}
-          rightIcon={<ArrowRight className="h-4 w-4" />}
-        >
-          Send Reset Instructions
-        </Button>
-      </form>
-
-      <div className="mt-6 border-t border-[#E7E9EC] pt-4 text-center text-xs text-[#8A94A3]">
+      {/* Top Header / Brand */}
+      <header className="relative z-10 mx-auto w-full max-w-md flex justify-center pt-2 pb-4">
         <Link
-          href="/login"
-          className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline"
+          href="/"
+          className="group inline-flex items-center gap-2.5 transition-opacity hover:opacity-90"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Return to login</span>
+          <Image
+            src="/icon.png"
+            alt="GIRVI logo"
+            width={34}
+            height={34}
+            className="rounded-lg shadow-sm"
+          />
+          <span className="text-[17px] font-bold tracking-tight text-[#14181F]">
+            GIRVI
+          </span>
         </Link>
+      </header>
+
+      {/* Main Auth Card */}
+      <div className="relative z-10 mx-auto w-full max-w-[420px] my-auto">
+        <div className="rounded-2xl border border-[#E7E9EC] bg-white p-7 sm:p-9 shadow-[0_4px_24px_-4px_rgba(20,24,31,0.06)]">
+          {/* Top Icon */}
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100/80 text-indigo-600">
+            <KeyRound className="h-6 w-6" />
+          </div>
+
+          {/* Title & Subtitle */}
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-[#14181F]">
+              Recover access
+            </h1>
+            <p className="mt-1.5 text-[13.5px] text-[#55606D]">
+              Enter your registered email to receive password reset instructions
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200/80 bg-red-50/80 p-3 text-xs text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
+              <span className="leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/90 p-3.5 text-xs text-emerald-800">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+              <span className="leading-relaxed">{success}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email" required>
+                Registered Email Address
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@girvi.io"
+                  value={email}
+                  onChange={(e) => {
+                    setError(null);
+                    setEmail(e.target.value);
+                  }}
+                  disabled={isLoading}
+                  required
+                  className="pl-9"
+                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8A94A3] pointer-events-none" />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              className="w-full h-11 text-sm font-semibold mt-2"
+              isLoading={isLoading}
+              rightIcon={<ArrowRight className="h-4 w-4" />}
+            >
+              Send Reset Instructions
+            </Button>
+          </form>
+
+          {/* Return to Login */}
+          <div className="mt-6 border-t border-[#E7E9EC] pt-5 text-center text-[13px]">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 font-semibold text-[#14181F] hover:underline underline-offset-2"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Return to login</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Security badge */}
+        <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[#8A94A3]">
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+          <span>Secure password reset verification link</span>
+        </div>
       </div>
-    </AuthLayout>
+
+      {/* Footer */}
+      <footer className="relative z-10 mx-auto w-full max-w-md pt-6 pb-2 text-center text-xs text-[#8A94A3]">
+        <div className="flex items-center justify-center gap-4">
+          <span>© 2026 GIRVI. All rights reserved.</span>
+          <span className="text-[#E7E9EC]">|</span>
+          <Link href="/" className="hover:text-[#14181F] transition-colors">
+            Home
+          </Link>
+        </div>
+      </footer>
+    </main>
   );
 }
