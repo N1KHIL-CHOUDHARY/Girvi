@@ -1,896 +1,393 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { motion } from "framer-motion";
 import {
-  Users,
-  Ticket,
-  CreditCard,
-  BarChart3,
-  Settings,
-  Search,
-  Check,
-  ChevronDown,
+  Sparkles,
   ArrowRight,
-  Printer,
-  Calculator,
+  Calendar,
+  Users,
+  CreditCard,
+  Search,
+  Bell,
+  ChevronDown,
+  LayoutDashboard,
+  Layers,
+  Archive,
   FileText,
-  X,
-  RefreshCw,
-  ShieldCheck,
+  Settings,
 } from "lucide-react";
 
-export function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [announcementOpen, setAnnouncementOpen] = useState(true);
-  const [activePreviewTab, setActivePreviewTab] = useState<
-    "dashboard" | "customers" | "tickets" | "payments" | "reports" | "staff"
-  >("dashboard");
-  const [faqOpen, setFaqOpen] = useState<Record<number, boolean>>({});
-  const [calculatorLoanAmount, setCalculatorLoanAmount] = useState(1000);
-  const [calculatorRate, setCalculatorRate] = useState(3);
-  const [calculatorMonths, setCalculatorMonths] = useState(3);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const heroRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Cursor-interactive canvas shader effect + floating card mouse variables
-  useEffect(() => {
-    const container = heroRef.current;
-    const canvas = canvasRef.current;
-    if (!container || !canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let width = (canvas.width = container.offsetWidth);
-    let height = (canvas.height = container.offsetHeight);
-
-    let targetX = width / 2;
-    let targetY = height / 3;
-    let currentX = width / 2;
-    let currentY = height / 3;
-
-    let targetNormX = 0;
-    let targetNormY = 0;
-    let currentNormX = 0;
-    let currentNormY = 0;
-
-    let rafId: number | null = null;
-    let active = true;
-
-    const handleResize = () => {
-      if (!container || !canvas) return;
-      const dpr = window.devicePixelRatio || 1;
-      width = container.offsetWidth;
-      height = container.offsetHeight;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.scale(dpr, dpr);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    const handlePointerMove = (e: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-
-      targetX = e.clientX - rect.left;
-      targetY = e.clientY - rect.top;
-
-      const relX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      const relY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-      targetNormX = Math.max(-1, Math.min(1, relX));
-      targetNormY = Math.max(-1, Math.min(1, relY));
-    };
-
-    const handlePointerLeave = () => {
-      targetX = width / 2;
-      targetY = height / 3;
-      targetNormX = 0;
-      targetNormY = 0;
-    };
-
-    container.addEventListener("pointermove", handlePointerMove);
-    container.addEventListener("pointerleave", handlePointerLeave);
-
-    let time = 0;
-
-    const render = () => {
-      if (!active) return;
-      time += 0.015;
-
-      // Smooth interpolation for fluid interactive motion
-      currentX += (targetX - currentX) * 0.06;
-      currentY += (targetY - currentY) * 0.06;
-
-      currentNormX += (targetNormX - currentNormX) * 0.05;
-      currentNormY += (targetNormY - currentNormY) * 0.05;
-
-      container.style.setProperty("--mouse-x", currentNormX.toFixed(4));
-      container.style.setProperty("--mouse-y", currentNormY.toFixed(4));
-
-      ctx.clearRect(0, 0, width, height);
-
-      // Base background layer
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, width, height);
-
-      // Orbital ambient node 1 (Purple/Indigo Primary Glow)
-      const orb1X = currentX + Math.sin(time * 0.8) * 80;
-      const orb1Y = currentY + Math.cos(time * 0.6) * 60;
-      const grad1 = ctx.createRadialGradient(
-        orb1X,
-        orb1Y,
-        0,
-        orb1X,
-        orb1Y,
-        width * 0.45
-      );
-      grad1.addColorStop(0, "rgba(167, 139, 250, 0.45)");
-      grad1.addColorStop(0.35, "rgba(129, 140, 248, 0.28)");
-      grad1.addColorStop(0.7, "rgba(192, 132, 252, 0.12)");
-      grad1.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = grad1;
-      ctx.fillRect(0, 0, width, height);
-
-      // Orbital ambient node 2 (Warm Amber Accent Glow)
-      const orb2X = width - currentX * 0.5 + Math.cos(time * 0.5) * 100;
-      const orb2Y = height * 0.2 + Math.sin(time * 0.7) * 70;
-      const grad2 = ctx.createRadialGradient(
-        orb2X,
-        orb2Y,
-        0,
-        orb2X,
-        orb2Y,
-        width * 0.35
-      );
-      grad2.addColorStop(0, "rgba(251, 191, 36, 0.35)");
-      grad2.addColorStop(0.4, "rgba(245, 158, 11, 0.18)");
-      grad2.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = grad2;
-      ctx.fillRect(0, 0, width, height);
-
-      // Orbital ambient node 3 (Cyan/Sky Soft Bottom Accent Glow)
-      const orb3X = width * 0.3 + Math.cos(time * 0.4) * 120;
-      const orb3Y = height * 0.75 + Math.sin(time * 0.5) * 50;
-      const grad3 = ctx.createRadialGradient(
-        orb3X,
-        orb3Y,
-        0,
-        orb3X,
-        orb3Y,
-        width * 0.4
-      );
-      grad3.addColorStop(0, "rgba(56, 189, 248, 0.25)");
-      grad3.addColorStop(0.5, "rgba(99, 102, 241, 0.12)");
-      grad3.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = grad3;
-      ctx.fillRect(0, 0, width, height);
-
-      rafId = requestAnimationFrame(render);
-    };
-
-    rafId = requestAnimationFrame(render);
-
-    return () => {
-      active = false;
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", handleResize);
-      container.removeEventListener("pointermove", handlePointerMove);
-      container.removeEventListener("pointerleave", handlePointerLeave);
-    };
-  }, []);
-
-  const toggleFaq = (index: number) => {
-    setFaqOpen((prev) => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const calcInterest = () =>
-    (calculatorLoanAmount * (calculatorRate / 100) * calculatorMonths).toFixed(2);
-  const calcTotalRepay = () =>
-    (calculatorLoanAmount + Number(calcInterest())).toFixed(2);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: "smooth" });
-    setMobileMenuOpen(false);
-  };
-
-  const demoCustomers = [
-    { id: "1", name: "David Miller", city: "Chicago", tickets: 2, totalLoan: 2500, kyc: "Verified" },
-    { id: "2", name: "Sophia Martinez", city: "Miami", tickets: 1, totalLoan: 850, kyc: "Verified" },
-    { id: "3", name: "James Wilson", city: "Dallas", tickets: 3, totalLoan: 4200, kyc: "Pending Docs" },
-    { id: "4", name: "Emma Thompson", city: "New York", tickets: 0, totalLoan: 0, kyc: "Verified" },
-  ];
-  const filteredCustomers = demoCustomers.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const previewTabs = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-    { id: "customers", label: "Customers", icon: Users },
-    { id: "tickets", label: "Pawn Tickets", icon: Ticket },
-    { id: "payments", label: "Payments", icon: CreditCard },
-    { id: "reports", label: "Reports", icon: FileText },
-    { id: "staff", label: "Staff", icon: Settings },
-  ] as const;
-
-  const workflowSteps = [
-    { step: "01", title: "Customer", desc: "Customer walks in with an item and ID." },
-    { step: "02", title: "Search", desc: "Find their profile in seconds." },
-    { step: "03", title: "Ticket", desc: "Record collateral and loan terms." },
-    { step: "04", title: "Disburse", desc: "Complete the loan and hand over cash." },
-    { step: "05", title: "Receipt", desc: "Print the record immediately." },
-    { step: "06", title: "Repayment", desc: "Track interest and principal over time." },
-    { step: "07", title: "Report", desc: "Understand how the business is doing." },
-  ];
-
-  const faqs = [
-    {
-      q: "Is GIRVI free?",
-      a: "GIRVI is currently in early access. Shops that join now get full access while we build alongside real pawnbrokers, and we'll communicate any pricing changes well in advance before they take effect.",
-    },
-    {
-      q: "Do I need to install anything?",
-      a: "No. GIRVI runs entirely in your browser, so there's nothing to install or maintain on your store computers — you just sign in and get to work.",
-    },
-    {
-      q: "Can my staff have different permissions?",
-      a: "Yes. You can set role-based permissions so cashiers, managers and auditors each see only what's relevant to their role.",
-    },
-    {
-      q: "Can I print pawn tickets and receipts?",
-      a: "Yes. Tickets and repayment receipts are laid out for printing directly from your browser, and work with standard desktop printers.",
-    },
-    {
-      q: "How does interest calculation work?",
-      a: "GIRVI calculates interest and outstanding balances automatically based on the rate and terms you set on each ticket, so nothing has to be worked out by hand.",
-    },
-    {
-      q: "Is my customer data secure?",
-      a: "Customer and ticket records are kept in a central cloud system with role-based access, rather than scattered across paper files or spreadsheets that anyone in the store can open.",
-    },
-    {
-      q: "Can I migrate existing records?",
-      a: "We can help you bring over your existing customers and open loan balances during setup — reach out to our team and we'll walk through it with you.",
-    },
-  ];
-
+export default function GirviLandingPage() {
   return (
-    <div className="min-h-screen bg-white text-[#14181F] selection:bg-[#314259] selection:text-white antialiased font-sans">
-      <style jsx global>{`
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .anim-fade-up {
-          animation: fadeUp 0.4s ease-out both;
-        }
-
-        @keyframes heroFloat1 {
-          0%, 100% { transform: translateY(0px) rotate(-3.5deg); }
-          50% { transform: translateY(-7px) rotate(-3.5deg); }
-        }
-        @keyframes heroFloat2 {
-          0%, 100% { transform: translateY(0px) rotate(3.5deg); }
-          50% { transform: translateY(8px) rotate(3.5deg); }
-        }
-        @keyframes heroFloat3 {
-          0%, 100% { transform: translateY(0px) rotate(-2deg); }
-          50% { transform: translateY(-6px) rotate(-2deg); }
-        }
-        @keyframes heroFloat4 {
-          0%, 100% { transform: translateY(0px) rotate(2.5deg); }
-          50% { transform: translateY(7px) rotate(2.5deg); }
-        }
-        @keyframes heroFloat5 {
-          0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
-          50% { transform: translateY(-5px) rotate(-1.5deg); }
-        }
-        @keyframes heroFloat6 {
-          0%, 100% { transform: translateY(0px) rotate(1.5deg); }
-          50% { transform: translateY(6px) rotate(1.5deg); }
-        }
-
-        .hero-card-1 { animation: heroFloat1 7.8s ease-in-out infinite; }
-        .hero-card-2 { animation: heroFloat2 8.6s ease-in-out infinite; }
-        .hero-card-3 { animation: heroFloat3 9.2s ease-in-out infinite; }
-        .hero-card-4 { animation: heroFloat4 8.2s ease-in-out infinite; }
-        .hero-card-5 { animation: heroFloat5 10s ease-in-out infinite; }
-        .hero-card-6 { animation: heroFloat6 9s ease-in-out infinite; }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-card-1, .hero-card-2, .hero-card-3,
-          .hero-card-4, .hero-card-5, .hero-card-6 {
-            animation: none;
-          }
-        }
-      `}</style>
-
-      {/* Announcement bar */}
-      {announcementOpen && (
-        <div className="bg-[#14181F] text-white text-[13px] py-2.5 px-6 relative">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center pr-6">
-            <span className="text-slate-300">Early access is now open —</span>
-            <button onClick={() => scrollToSection("pricing")} className="font-semibold underline underline-offset-2 hover:text-slate-200">
-              Join GIRVI
-            </button>
-          </div>
-          <button
-            onClick={() => setAnnouncementOpen(false)}
-            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            aria-label="Dismiss announcement"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Nav Header */}
-      <header
-        className={`sticky top-0 z-50 transition-all duration-300 border-b ${
-          scrolled ? "bg-white/95 backdrop-blur-md border-[#E7E9EC]" : "bg-white border-transparent"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/icon.png" alt="GIRVI logo" width={32} height={32} className="rounded-lg" />
-            <span className="font-bold text-[16px] tracking-tight text-[#14181F]">
+    <div className="min-h-screen w-full bg-[#FAFAFC] text-[#111827] font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+      
+      {/* ─────────────────────────────────────────────────────────────
+          1. NAVIGATION BAR
+      ─────────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 border-b border-[#F0F2F5] bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F172A] text-white font-black text-sm tracking-tight shadow-xs">
+              G
+            </span>
+            <span className="font-extrabold tracking-tight text-[#0F172A] text-base">
               GIRVI
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
-            {[
-              ["Features", "features"],
-              ["Product", "showcase"],
-              ["Workflow", "workflow"],
-              ["FAQ", "faq"],
-            ].map(([label, id]) => (
-              <button key={id} onClick={() => scrollToSection(id)} className="text-[14px] font-medium text-[#55606D] hover:text-[#14181F] transition-colors cursor-pointer">
-                {label}
-              </button>
-            ))}
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#4B5563]">
+            <a href="#product" className="hover:text-[#0F172A] transition-colors">Product</a>
+            <a href="#features" className="hover:text-[#0F172A] transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-[#0F172A] transition-colors">How it works</a>
+            <a href="#faq" className="hover:text-[#0F172A] transition-colors">FAQ</a>
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="px-4 py-2 text-[14px] font-medium text-[#55606D] hover:text-[#14181F] transition-colors">
-              Login
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            <Link
+              href="/login"
+              className="text-xs font-semibold text-[#4B5563] hover:text-[#0F172A] transition-colors"
+            >
+              Log in
             </Link>
-            <Link href="/signup" className="px-5 py-2 rounded-full text-[14px] font-semibold bg-[#14181F] text-white hover:bg-[#314259] transition-colors shadow-sm">
-              Start Free
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#1E293B] transition active:scale-95"
+            >
+              <span>Get started</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-
-          <button className="md:hidden h-8 w-8 flex items-center justify-center" onClick={() => setMobileMenuOpen((v) => !v)} aria-label="Toggle menu">
-            <span className="text-[#14181F] text-lg">{mobileMenuOpen ? "✕" : "☰"}</span>
-          </button>
         </div>
       </header>
 
-      {/* Interactive Hero Section */}
-      <section
-        ref={heroRef}
-        className="relative isolate w-full min-h-[calc(100vh-44px)] flex items-center justify-center overflow-hidden px-6 py-20"
-      >
-        {/* Cursor Interactive Canvas Shader Background Layer */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full pointer-events-none z-0"
-        />
+      {/* ─────────────────────────────────────────────────────────────
+          2. HERO CONTENT
+      ─────────────────────────────────────────────────────────────── */}
+      <section className="pt-14 pb-12 sm:pt-20 sm:pb-16 text-center">
+        <div className="mx-auto max-w-4xl px-6">
+          
+          {/* Sparkle Pill */}
+         
 
-        {/* Orbiting Floating Cards — z-10 layered above canvas background */}
-        <div className="absolute inset-0 hidden lg:block pointer-events-none z-10">
-          {/* Card 1: Top Left - Customers */}
-          <div className="absolute top-[10%] left-[8%] xl:left-[13%] hero-card-1 pointer-events-auto">
-            <div className="w-[220px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl shadow-indigo-500/5 text-left transition-all hover:bg-white/95">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
-                  <Users className="w-3.5 h-3.5 text-slate-500" /> Customers
-                </div>
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded">1,248</span>
-              </div>
-              <div className="space-y-2 text-[10.5px]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-slate-800 block">Robert Downey</span>
-                    <span className="text-[9px] text-slate-400">Boston · 2 tickets</span>
-                  </div>
-                  <span className="text-[8.5px] font-bold text-emerald-600 bg-emerald-50/90 px-1.5 py-0.5 rounded-md border border-emerald-100/80">✓ Verified</span>
-                </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-slate-100/80">
-                  <div>
-                    <span className="font-semibold text-slate-800 block">Clara Oswald</span>
-                    <span className="text-[9px] text-slate-400">Austin · 1 ticket</span>
-                  </div>
-                  <span className="text-[8.5px] font-bold text-amber-600 bg-amber-50/90 px-1.5 py-0.5 rounded-md border border-amber-100/80">Pending Docs</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Heading */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#0F172A] leading-[1.12]">
+            Run your pawn shop with ease.
+          </h1>
 
-          {/* Card 2: Bottom Left - Repayment */}
-          <div className="absolute bottom-[12%] left-[6%] xl:left-[10%] hero-card-2 pointer-events-auto">
-            <div className="w-[210px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl shadow-indigo-500/5 text-left transition-all hover:bg-white/95">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
-                  <CreditCard className="w-3.5 h-3.5 text-slate-500" /> Repayment
-                </div>
-                <span className="text-[9px] text-slate-400">10:45 AM</span>
-              </div>
-              <div className="space-y-1.5 text-[10.5px]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-slate-800 block">Ticket #4092</span>
-                    <span className="text-[9px] text-slate-400">Monthly Interest</span>
-                  </div>
-                  <span className="font-mono font-bold text-emerald-600 text-[11.5px]">+$36.00</span>
-                </div>
-                <div className="pt-1.5 border-t border-slate-100/80 flex items-center justify-between text-[9px]">
-                  <span className="text-slate-400">Remaining Principal:</span>
-                  <span className="font-mono font-bold text-slate-800">$1,200.00</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Subtext */}
+          <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-[#6B7280] leading-relaxed">
+            Track pledges, manage customers, record payments and never miss a due date — <br className="hidden sm:inline" />
+            all in one simple system.
+          </p>
 
-          {/* Card 3: Top Right - Ticket Detail */}
-          <div className="absolute top-[10%] right-[8%] xl:right-[13%] hero-card-4 pointer-events-auto">
-            <div className="w-[220px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl shadow-indigo-500/5 text-left transition-all hover:bg-white/95">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
-                  <Ticket className="w-3.5 h-3.5 text-slate-500" /> Ticket #4092
-                </div>
-                <span className="text-[8.5px] font-bold text-emerald-600 bg-emerald-50/90 px-1.5 py-0.5 rounded-md border border-emerald-100/80">Active</span>
-              </div>
-              <div className="space-y-2 text-[10px]">
-                <div className="bg-slate-50/80 p-2 rounded-xl flex items-center justify-between">
-                  <div>
-                    <span className="text-[8px] text-slate-400 uppercase font-semibold block">Collateral Item</span>
-                    <span className="font-bold text-slate-800 block">Gold Necklace · 22K (18.4g)</span>
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-amber-100/80 flex items-center justify-center text-amber-600 text-xs shrink-0">✨</div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-0.5 text-[10px]">
-                  <div>
-                    <span className="text-[8px] text-slate-400 uppercase font-semibold block">Principal</span>
-                    <span className="font-mono font-bold text-slate-800">$1,200.00</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[8px] text-slate-400 uppercase font-semibold block">Rate / Mo</span>
-                    <span className="font-mono font-bold text-indigo-600">3.00%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Bottom Right - Vault Status */}
-          <div className="absolute bottom-[12%] right-[6%] xl:right-[10%] hero-card-6 pointer-events-auto">
-            <div className="w-[210px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-xl shadow-indigo-500/5 text-left transition-all hover:bg-white/95">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800 mb-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" /> Vault Status
-              </div>
-              <div className="grid grid-cols-3 gap-1.5 text-[9px] text-center">
-                <div className="p-1.5 rounded-lg bg-slate-50/80">
-                  <span className="text-slate-400 block">Active</span>
-                  <strong className="font-mono text-[10px]">$184k</strong>
-                </div>
-                <div className="p-1.5 rounded-lg bg-slate-50/80">
-                  <span className="text-slate-400 block">Items</span>
-                  <strong className="text-[10px]">412</strong>
-                </div>
-                <div className="p-1.5 rounded-lg bg-slate-50/80">
-                  <span className="text-slate-400 block">Gold</span>
-                  <strong className="text-[10px]">12.8kg</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Central Content — elevated z-20 above background and cards */}
-        <div className="relative z-20 max-w-2xl mx-auto text-center flex flex-col items-center gap-4">
-          <motion.h1
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#14181F] tracking-tight leading-[1.1]"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-          >
-            Run your pawn shop
-            <br className="hidden sm:block" />
-            without the paperwork.
-          </motion.h1>
-
-          <motion.p
-            className="text-[14px] sm:text-[15px] text-[#55606D] leading-relaxed max-w-md font-normal"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
-            Manage customers, KYC, pawn tickets, repayments, collateral and reporting from one secure workspace.
-          </motion.p>
-
-          <motion.div
-            className="flex items-center justify-center gap-3"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.25 }}
-          >
+          {/* Dual CTAs */}
+          <div className="mt-7 flex items-center justify-center gap-3">
             <Link
               href="/signup"
-              className="px-5 py-2.5 rounded-full text-[13px] font-semibold bg-[#14181F] text-white hover:bg-[#314259] transition-all shadow-md inline-flex items-center gap-2"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-[#1E293B] transition active:scale-95"
             >
-              Get Started <ArrowRight className="w-3.5 h-3.5" />
+              <span>Get started free</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            <button
-              onClick={() => scrollToSection("interactive-preview")}
-              className="px-5 py-2.5 rounded-full text-[13px] font-medium border border-[#E7E9EC] bg-white/90 backdrop-blur-md hover:bg-slate-50 text-[#14181F] transition-all shadow-sm"
+
+            <a
+              href="#features"
+              className="rounded-lg border border-[#E5E7EB] bg-white px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#374151] hover:bg-neutral-50 shadow-2xs transition active:scale-95"
             >
-              Explore the product
-            </button>
-          </motion.div>
-
-          {/* Compact dashboard glimpse */}
-          <motion.div
-            className="w-full max-w-xl mx-auto rounded-2xl border border-white/80 bg-white/80 backdrop-blur-xl shadow-2xl shadow-indigo-500/10 overflow-hidden text-left"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
-          >
-            <div className="bg-slate-100/70 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-              </div>
-              <div className="text-[11px] font-medium text-slate-400">girvi.app/dashboard</div>
-              <div className="w-4" />
-            </div>
-
-            <div className="p-5 grid grid-cols-12 gap-4">
-              {/* Mini Sidebar */}
-              <div className="col-span-3 border-r border-slate-100 pr-3 space-y-2 text-[12px]">
-                <div className="font-bold text-[#14181F] mb-3 flex items-center gap-1.5 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-indigo-600" /> GIRVI
-                </div>
-                <div className="px-2 py-1.5 rounded-md bg-indigo-50 font-semibold text-indigo-600 flex items-center gap-2">
-                  <BarChart3 className="w-3.5 h-3.5" /> Dashboard
-                </div>
-                <div className="px-2 py-1.5 text-slate-500 flex items-center gap-2"><Users className="w-3.5 h-3.5" /> Customers</div>
-                <div className="px-2 py-1.5 text-slate-500 flex items-center gap-2"><Ticket className="w-3.5 h-3.5" /> Pawn Tickets</div>
-                <div className="px-2 py-1.5 text-slate-500 flex items-center gap-2"><CreditCard className="w-3.5 h-3.5" /> Repayments</div>
-                <div className="px-2 py-1.5 text-slate-500 flex items-center gap-2"><FileText className="w-3.5 h-3.5" /> Reports</div>
-                <div className="px-2 py-1.5 text-slate-500 flex items-center gap-2"><Settings className="w-3.5 h-3.5" /> Settings</div>
-              </div>
-
-              {/* Main Content Area */}
-              <div className="col-span-9 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-800">Good morning, Manager 👋</span>
-                  <span className="text-[10px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live
-                  </span>
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-100">
-                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-medium block">Active Loans</span>
-                    <span className="text-xs font-bold font-mono text-slate-800">$184,250</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-100">
-                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-medium block">Interest Earned</span>
-                    <span className="text-xs font-bold font-mono text-emerald-600">$4,850</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-100">
-                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-medium block">Vault Items</span>
-                    <span className="text-xs font-bold text-slate-800">412</span>
-                  </div>
-                </div>
-
-                {/* Activity Feed */}
-                <div className="rounded-xl border border-slate-100 p-3 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold text-slate-700 block mb-2">Recent Activity</span>
-                  <div className="space-y-2 text-[10.5px]">
-                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                      <span>New pawn ticket created <strong className="text-slate-700">#4092 · Robert Downey</strong></span>
-                      <span className="text-slate-400 font-mono">10:30 AM</span>
-                    </div>
-                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                      <span>Interest payment recorded <strong className="text-slate-700">#3824 · Clara Oswald</strong></span>
-                      <span className="text-slate-400 font-mono">9:45 AM</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Pawn ticket redeemed <strong className="text-slate-700">#3644 · David Miller</strong></span>
-                      <span className="text-slate-400 font-mono">Yesterday</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trust strip */}
-      <section className="py-12 px-6 border-y border-[#E7E9EC] bg-slate-50/50">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-center text-[13px] text-[#8A94A3] mb-6 font-medium">Built specifically for the way modern pawn shops operate</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-            {["Customer & KYC management", "Digital pawn tickets", "Automated interest calculations", "Secure cloud records", "Business reporting"].map((item) => (
-              <span key={item} className="flex items-center gap-2 text-[13.5px] text-[#3A4350] font-medium">
-                <Check className="h-4 w-4 text-emerald-600" /> {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="py-24 px-6 max-w-6xl mx-auto">
-        <div className="max-w-xl mb-14">
-          <h2 className="text-3xl sm:text-[34px] font-extrabold tracking-tight mb-3">Less paperwork. More control.</h2>
-          <p className="text-[#55606D] text-base">Everything your team needs to manage the counter, the vault and the books.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { icon: Users, title: "Know every customer", desc: "Find customer records, KYC documents and complete ticket history instantly." },
-            { icon: Ticket, title: "Never lose track of collateral", desc: "Create detailed pawn tickets and keep every item, valuation and vault record organized." },
-            { icon: Calculator, title: "Get the numbers right", desc: "Calculate interest, repayments and outstanding balances automatically." },
-          ].map((card) => (
-            <div key={card.title} className="bg-white p-8 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow">
-              <card.icon className="h-6 w-6 text-indigo-600 mb-5" strokeWidth={1.75} />
-              <h3 className="text-[17px] font-semibold mb-2">{card.title}</h3>
-              <p className="text-[14px] text-[#55606D] leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Interactive preview */}
-      <section id="interactive-preview" className="py-24 px-6 bg-[#F6F7F8]">
-        <div className="max-w-6xl mx-auto">
-          <div className="max-w-xl mb-10">
-            <h2 className="text-3xl md:text-[34px] font-extrabold tracking-tight mb-3">Don&apos;t take our word for it.</h2>
-            <p className="text-[#55606D] text-[15px]">Click through the product and see how GIRVI works before creating an account.</p>
+              View features
+            </a>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E7E9EC] overflow-hidden flex flex-col lg:flex-row min-h-[560px] shadow-sm">
-            <div className="w-full lg:w-56 bg-[#F6F7F8] border-b lg:border-b-0 lg:border-r border-[#E7E9EC] p-3 flex flex-row lg:flex-col gap-1 overflow-x-auto shrink-0">
-              {previewTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActivePreviewTab(tab.id)}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-colors shrink-0 text-left w-full cursor-pointer ${
-                    activePreviewTab === tab.id ? "bg-[#14181F] text-white" : "text-[#55606D] hover:bg-white"
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4 shrink-0" />{tab.label}
+          {/* 3-Pill Feature Row */}
+          
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          3. REALISTIC APPLICATION DASHBOARD PREVIEW
+      ─────────────────────────────────────────────────────────────── */}
+      <section id="product" className="pb-24 px-4 sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          
+          <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)]">
+            
+            {/* Top Workspace Header */}
+            <div className="flex items-center justify-between border-b border-[#F0F2F5] px-6 py-3 bg-white">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white font-black text-xs">
+                  G
+                </span>
+                <span className="font-extrabold tracking-tight text-[#0F172A] text-sm">
+                  GIRVI
+                </span>
+              </div>
+
+              {/* Global Search Bar */}
+              <div className="relative w-80 hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
+                <input
+                  type="text"
+                  placeholder="Search by customer, item or pledge ID..."
+                  readOnly
+                  className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] py-1.5 pl-8 pr-3 text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none"
+                />
+              </div>
+
+              {/* User Profile */}
+              <div className="flex items-center gap-3">
+                <button className="text-[#6B7280] hover:text-[#111827]">
+                  <Bell className="h-4 w-4" />
                 </button>
-              ))}
+                <div className="flex items-center gap-2 border-l border-[#F0F2F5] pl-3">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F172A] text-[10px] font-bold text-white">
+                    NK
+                  </div>
+                  <span className="text-xs font-semibold text-[#111827] hidden sm:inline">
+                    Nikhil Traders
+                  </span>
+                  <ChevronDown className="h-3 w-3 text-[#9CA3AF]" />
+                </div>
+              </div>
             </div>
 
-            <div className="flex-1 p-6 md:p-8 flex flex-col justify-between">
-              <div key={activePreviewTab} className="flex-1 flex flex-col anim-fade-up">
-                {activePreviewTab === "dashboard" && (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center pb-4 border-b border-[#F1F2F4]">
-                      <h3 className="text-lg font-semibold">Good morning, Manager 👋</h3>
-                      <span className="px-3 py-1.5 text-[11px] font-medium text-[#55606D] bg-[#F6F7F8] rounded-lg flex items-center gap-1.5"><RefreshCw className="h-3 w-3" /> Sync Active</span>
+            {/* Split Dashboard Body */}
+            <div className="grid grid-cols-12 min-h-[520px]">
+              
+              {/* Sidebar */}
+              <div className="col-span-12 md:col-span-3 border-r border-[#F0F2F5] bg-[#FBFBFC] p-4 space-y-1 text-xs">
+                <div className="rounded-lg bg-[#EFF6FF] px-3 py-2 font-semibold text-[#2563EB] flex items-center gap-2.5">
+                  <LayoutDashboard className="h-4 w-4" />
+                  Overview
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <Layers className="h-4 w-4 text-[#9CA3AF]" />
+                  Pledges
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <Users className="h-4 w-4 text-[#9CA3AF]" />
+                  Customers
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <Archive className="h-4 w-4 text-[#9CA3AF]" />
+                  Inventory
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <CreditCard className="h-4 w-4 text-[#9CA3AF]" />
+                  Payments
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <FileText className="h-4 w-4 text-[#9CA3AF]" />
+                  Reports
+                </div>
+                <div className="px-3 py-2 text-[#4B5563] hover:text-[#111827] flex items-center gap-2.5">
+                  <Settings className="h-4 w-4 text-[#9CA3AF]" />
+                  Settings
+                </div>
+              </div>
+
+              {/* Main Workspace Area */}
+              <div className="col-span-12 md:col-span-9 p-6 space-y-6">
+                
+                {/* Greeting & Date Filter */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-[#111827]">Overview</h3>
+                    <p className="text-xs text-[#6B7280]">Good morning, Nikhil</p>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs text-[#374151] shadow-2xs">
+                    <Calendar className="h-3.5 w-3.5 text-[#6B7280]" />
+                    <span>Oct 1, 2026 - Oct 31, 2026</span>
+                    <ChevronDown className="h-3 w-3 text-[#9CA3AF]" />
+                  </div>
+                </div>
+
+                {/* 4 KPI Metrics */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-[#F0F2F5] bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] text-[#6B7280] font-medium block">Total pledges</span>
+                    <p className="text-lg font-bold font-mono text-[#111827] mt-1">₹8,42,500</p>
+                    <span className="text-[10px] text-emerald-600 font-semibold">↑ 12% from last month</span>
+                  </div>
+
+                  <div className="rounded-xl border border-[#F0F2F5] bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] text-[#6B7280] font-medium block">Due this week</span>
+                    <p className="text-lg font-bold font-mono text-[#111827] mt-1">24</p>
+                    <span className="text-[10px] text-rose-600 font-semibold">6 overdue</span>
+                  </div>
+
+                  <div className="rounded-xl border border-[#F0F2F5] bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] text-[#6B7280] font-medium block">Payments received</span>
+                    <p className="text-lg font-bold font-mono text-[#111827] mt-1">₹1,26,000</p>
+                    <span className="text-[10px] text-emerald-600 font-semibold">↑ 18% from last month</span>
+                  </div>
+
+                  <div className="rounded-xl border border-[#F0F2F5] bg-white p-3.5 shadow-2xs">
+                    <span className="text-[10px] text-[#6B7280] font-medium block">Total customers</span>
+                    <p className="text-lg font-bold font-mono text-[#111827] mt-1">183</p>
+                    <span className="text-[10px] text-emerald-600 font-semibold">↑ 8% from last month</span>
+                  </div>
+                </div>
+
+                {/* Charts Split Area */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  {/* Activity Line Graph */}
+                  <div className="md:col-span-8 rounded-xl border border-[#F0F2F5] p-4 bg-white shadow-2xs">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-[#111827]">Pledge activity</span>
+                      <span className="text-[10px] text-[#6B7280] border border-[#E5E7EB] px-2 py-0.5 rounded">
+                        Last 30 days ▾
+                      </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="bg-[#F6F7F8] p-4 rounded-xl"><span className="text-[10px] font-medium text-[#8A94A3] uppercase tracking-wider block mb-1">Active Loans</span><span className="text-xl font-semibold font-mono">$184,250</span></div>
-                      <div className="bg-[#F6F7F8] p-4 rounded-xl"><span className="text-[10px] font-medium text-[#8A94A3] uppercase tracking-wider block mb-1">Interest Collected</span><span className="text-xl font-semibold font-mono text-[#059669]">$4,850</span></div>
-                      <div className="bg-[#F6F7F8] p-4 rounded-xl"><span className="text-[10px] font-medium text-[#8A94A3] uppercase tracking-wider block mb-1">Vault Items</span><span className="text-xl font-semibold">412</span></div>
-                    </div>
-                    <div className="bg-[#F6F7F8] p-5 rounded-xl flex-1">
-                      <span className="text-xs font-semibold mb-4 block">Recent Activity</span>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#E7E9EC]"><span className="font-medium">New pawn ticket · Robert Downey</span><span className="text-[#8A94A3] font-mono">10:45 AM</span></div>
-                        <div className="flex items-center justify-between text-xs pb-3 border-b border-[#E7E9EC]"><span className="font-medium">Interest payment · Clara Oswald</span><span className="text-[#8A94A3] font-mono">09:12 AM</span></div>
-                        <div className="flex items-center justify-between text-xs"><span className="font-medium">Redemption · David Miller</span><span className="text-[#8A94A3] font-mono">Yesterday</span></div>
+
+                    <div className="relative h-28 w-full pt-2">
+                      <svg viewBox="0 0 400 100" className="w-full h-full overflow-visible">
+                        <path
+                          d="M 0,80 Q 50,75 80,60 T 160,70 T 240,40 T 320,65 T 400,30"
+                          fill="none"
+                          stroke="#3B82F6"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                      <div className="flex justify-between text-[9px] text-[#9CA3AF] mt-2 font-mono">
+                        <span>Oct 1</span>
+                        <span>Oct 10</span>
+                        <span>Oct 20</span>
+                        <span>Oct 31</span>
                       </div>
                     </div>
                   </div>
-                )}
 
-                {activePreviewTab === "customers" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Customers</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-[#8A94A3]" />
-                        <input type="text" placeholder="Search by name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full text-xs pl-9 pr-4 py-2.5 border border-[#E7E9EC] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#14181F]" />
+                  {/* Donut Status Chart */}
+                  <div className="md:col-span-4 rounded-xl border border-[#F0F2F5] p-4 bg-white shadow-2xs flex flex-col justify-between">
+                    <span className="text-xs font-bold text-[#111827]">Pledge status</span>
+                    
+                    <div className="flex items-center gap-3 my-2">
+                      <div className="relative h-16 w-16 shrink-0 flex items-center justify-center">
+                        <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="14" fill="none" stroke="#E5E7EB" strokeWidth="4" />
+                          <circle
+                            cx="18"
+                            cy="18"
+                            r="14"
+                            fill="none"
+                            stroke="#3B82F6"
+                            strokeWidth="4"
+                            strokeDasharray="65 100"
+                          />
+                        </svg>
+                        <span className="absolute text-[11px] font-bold text-[#111827]">128</span>
                       </div>
-                      <button className="px-4 py-2.5 bg-[#14181F] text-white text-xs font-semibold rounded-xl shrink-0">+ New Customer</button>
-                    </div>
-                    <div className="bg-[#F6F7F8] rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead className="text-[#8A94A3] font-medium uppercase tracking-wider text-[10px]"><tr><th className="p-3.5">Name</th><th className="p-3.5">Location</th><th className="p-3.5">Active Loans</th><th className="p-3.5">KYC Status</th><th className="p-3.5 text-right">Total Debt</th></tr></thead>
-                        <tbody className="divide-y divide-[#E7E9EC] font-medium">
-                          {filteredCustomers.length > 0 ? filteredCustomers.map((customer) => (
-                            <tr key={customer.id}>
-                              <td className="p-3.5 font-semibold">{customer.name}</td><td className="p-3.5">{customer.city}</td><td className="p-3.5">{customer.tickets} Tickets</td>
-                              <td className="p-3.5"><span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${customer.kyc === "Verified" ? "bg-emerald-50 text-[#059669]" : "bg-amber-50 text-[#D97706]"}`}>{customer.kyc}</span></td>
-                              <td className="p-3.5 text-right font-mono font-semibold">${customer.totalLoan.toLocaleString()}</td>
-                            </tr>
-                          )) : (
-                            <tr><td colSpan={5} className="p-8 text-center text-[#8A94A3]">No matches for &quot;{searchQuery}&quot;</td></tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
 
-                {activePreviewTab === "tickets" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Pawn Ticket Detail</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-2 bg-[#F6F7F8] rounded-xl p-5 space-y-4">
-                        <span className="text-xs font-semibold text-[#314259]">Ticket #4092</span>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Item Category</span><span className="text-xs font-semibold">Gold Necklace & Pendant</span></div>
-                          <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Purity</span><span className="text-xs font-semibold">22K Hallmark Gold</span></div>
-                          <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Gross Weight</span><span className="text-xs font-semibold font-mono">18.40 grams</span></div>
-                          <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Net Gold Weight</span><span className="text-xs font-semibold font-mono">17.20 grams</span></div>
+                      <div className="space-y-1 text-[10px] text-[#4B5563] w-full">
+                        <div className="flex justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#3B82F6]" /> Active
+                          </span>
+                          <span className="font-semibold text-[#111827]">84</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Due soon
+                          </span>
+                          <span className="font-semibold text-[#111827]">24</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" /> Overdue
+                          </span>
+                          <span className="font-semibold text-[#111827]">12</span>
                         </div>
                       </div>
-                      <div className="bg-[#F6F7F8] rounded-xl p-5 space-y-3">
-                        <div className="flex justify-between text-xs"><span className="text-[#8A94A3]">Principal:</span><span className="font-semibold font-mono">$1,200.00</span></div>
-                        <div className="flex justify-between text-xs"><span className="text-[#8A94A3]">Monthly Rate:</span><span className="font-semibold font-mono">3.00%</span></div>
-                        <div className="flex justify-between text-xs"><span className="text-[#8A94A3]">Issue Date:</span><span className="font-semibold">Jul 07, 2026</span></div>
-                        <button className="w-full py-2 bg-[#14181F] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 mt-2"><Printer className="h-4 w-4" /> Print Ticket</button>
-                      </div>
                     </div>
-                  </div>
-                )}
 
-                {activePreviewTab === "payments" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Repayments</h3>
-                    <div className="bg-[#F6F7F8] rounded-xl p-5">
-                      <span className="text-xs font-semibold block mb-4">Record a Payment</span>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Ticket</span><div className="text-xs p-2.5 bg-white rounded-lg font-semibold">Ticket #4092</div></div>
-                        <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Interest Owed</span><div className="text-xs p-2.5 bg-white rounded-lg text-[#314259] font-semibold font-mono">$36.00</div></div>
-                        <div><span className="text-[10px] font-medium text-[#8A94A3] uppercase block mb-1">Principal</span><div className="text-xs p-2.5 bg-white rounded-lg font-semibold font-mono">$1,200.00</div></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activePreviewTab === "reports" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Business Reports</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-[#F6F7F8] p-5 rounded-xl space-y-2"><span className="text-xs font-semibold block">Vault Valuation</span><span className="text-2xl font-semibold font-mono block">12.84 kg</span></div>
-                      <div className="bg-[#F6F7F8] p-5 rounded-xl space-y-2"><span className="text-xs font-semibold block">Interest Conversion</span><span className="text-2xl font-semibold font-mono text-[#314259] block">94.2%</span></div>
-                    </div>
-                  </div>
-                )}
-
-                {activePreviewTab === "staff" && (
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold">Staff & Roles</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3.5 bg-[#F6F7F8] rounded-lg">
-                        <div><span className="text-xs font-semibold block">Manager</span><span className="text-[10px] text-[#8A94A3]">Views metrics, adjusts interest rates</span></div>
-                        <span className="text-[10px] font-semibold text-[#059669] bg-emerald-50 px-2 py-0.5 rounded">Full Access</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3.5 bg-[#F6F7F8] rounded-lg">
-                        <div><span className="text-xs font-semibold block">Cashier</span><span className="text-[10px] text-[#8A94A3]">Creates tickets, records payments</span></div>
-                        <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Restricted</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Calculator Footer */}
-              <div className="mt-8 border-t border-[#F1F2F4] pt-6">
-                <div className="bg-[#F6F7F8] p-4.5 rounded-xl flex flex-col md:flex-row gap-5 items-center justify-between">
-                  <div className="flex-1 w-full space-y-4">
-                    <span className="text-[11px] font-semibold text-[#314259] flex items-center gap-1.5"><Calculator className="h-4 w-4" /> Try the interest calculator</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div><label className="text-[9px] font-medium text-[#8A94A3] uppercase block mb-1">Loan Amount</label><input type="number" value={calculatorLoanAmount} onChange={(e) => setCalculatorLoanAmount(Number(e.target.value))} className="w-full text-xs p-1.5 bg-white border border-[#E7E9EC] rounded-md font-mono text-right" /></div>
-                      <div><label className="text-[9px] font-medium text-[#8A94A3] uppercase block mb-1">Rate % / Month</label><input type="number" value={calculatorRate} onChange={(e) => setCalculatorRate(Number(e.target.value))} className="w-full text-xs p-1.5 bg-white border border-[#E7E9EC] rounded-md font-mono text-right" /></div>
-                      <div><label className="text-[9px] font-medium text-[#8A94A3] uppercase block mb-1">Duration (Months)</label><input type="number" value={calculatorMonths} onChange={(e) => setCalculatorMonths(Number(e.target.value))} className="w-full text-xs p-1.5 bg-white border border-[#E7E9EC] rounded-md font-mono text-right" /></div>
-                    </div>
-                  </div>
-                  <div className="w-full md:w-auto bg-[#14181F] text-white p-4 rounded-xl text-center flex flex-row md:flex-col justify-between md:justify-center items-center gap-1 md:gap-2 self-stretch min-w-[150px]">
-                    <div><span className="text-[9px] uppercase tracking-wide text-slate-400 block font-medium">Total Repayable</span><span className="text-lg font-mono font-semibold">${calcTotalRepay()}</span></div>
-                    <span className="text-[9.5px] text-slate-400 block border-t border-slate-700 pt-1 w-full mt-1 hidden md:block">Interest: ${calcInterest()}</span>
+                    <span className="text-[10px] text-[#9CA3AF] text-center">Total 128 items</span>
                   </div>
                 </div>
+
+                {/* Table: Recent Pledges */}
+                <div className="rounded-xl border border-[#F0F2F5] bg-white overflow-hidden shadow-2xs">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0F2F5]">
+                    <span className="text-xs font-bold text-[#111827]">Recent pledges</span>
+                    <span className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer">
+                      View all →
+                    </span>
+                  </div>
+
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F9FAFB] text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-2.5 px-4">Customer</th>
+                        <th className="py-2.5 px-4">Item</th>
+                        <th className="py-2.5 px-4">Amount</th>
+                        <th className="py-2.5 px-4">Pledge date</th>
+                        <th className="py-2.5 px-4">Due date</th>
+                        <th className="py-2.5 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F2F5] text-[11px] text-[#374151]">
+                      <tr>
+                        <td className="py-3 px-4 font-semibold text-[#111827]">Ramesh Kumar</td>
+                        <td className="py-3 px-4">Gold Necklace</td>
+                        <td className="py-3 px-4 font-mono font-bold text-[#111827]">₹62,000</td>
+                        <td className="py-3 px-4 text-[#6B7280]">Oct 12, 2026</td>
+                        <td className="py-3 px-4 text-[#6B7280]">Nov 12, 2026</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            Active
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4 font-semibold text-[#111827]">Suresh Patel</td>
+                        <td className="py-3 px-4">Gold Bangles (Pair)</td>
+                        <td className="py-3 px-4 font-mono font-bold text-[#111827]">₹45,000</td>
+                        <td className="py-3 px-4 text-[#6B7280]">Oct 15, 2026</td>
+                        <td className="py-3 px-4 text-[#6B7280]">Nov 15, 2026</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            Active
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* Workflow Section */}
-      <section id="workflow" className="py-24 px-6 bg-[#F6F7F8]">
-        <div className="max-w-6xl mx-auto">
-          <div className="max-w-xl mb-14">
-            <span className="text-[13px] text-[#8A94A3] mb-3 block font-medium">Workflow</span>
-            <h2 className="text-3xl sm:text-[34px] font-extrabold tracking-tight mb-3">From walk-in to receipt in minutes.</h2>
-            <p className="text-[#55606D] text-[15px]">Every step of the pawn process, handled in one place without switching tools.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {workflowSteps.map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm hover:shadow-md transition-shadow">
-                <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md font-mono mb-3 inline-block">{s.step}</span>
-                <h3 className="text-[15px] font-semibold mb-1.5 text-[#14181F]">{s.title}</h3>
-                <p className="text-[13px] text-[#55606D] leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq" className="py-24 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-12 text-center">
-            <span className="text-[13px] text-[#8A94A3] mb-3 block font-medium">FAQ</span>
-            <h2 className="text-3xl sm:text-[34px] font-extrabold tracking-tight">Common questions.</h2>
-          </div>
-          <div className="divide-y divide-[#E7E9EC]">
-            {faqs.map((faq, i) => (
-              <div key={i} className="py-5">
-                <button
-                  onClick={() => toggleFaq(i)}
-                  className="w-full flex items-center justify-between text-left gap-4 cursor-pointer"
-                >
-                  <span className="text-[15px] font-semibold text-[#14181F]">{faq.q}</span>
-                  <ChevronDown
-                    className={`h-5 w-5 text-[#8A94A3] shrink-0 transition-transform duration-200 ${
-                      faqOpen[i] ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {faqOpen[i] && (
-                  <p className="mt-3 text-[14px] text-[#55606D] leading-relaxed">{faq.a}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="contact" className="border-t border-[#E7E9EC] py-12 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* ─────────────────────────────────────────────────────────────
+          4. CLEAN FOOTER
+      ─────────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-[#F0F2F5] py-8 text-xs text-[#6B7280] bg-white">
+        <div className="mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/icon.png" alt="GIRVI logo" width={32} height={32} className="rounded-lg" />
-            <span className="font-bold text-[15px]">GIRVI</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0F172A] text-[10px] font-bold text-white">
+              G
+            </span>
+            <span className="font-bold text-[#111827]">GIRVI</span>
+            <span>— Simple pawn shop management</span>
           </div>
-          <span className="text-[12.5px] text-[#8A94A3]">© 2026 GIRVI. All rights reserved.</span>
+
+          <div className="flex items-center gap-6">
+            <Link href="/" className="hover:text-[#111827] transition">Privacy</Link>
+            <Link href="/" className="hover:text-[#111827] transition">Terms</Link>
+            <Link href="/login" className="hover:text-[#111827] transition">Sign In</Link>
+          </div>
         </div>
       </footer>
+
     </div>
   );
 }
+
+export { GirviLandingPage as LandingPage };
